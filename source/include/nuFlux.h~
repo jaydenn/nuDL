@@ -1,5 +1,0 @@
-int initFlux(paramList *pList);
-
-double nuFlux(double Enu, paramList *pList);
-
-double nuFluxInteg(double EnuMin, paramList *pList);

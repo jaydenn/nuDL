@@ -1,2 +1,0 @@
-//gives CNNS rate
-int CNNSrate(double Er, paramList *pList, int detj);
