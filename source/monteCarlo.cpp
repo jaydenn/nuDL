@@ -5,9 +5,9 @@
 #include <gsl/gsl_rng.h>
 #include <iomanip>
 #include "parameterStruct.h"
-#include "detectors.h"
-#include "detectorFunctions.h"
-
+#ifndef DETECTORFUNCTIONS_H
+	#include "detectorFunctions.h"
+#endif
 int SEED=0;
 
 /*

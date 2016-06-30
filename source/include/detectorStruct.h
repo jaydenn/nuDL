@@ -5,6 +5,7 @@
 #ifndef GSL_SPLINE_H
     #include <gsl/gsl_spline.h>
 #endif
+#define DETECTORSTRUCT_H
 
 struct detector {
     char name[20];
@@ -49,10 +50,12 @@ struct detector {
     
     detector()
     {
-        nIso=-1; AM=-1; isoA[0]=-1; isoFrac[0]=-1; ErL=0; ErU=-1; bg=-1; eff=-1; res=-1, nEvents=0;
+        nIso=0; AM=-1; isoA[0]=-1; isoFrac[0]=-1; ErL=0; ErU=-1; bg=-1; eff=-1; res=-1, nEvents=0;
                 
-        background = gsl_spline_alloc(gsl_interp_linear,500);
+        background = gsl_spline_alloc(gsl_interp_linear,1000);
         accel = gsl_interp_accel_alloc();
     }
+    
+    
 };
 

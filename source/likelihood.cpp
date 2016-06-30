@@ -5,9 +5,10 @@
 #include <gsl/gsl_randist.h>
 #include "parameterStruct.h"
 #include "CNNSrate.h"
-#include "detectors.h"
-#include "detectorFunctions.h"
-#include <assert.h>
+#ifndef DETECTORFUNCTIONS_H
+	#include "detectorFunctions.h"
+#endif
+
     
 //natural log of Poisson dist: gives more accurate values for small probabilities (because of machine precision)
 double logPoisson(double obs, double expect)
