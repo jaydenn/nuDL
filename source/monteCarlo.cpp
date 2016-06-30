@@ -26,10 +26,8 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
     gsl_rng_set(r, simSeed + SEED++);
 
     //total signal and background, for setting bin size
-    double signal = intCNNSrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj) * pList->detectors[detj].exposure;
-    double background = b * intBgRate(pList->detectors[detj], pList->detectors[detj].ErL, pList->detectors[detj].ErU) * pList->detectors[detj].exposure; 
-    std::cout << signal << " " << background << std::endl;
-    
+    double signal = pList->signalNorm * pList->rateFunc( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj) * pList->detectors[detj].exposure;
+    double background =  pList->nuFluxNorm * b * intBgRate(pList->detectors[detj], pList->detectors[detj].ErL, pList->detectors[detj].ErU) * pList->detectors[detj].exposure;     
     
     //setup bins //somewhat arbitrary choice of number of bins.. seems to work for exponential data
     pList->detectors[detj].nbins = floor( sqrt(signal+background) )+2;
@@ -44,15 +42,15 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
       std::cerr << "bad_alloc caught: " << ba.what() << std::endl << "you requested: " << pList->detectors[detj].nbins << " doubles" <<std::endl;
       return 1;
     }
-    
+
     
     for(int i=0; i<pList->detectors[detj].nbins; i++)
     {
         Er_min = (double)i*pList->detectors[detj].binW+pList->detectors[detj].ErL;
         Er_max = (double)(i+1)*pList->detectors[detj].binW+pList->detectors[detj].ErL;
-         
+        
         background = b * intBgRate(pList->detectors[detj], Er_min, Er_max) * pList->detectors[detj].exposure;
-        signal = intCNNSrate( Er_min, Er_max, pList, detj) * pList->detectors[detj].exposure; 
+        signal = pList->signalNorm * pList->rateFunc( Er_min, Er_max, pList, detj) * pList->detectors[detj].exposure; 
 
         if( pList->asimov == 1) 
             pList->detectors[detj].binnedData[i] = gsl_ran_poisson(r,signal+background);

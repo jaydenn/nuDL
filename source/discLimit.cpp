@@ -11,6 +11,7 @@
 #endif	
 #include "likelihood.h"
 #include "monteCarlo.h"
+#include "CNNSrate.h"
 
 
 double my_LS(const gsl_vector *v, void *params)
@@ -72,7 +73,7 @@ double findMaxLS(paramList *pL)
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);       
-        //cout << "       " <<iter << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << s->fval << endl; 
+    //    std::cout << "       " <<iter << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
     while (iter < 2000 && gsl_multimin_fminimizer_size(s)>.001); //s->fval>1e-2);
     
@@ -121,7 +122,7 @@ double findMaxL0(paramList *pL)
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);
-        //cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << s->fval << endl; 
+    //    std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << s->fval << std::endl; 
     }
     while (iter < 2000 && gsl_multimin_fminimizer_size(s)>.001);///s->fval > 1e-2 && !status);
     if(iter==2000)
@@ -152,10 +153,11 @@ double my_q0(const gsl_vector *v, void *params)
 
     double simSeed = 0;
     paramList *pL = (paramList *)params;    
-   
+    
+    pL->nuFluxNorm = 1;
     pL->signalNorm = gsl_vector_get(v, 0);       
     generateBinnedData( pL, pL->detj, 1, simSeed);
- 
+
     return pow( sqrt(q0(pL)) - 4.28, 2);  //arbitrary function with a minima at 3 sigma
 }
 
@@ -179,7 +181,7 @@ double findCoeff3sig(paramList *pL)
     //start point
     x = gsl_vector_alloc (1);
     dx = gsl_vector_alloc (1);
-    
+
     gsl_vector_set (x, 0, pL->signalNorm);
     gsl_vector_set(dx, 0, pL->signalNorm/10);
 
@@ -188,12 +190,11 @@ double findCoeff3sig(paramList *pL)
 
     gsl_multimin_fminimizer_set (s, &my_func, x, dx);
 
-
     do
     {
         status = gsl_multimin_fminimizer_iterate (s);
         iter++;
-        //cout << iter << " " << gsl_vector_get(s->x,0) << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << endl;
+     //   std::cout <<  pL->detectors[0].exposure << "  " << iter << " " << gsl_vector_get(s->x,0) << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
     }
     while (iter < 2000 && s->fval > .0002 && !status); //under 1% error in 4.28 sigma value
         
@@ -223,10 +224,10 @@ void discLimit(paramList *pL, int detj)
     std::cout << "writing output to: " << filename << std::endl;    
     outfile.open(filename,std::ios::out);
     
-    double mu;
+    double mu=3;
+    pL->signalNorm = mu;
     pL->detj = detj;
-    //InitializeBSM();
-
+    
     while (pL->detectors[detj].exposure < 1e3)
     {
 
@@ -236,7 +237,7 @@ void discLimit(paramList *pL, int detj)
         std::cout << pL->detectors[detj].exposure << "  " << mu << std::endl;
         outfile   << pL->detectors[detj].exposure << "  " << mu << std::endl;
         
-        pL->signalNorm = mu;      //update guess
+        //pL->signalNorm = mu;      //update guess
 
         pL->detectors[detj].exposure*=2; //increment exposure
         

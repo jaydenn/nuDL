@@ -49,12 +49,14 @@ int main(int argc, char *argv[])
     //initialize reactor flux
     err = initFlux(&pList);
     if(err) { std::cout << "Problem with flux, exiting" << std::endl; return 1; }
-       
-    //discLimit(&pList, 0);
+    
+    SMrateInit(&pList, 0);
+    pList.rateFunc = &intSMrate;    
+    discLimit(&pList, 0);
        
     for (int i=50; i<1001; i+=10)
     {
-        std::cout << (double)i << "   " << pList.detectors[0].exposure * intCNNSrate( (double) i/1e3, (double) (i+10)/1e3, &pList, 0) << "    " << 100*pList.detectors[0].exposure*1e-2*365 << std::endl; 
+        std::cout << (double)i << "   " << pList.detectors[0].exposure * intCNNSrate( (double) i/1e3, (double) (i+10)/1e3, &pList, 0) << "    " << 100*pList.detectors[0].exposure*1e-2 << std::endl; 
     }
        
     return 0;

@@ -16,7 +16,8 @@
 	#include "parameterStruct.h"
 #endif	
 
-double FIRSTEVAL = 0;
+double FIRSTEVALCNS = 0;
+double FIRSTEVALSM = 0;
 gsl_integration_workspace * W;
 const double GFERMI = 1.1664e-5; //GeV^-2
 const double HBAR	= 6.5821e-25; //GeV*s
@@ -51,10 +52,10 @@ double CNSintegral(double ErGeV,  paramList *pList, int detj, int EnuPow)
 	pList->A = pList->detectors[detj].AM;
 	pList->Er = ErGeV;
 			
-	if(FIRSTEVAL==0)
+	if(FIRSTEVALCNS==0)
 	{
 		W = gsl_integration_workspace_alloc (1000);
-		FIRSTEVAL=1;
+		FIRSTEVALCNS=1;
 	}
 	
 	if(EnuPow==0)
@@ -73,19 +74,19 @@ double CNSintegral(double ErGeV,  paramList *pList, int detj, int EnuPow)
 	return integral;	
 }
 
-//returns CNNS rate per kg/year/keV
+//returns CNNS rate per kg/day/keV
 double CNNSrate(double ErKeV, paramList *pList, int detj)						  
 {
 
 	double ErGeV = ErKeV/GeVtoKeV;
-	double secsPerYear = 365.25*24*60*60; 
+	double secsPerDay = 24*60*60; 
 	double atomsPerKG =	 GeVperKG / ( pList->detectors[detj].AM * MN); 
 
 	double intConst	   = CNSintegral( ErGeV, pList, detj, 0);
 	double intInvEnu   = CNSintegral( ErGeV, pList, detj, -1);
 	double intInvEnuSq = CNSintegral( ErGeV, pList, detj, -2);
 
-	return pow(GFERMI,2) / ( 2 * M_PI ) * (MN*pList->detectors[detj].AM) / GeVtoKeV * atomsPerKG * secsPerYear
+	return pow(GFERMI,2) / ( 2 * M_PI ) * (MN*pList->detectors[detj].AM) / GeVtoKeV * atomsPerKG * secsPerDay
 			* ( 
 				  intConst	  * 2*( pow(pList->qA,2) + pow(pList->qV,2) )
 				- intInvEnu	  * 2*ErGeV*pow(pList->qA-pList->qV,2) 
@@ -124,6 +125,7 @@ double BSMrate(double ErKeV, paramList *pList, int detj)
 //returns SM rate per kg/year/keV
 double SMrate(double ErKeV, paramList *pList, int detj)							  
 {
+    
 	double rate = 0;
 	paramList pListSM = *pList;
 	
@@ -135,7 +137,6 @@ double SMrate(double ErKeV, paramList *pList, int detj)
 	}
 	   
 	return rate; 
-	
 }
 
 class ErIntegral
@@ -156,4 +157,24 @@ double intCNNSrate(double Er_min, double Er_max, paramList *pList, int detj)
 	erInt.detj = detj;
 
 	return DEIntegrator<ErIntegral>::Integrate(erInt,Er_min,Er_max,1e-4);
+}
+
+//should make this loop over detectors
+void SMrateInit( paramList *pList, int detj)	
+{
+    double Er[1000];
+    double sigSM[1000];
+    for(int i=0; i<1000; i++)
+    {
+        Er[i] = pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/999;
+        sigSM[i] = SMrate( (double)Er[i], pList, detj);	
+    }
+
+    //create gsl interpolation object
+    gsl_spline_init(pList->detectors[detj].signalSM,Er,sigSM,1000);
+}
+
+double intSMrate(double Er_min, double Er_max, paramList *pList, int detj)						  
+{   
+    return gsl_spline_eval_integ(pList->detectors[detj].signalSM, Er_min, Er_max, pList->detectors[detj].accelSM);
 }

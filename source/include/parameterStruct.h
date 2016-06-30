@@ -24,7 +24,8 @@ struct paramList {
     
 	//setup for rate integration
 	gsl_function F;
-	 
+	double (*rateFunc)(double, double, paramList *, int);
+     
 	double A; //is this used?
 	double qA, qAn, qAp;
 	double qV, qVn, qVp;
@@ -127,7 +128,7 @@ struct paramList {
 				 
 		fclose(detsINI);
 		
-		//only need to calculate background once, store in a table for interpolation, stored as events/kg/day/keV
+		//only need to calculate background and SM signal once, store in a table for interpolation, stored as events/kg/day/keV
 		//get values of bg at relevant energies
 		double Er[1000];
 		double Bg[1000];

@@ -43,8 +43,8 @@ double logLikelihood(paramList *pList)
             Er_min = (double)i*pList->detectors[detj].binW + pList->detectors[detj].ErL;
             Er_max = (double)(i+1)*pList->detectors[detj].binW + pList->detectors[detj].ErL;
             
-            background = intBgRate( pList->detectors[detj], Er_min, Er_max) * pList->detectors[detj].exposure;
-            signal     = pList->signalNorm * intCNNSrate( Er_min, Er_max, pList, detj) * pList->detectors[detj].exposure; 
+            background = pList->nuFluxNorm * intBgRate( pList->detectors[detj], Er_min, Er_max) * pList->detectors[detj].exposure;
+            signal     = pList->signalNorm * pList->rateFunc( Er_min, Er_max, pList, detj) * pList->detectors[detj].exposure; 
 
             l = logPoisson( pList->detectors[detj].binnedData[i], signal+background+1e-99);
             loglike += l;
