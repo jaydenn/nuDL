@@ -4,49 +4,17 @@
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_rng.h>
 #include <iomanip>
-#include "parameterStruct.h"
+#include "CNNSrate.h"
+#ifndef PARAMETERSTRUCT_H
+    #include "parameterStruct.h"
+#endif
 #ifndef DETECTORFUNCTIONS_H
 	#include "detectorFunctions.h"
 #endif
+
 int SEED=0;
 
-/*
-//Generates random number of randomly distributed according to dN/dE for parameters in cube, for detector det (0 or 1, corresponding to order in sampling.par), recoil energies [keV] are stored in MCdata
-int generateUnbinnedData(WIMPpars W, detector *det, int b, int simSeed)
-{
-
-    double signal = intWIMPrate( det->ErL, det->ErU, W, *det) * det->exposure;   
-    double background= b*intBgRate(det, det->ErL, det->ErU) * det->exposure; 
-     
-    const gsl_rng_type * T;
-    gsl_rng * r;
-    gsl_rng_env_setup();
-    T=gsl_rng_default;
-    r=gsl_rng_alloc(T);
-    gsl_rng_set(r, simSeed + SEED++);
-    
-    det->nEvents = gsl_ran_poisson(r,signal+background);
-    
-    det->unbinnedData = new double[(int)det->nEvents];
-    
-    double norm = diffWIMPrate( det->ErL, W, *det) + b*diffBgRate(*det,det->ErL);
-    int i = 0;
-    double Er,y;
-    while ( i < det->nEvents)
-    {
-        Er = gsl_rng_uniform(r)*(det->ErU-det->ErL) + det->ErL;
-        y = gsl_rng_uniform(r);
-        if( (diffWIMPrate( det->ErL, W, *det) + b*diffBgRate(*det,det->ErL))/norm  > y )
-        {
-            det->unbinnedData[i] = Er;
-            i++;
-        }
-    }
-    
-    return 0;
-}*/
-
-int generateBinnedData(int detj, int b, int simSeed)
+int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
 {
 
     double Er_min, Er_max;
@@ -58,43 +26,42 @@ int generateBinnedData(int detj, int b, int simSeed)
     gsl_rng_set(r, simSeed + SEED++);
 
     //total signal and background, for setting bin size
-double signal = 0;//intWIMPrate( det->ErL, det->ErU, W, det) * det->exposure;
-double background = 0;//b * intBgRate(det, det->ErL, det->ErU) * det->exposure; 
-    //cout << signal << " " << background << endl;
-    //somewhat arbitrary choice of number of bins.. seems to work for exponential data
+    double signal = intCNNSrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj) * pList->detectors[detj].exposure;
+    double background = b * intBgRate(pList->detectors[detj], pList->detectors[detj].ErL, pList->detectors[detj].ErU) * pList->detectors[detj].exposure; 
+    std::cout << signal << " " << background << std::endl;
     
-    //setup bins
-    /*
-    det->nbins = floor( sqrt(signal+background) )+2;
-    det->binW = ( det->ErU - det->ErL ) / ( (double) det->nbins);
+    
+    //setup bins //somewhat arbitrary choice of number of bins.. seems to work for exponential data
+    pList->detectors[detj].nbins = floor( sqrt(signal+background) )+2;
+    pList->detectors[detj].binW = ( pList->detectors[detj].ErU - pList->detectors[detj].ErL ) / ( (double) pList->detectors[detj].nbins);
 
     try
     {
-        //det->binnedData = new double[det->nbins];
+        pList->detectors[detj].binnedData = new double[pList->detectors[detj].nbins];
     }
     catch (std::bad_alloc& ba)
     {
-      std::cerr << "bad_alloc caught: " << ba.what() << std::endl << "you requested: " << det->nbins << " doubles" <<std::endl;
+      std::cerr << "bad_alloc caught: " << ba.what() << std::endl << "you requested: " << pList->detectors[detj].nbins << " doubles" <<std::endl;
       return 1;
     }
-    */
     
-/*    for(int i=0; i<det->nbins; i++)
+    
+    for(int i=0; i<pList->detectors[detj].nbins; i++)
     {
-        Er_min = (double)i*det->binW+det->ErL;
-        Er_max = (double)(i+1)*det->binW+det->ErL;
+        Er_min = (double)i*pList->detectors[detj].binW+pList->detectors[detj].ErL;
+        Er_max = (double)(i+1)*pList->detectors[detj].binW+pList->detectors[detj].ErL;
          
-//        background = b * intBgRate(det, Er_min, Er_max) * det->exposure;
-//        signal = intWIMPrate( Er_min, Er_max, W, det) * det->exposure; 
+        background = b * intBgRate(pList->detectors[detj], Er_min, Er_max) * pList->detectors[detj].exposure;
+        signal = intCNNSrate( Er_min, Er_max, pList, detj) * pList->detectors[detj].exposure; 
 
-        if( W->asimov == 1) 
-            det->binnedData[i] = gsl_ran_poisson(r,signal+background);
+        if( pList->asimov == 1) 
+            pList->detectors[detj].binnedData[i] = gsl_ran_poisson(r,signal+background);
         else
-            det->binnedData[i] = signal + background;            
+            pList->detectors[detj].binnedData[i] = signal + background;            
         
-        det->nEvents += det->binnedData[i];
+        pList->detectors[detj].nEvents += pList->detectors[detj].binnedData[i];
     }
-  */  
+   
     return 0;
      
 }

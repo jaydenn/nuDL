@@ -1,5 +1,6 @@
-//gives CNNS rate
-double CNNSrate(double Er, paramList *pList, int detj);
+#ifndef PARAMETERSTRUCT_H
+    #include "parameterStruct.h"
+#endif
 
 double SMrate(double ErKeV, paramList *pList, int detj);
 

@@ -34,19 +34,19 @@ double logLikelihood(paramList *pList)
     double Er_min, Er_max;
 
     //loop over detectors
-    for(int j=0; j < pList->ndet; j++)
+    for(int detj=0; detj < pList->ndet; detj++)
     {   
         //loop over recoil energy bins
-        for(int i=0; i< pList->detectors[j].nbins; i++)			
+        for(int i=0; i< pList->detectors[detj].nbins; i++)			
         {
             //set bin limits
-            Er_min = (double)i*pList->detectors[j].binW + pList->detectors[j].ErL;
-            Er_max = (double)(i+1)*pList->detectors[j].binW + pList->detectors[j].ErL;
+            Er_min = (double)i*pList->detectors[detj].binW + pList->detectors[detj].ErL;
+            Er_max = (double)(i+1)*pList->detectors[detj].binW + pList->detectors[detj].ErL;
             
-           // background = intBgRate(  Er_min, Er_max, pList, j) * pList->detectors[j].exposure;
-           // signal     = intCNNSrate(Er_min, Er_max, pList, j) * pList->detectors[j].exposure; 
-            
-            l = logPoisson( pList->detectors[j].binnedData[i], signal+background+1e-99);
+            background = intBgRate( pList->detectors[detj], Er_min, Er_max) * pList->detectors[detj].exposure;
+            signal     = pList->signalNorm * intCNNSrate( Er_min, Er_max, pList, detj) * pList->detectors[detj].exposure; 
+
+            l = logPoisson( pList->detectors[detj].binnedData[i], signal+background+1e-99);
             loglike += l;
             //cout << " " << i << ": bg " << background <<  " s " << signal << " obs " << pL->detectors[j].binnedData[i] << " l " << l << " tot " << loglike << endl;
         } 

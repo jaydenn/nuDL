@@ -4,7 +4,7 @@ NESTLIBDIR = ../MultiNest_v3.9
 
 LIBS = -L$(NESTLIBDIR) -lnest3 -llapack -lgsl -lgslcblas -lstdc++ -lm #-lgfortran
 INCLUDE = -I./source/include
-OBJECTS = source/Conudl.o source/nuFlux.o source/detectorFunctions.o source/detectors.o source/formfactorSI.o source/monteCarlo.o source/likelihood.o source/CNNSrate.o
+OBJECTS = source/Conudl.o source/discLimit.o source/nuFlux.o source/detectorFunctions.o source/formfactorSI.o source/monteCarlo.o source/likelihood.o source/CNNSrate.o
 
 default: Conudl
 

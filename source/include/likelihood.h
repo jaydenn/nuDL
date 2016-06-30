@@ -1,0 +1,1 @@
+double logLikelihood(paramList *pList);
