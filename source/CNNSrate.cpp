@@ -46,30 +46,39 @@ double EnuIntegrand2(double EnuGeV, void *pars)
 double CNSintegral(double ErGeV,  paramList *pList, int detj, int EnuPow)
 {
 	int key = 2;
-	int limit = 1000;
-	double integral,absErr;
+	int limit = 2000;
+	double integral,absErr,tol;
 	
 	pList->A = pList->detectors[detj].AM;
 	pList->Er = ErGeV;
 			
 	if(FIRSTEVALCNS==0)
 	{
-		W = gsl_integration_workspace_alloc (1000);
+		W = gsl_integration_workspace_alloc (2000);
 		FIRSTEVALCNS=1;
 	}
 	
 	if(EnuPow==0)
+	{
 		pList->F.function = &EnuIntegrand0;
+		tol=1e-22;
+	}
 	else if(EnuPow==-1)
+	{
 		pList->F.function = &EnuIntegrand1;
+		tol=1e-20;
+	}
 	else if(EnuPow==-2)
+	{
 		pList->F.function = &EnuIntegrand2;
+		tol=1e-18;
+	}
 			 
 	pList->F.params = pList; //yeah, that's not weird..
 	
 	double EnuMinGeV = sqrt( ErGeV * (MN*pList->detectors[detj].AM) / 2);
 
-	gsl_integration_qag(&(pList->F), EnuMinGeV, pList->EnuMax, 1e-22, 1e-4, limit, 3, W, &integral, &absErr); //check normalization
+	gsl_integration_qag(&(pList->F), EnuMinGeV, pList->EnuMax, tol, 1e-3, limit, 2, W, &integral, &absErr); 
 
 	return integral;	
 }
@@ -85,7 +94,7 @@ double CNNSrate(double ErKeV, paramList *pList, int detj)
 	double intConst	   = CNSintegral( ErGeV, pList, detj, 0);
 	double intInvEnu   = CNSintegral( ErGeV, pList, detj, -1);
 	double intInvEnuSq = CNSintegral( ErGeV, pList, detj, -2);
-
+    //std::cout << intConst << " " << intInvEnu << " " << intInvEnuSq << std::endl;
 	return pow(GFERMI,2) / ( 2 * M_PI ) * (MN*pList->detectors[detj].AM) / GeVtoKeV * atomsPerKG * secsPerDay
 			* ( 
 				  intConst	  * 2*( pow(pList->qA,2) + pow(pList->qV,2) )
@@ -162,16 +171,21 @@ double intCNNSrate(double Er_min, double Er_max, paramList *pList, int detj)
 //should make this loop over detectors
 void SMrateInit( paramList *pList, int detj)	
 {
-    double Er[1000];
+    double ErkeV[1000];
     double sigSM[1000];
     for(int i=0; i<1000; i++)
     {
-        Er[i] = pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/999;
-        sigSM[i] = SMrate( (double)Er[i], pList, detj);	
+        ErkeV[i] = pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/900;
+        sigSM[i] = SMrate( (double)ErkeV[i], pList, detj);	
     }
 
     //create gsl interpolation object
-    gsl_spline_init(pList->detectors[detj].signalSM,Er,sigSM,1000);
+    gsl_spline_init(pList->detectors[detj].signalSM,ErkeV,sigSM,1000);
+}
+
+double diffSMrate(double Er, paramList *pList, int detj)						  
+{   
+    return gsl_spline_eval(pList->detectors[detj].signalSM, Er, pList->detectors[detj].accelSM);
 }
 
 double intSMrate(double Er_min, double Er_max, paramList *pList, int detj)						  

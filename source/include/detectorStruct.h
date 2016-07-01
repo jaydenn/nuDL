@@ -29,6 +29,8 @@ struct detector {
     double *unbinnedData;   //array of i events which occured at energy unbinnedData[i]
     double nEvents;
     
+    double BgNorm, BgUn;  //norm factor for background and fractional uncertainty
+    
     gsl_spline *background;
     gsl_interp_accel *accel;
     gsl_spline *signalSM;
@@ -53,6 +55,7 @@ struct detector {
     detector()
     {
         nIso=0; AM=-1; isoA[0]=-1; isoFrac[0]=-1; ErL=0; ErU=-1; bg=-1; eff=-1; res=-1, nEvents=0;
+        BgNorm = 1; BgUn = 1e-99;
                 
         background = gsl_spline_alloc(gsl_interp_linear,1000);
         accel = gsl_interp_accel_alloc();

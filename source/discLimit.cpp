@@ -22,8 +22,11 @@ double my_LS(const gsl_vector *v, void *params)
 
     pL->nuFluxNorm = gsl_vector_get(v, 0);
     pL->signalNorm = gsl_vector_get(v, 1);
-    
-    l = - logLikelihood(pL) + 19.5 *( pow(pL->nuFluxNorm - 1,2) ) ;   //2.5% error in flux, change this later
+    pL->detectors[pL->detj].BgNorm = gsl_vector_get(v, 2);
+        
+    l = - logLikelihood(pL) 
+        + 0.5/pow(pL->nuFluxUn,2) * pow(pL->nuFluxNorm - 1,2) 
+        + 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2) ;   
     return l;
 }
 
@@ -33,10 +36,10 @@ double my_L0(const gsl_vector *v, void *params)
     paramList *pL = (paramList *)params;
     double l;
 
-    pL->nuFluxNorm  = gsl_vector_get(v, 0);
-    pL->signalNorm = 0;
+    pL->detectors[pL->detj].BgNorm  = gsl_vector_get(v, 0);
         
-    l = - logLikelihood(pL) + 19.5 * pow(pL->nuFluxNorm - 1,2) ;
+    l = - logLikelihood(pL) 
+        + 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2) ;
     return l;
 }
 
@@ -55,17 +58,19 @@ double findMaxLS(paramList *pL)
 
     //start point and step size
     gsl_vector *x,*dx;
-    my_func.n = 2;
+    my_func.n = 3;
 
-    x = gsl_vector_alloc (2);
-    dx = gsl_vector_alloc (2);
+    x = gsl_vector_alloc (3);
+    dx = gsl_vector_alloc (3);
     gsl_vector_set (x, 0, 1.0);
     gsl_vector_set(dx, 0, .05);
-    gsl_vector_set (x, 1, 1.0);
-    gsl_vector_set(dx, 1, .05);
+    gsl_vector_set (x, 1, pL->signalNorm);
+    gsl_vector_set(dx, 1, pL->signalNorm/10);
+    gsl_vector_set (x, 2, 1.0);
+    gsl_vector_set(dx, 2, .05);
     
     T = gsl_multimin_fminimizer_nmsimplex2;
-    s = gsl_multimin_fminimizer_alloc (T, 2);
+    s = gsl_multimin_fminimizer_alloc (T, 3);
 
     gsl_multimin_fminimizer_set (s, &my_func, x, dx);
 
@@ -81,7 +86,8 @@ double findMaxLS(paramList *pL)
         std::cout << "LS non-convergence size = " << gsl_multimin_fminimizer_size(s) << " > .001  " << std::endl;
     
     double LS =  s->fval;
-
+    pL->signalNorm = gsl_vector_get(s->x, 1);
+    
     gsl_multimin_fminimizer_free (s);
     gsl_vector_free (x);
     gsl_vector_free (dx);
@@ -95,7 +101,10 @@ double findMaxL0(paramList *pL)
 
     size_t iter = 0;
     int status;
-
+    
+    double mu = pL->signalNorm;
+    pL->signalNorm = 0;
+    
     const gsl_multimin_fminimizer_type *T;
     gsl_multimin_fminimizer *s;
     gsl_multimin_function my_func;
@@ -122,9 +131,9 @@ double findMaxL0(paramList *pL)
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);
-    //    std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << s->fval << std::endl; 
+        //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << s->fval << std::endl; 
     }
-    while (iter < 2000 && gsl_multimin_fminimizer_size(s)>.001);///s->fval > 1e-2 && !status);
+    while (iter < 2000 && gsl_multimin_fminimizer_size(s)>.001);  //s->fval > 1e-2 && !status);
     if(iter==2000)
         std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)  << " > .001  " <<  std::endl;
     
@@ -133,7 +142,9 @@ double findMaxL0(paramList *pL)
     gsl_multimin_fminimizer_free (s);
     gsl_vector_free (x);
     gsl_vector_free (dx);
-            
+    
+    pL->signalNorm = mu;
+    
     return L0;
 }
 
@@ -141,11 +152,13 @@ double findMaxL0(paramList *pL)
 double q0(paramList *pL)
 {	 
 
-    double maxL0 = findMaxL0( pL );
-    double maxL  = findMaxLS( pL );
+    double maxL0 = -findMaxL0( pL );
+    double maxL  = -findMaxLS( pL ); //-ve because functions return -loglike for minimization
     
-    return 2 * ( maxL0 - maxL );  //no -ve because functions return -loglike
- 
+    if( pL->signalNorm > 0 )
+        return - 2 * ( maxL0 - maxL );  
+    else
+        return 0;
 }
 
 double my_q0(const gsl_vector *v, void *params)
@@ -158,7 +171,7 @@ double my_q0(const gsl_vector *v, void *params)
     pL->signalNorm = gsl_vector_get(v, 0);       
     generateBinnedData( pL, pL->detj, 1, simSeed);
 
-    return pow( sqrt(q0(pL)) - 4.28, 2);  //arbitrary function with a minima at 3 sigma
+    return pow( sqrt(q0(pL)) - 4.28, 2);  //arbitrary function with a minima at 3 sigma 90% of the time
 }
 
 
@@ -183,7 +196,7 @@ double findCoeff3sig(paramList *pL)
     dx = gsl_vector_alloc (1);
 
     gsl_vector_set (x, 0, pL->signalNorm);
-    gsl_vector_set(dx, 0, pL->signalNorm/10);
+    gsl_vector_set(dx, 0, pL->signalNorm/5);
 
     T = gsl_multimin_fminimizer_nmsimplex2;
     s = gsl_multimin_fminimizer_alloc (T, 1);
@@ -207,7 +220,7 @@ double findCoeff3sig(paramList *pL)
     if(iter==2000)
     {
         std::cout << "non-convergence f = " << s->fval << " > .0002" << std::endl;
-        return -1;
+        return NAN;
     }
     else
         return mu;
@@ -219,135 +232,35 @@ void discLimit(paramList *pL, int detj)
     char filename[100];
     std::ofstream outfile;
     
-    sprintf(filename, "CNDL.dat"); //,pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->OP,N);
+    sprintf(filename, "%s%c%c_discEvo.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1]);
     
     std::cout << "writing output to: " << filename << std::endl;    
     outfile.open(filename,std::ios::out);
     
-    double mu=3;
+    double mu=2;  //first guess
     pL->signalNorm = mu;
     pL->detj = detj;
     
+    std::cout << std::setprecision(3);
+    outfile << std::setprecision(6);
     while (pL->detectors[detj].exposure < 1e3)
     {
 
         mu = findCoeff3sig(pL);
 
-        //print out result
-        std::cout << pL->detectors[detj].exposure << "  " << mu << std::endl;
-        outfile   << pL->detectors[detj].exposure << "  " << mu << std::endl;
+        if (mu==mu) //check for NAN
+        {
+            //print out result
+            std::cout << pL->detectors[detj].exposure << "  " << mu << std::endl;
+            outfile   << pL->detectors[detj].exposure << "  " << mu << std::endl;
+            
+            pL->signalNorm = mu;      //update guess
+        }
         
-        //pL->signalNorm = mu;      //update guess
-
-        pL->detectors[detj].exposure*=2; //increment exposure
+        pL->detectors[detj].exposure*=1.2; //increment exposure
         
     }
     outfile.close();
 
 }
-
-/*
-void discEvolution(paramList *pL)
-{
-    
-    char filename[100];
-    std::ofstream outfile;
-    char N;
-    switch(pL->p.isv)
-    {
-        case 1:
-            N='N';
-            break;
-        case 2:
-            N='p';
-            break;
-        case 3:
-            N='n';
-            break;
-    }
-    if(pL->detectors[0].highLow==0)
-        sprintf(filename,"%sdiscEvo_%c%c_C%d_%c_low.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->OP,N);
-    else
-        sprintf(filename,"%sdiscEvo_%c%c_C%d_%c_high.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->OP,N);
-
-    outfile.open(filename,ios::out);
-    
-    if( strcmp(pL->detectors[0].name,"XENON_low") == 0 )
-    {
-        double mOP[] = {0,6,0,4.22,6,4.83,4.2,6.3,6.3,4.6,4.6,4.6,4.6,4.2,4.8,4.08};
-        pL->w.Mx = mOP[pL->OP];
-    }
-    if( strcmp(pL->detectors[0].name,"XENON_high") == 0 )
-    {
-        if(pL->p.isv==2)
-        {
-            double mOP[] = {0,150,0,36,54,48,38,54,130,38,45,48,42,36,39,35};
-            pL->w.Mx = mOP[pL->OP];           
-        }
-        else
-	    {
-	       double mOP[] = {0,2700,0,38,71,44,35,1e6,87,62,39,51,46,37,67,35};
-           pL->w.Mx = mOP[pL->OP];
-        }
-     //   pL->w.Mx = 100;              
-    }
-    if( strcmp(pL->detectors[0].name,"GERMANIUM_low") == 0 )
-    {
-        double mOP[] = {0,6,0,4.22,6,4.83,4.2,6.3,6.3,4.6,4.6,4.6,4.6,4.2,4.8,4.08};
-        pL->w.Mx = mOP[pL->OP];
-    }
-    if( strcmp(pL->detectors[0].name,"GERMANIUM_high") == 0 )
-    {
-        double mOP[] = {0,1000,0,48,150,70,47,183,131,90,64,78,68,46,100,41};
-        pL->w.Mx = mOP[pL->OP];
-    }
-    if( strcmp(pL->detectors[0].name,"SILICON_low") == 0 )
-    {
-        double mOP[] = {0,7.6,0,5.2,7.7,5.8,5.3,8.2,8.0,5.6,5.6,5.5,5.5,5.8,5.8,5.2};
-        pL->w.Mx = mOP[pL->OP];
-    }
-    if( strcmp(pL->detectors[0].name,"SILICON_high") == 0 )   
-        pL->w.Mx = 50;
-    if( strcmp(pL->detectors[0].name,"FLOURINE_low") == 0 )
-    {
-        double mOP[] = {0,9.1,0,7.0,9.1,7.4,7.0,9.7,9.4,7.4,7.4,7.2,7.4,7.2,7.4,6.6};
-        pL->w.Mx = mOP[pL->OP];
-    }
-    if( strcmp(pL->detectors[0].name,"FLOURINE_high") == 0 )
-        pL->w.Mx = 50;
-    
-    pL->detectors[0].exposure = 1*pL->detectors[0].highLow + 1e-6;
-    
-    cout << "starting O" << pL->OP << endl;
-    InitializeWIMP(pL);
-    
-    //find a good starting point
-    double coeff = bestFitC(pL); 
-    pL->p.coeffn[pL->OP][0] = coeff;
-    pL->p.coeffn[pL->OP][1] = coeff/5;
-    
-    double nuEvents;
-    cout    << setprecision(4);
-    outfile << setprecision(6);
-    while (pL->detectors[0].exposure < (1e3 + pL->detectors[0].highLow * 1e8))
-    {
-        
-        coeff = findCoeff3sig(pL);
-        if (coeff > 0)
-        {
-            nuEvents =  pL->detectors[0].exposure * intBgRate(&(pL->detectors[0]),pL->detectors[0].ErL,pL->detectors[0].ErU);
-            
-            //print out results
-            cout    <<  pL->detectors[0].exposure << " " << nuEvents << " " << fabs(coeff) << endl;
-            outfile <<  pL->detectors[0].exposure << " " << nuEvents << " " << fabs(coeff) << endl;
-            
-            pL->p.coeffn[pL->OP][0] = coeff;      //update guess
-            pL->p.coeffn[pL->OP][1] = coeff/20;   //update stepsize
-        }
-
-        pL->detectors[0].exposure *= 1.05;
-                    
-    }
-    outfile.close();
-} */
 

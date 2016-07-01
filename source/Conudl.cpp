@@ -1,10 +1,17 @@
 #include <iostream>
+#include <gsl/gsl_errno.h>
 #ifndef PARAMETERSTRUCT_H
     #include "parameterStruct.h"
 #endif
+#include "fileIO.h"
 #include "CNNSrate.h"
 #include "discLimit.h"
 #include "nuFlux.h"
+
+void my_gsl_err_handler (const char * reason, const char * file, int line, int gsl_errno)
+{
+ 
+}
 
 int main(int argc, char *argv[])
 {
@@ -31,33 +38,51 @@ int main(int argc, char *argv[])
     }		  
     
     int err;
-        
-    //test
     paramList pList;
     
+    //Error handling
+    //gsl_error_handler_t *old_gsl_err;
+    //old_gsl_err = gsl_set_error_handler (&my_gsl_err_handler);
+    
 	//file input
-	//readConfigFile(filename, &pList);
+	int mode = readConfigFile(&pList,filename);
+	//pList.printPars();
 	
-    //create a detector    
-    char name[] = "#GERMANIUM";
-	double exposure = 1;
-    err = pList.newDetector(name, exposure);
-	if(err) { std::cout << "Could not create detector, exiting" << std::endl; return 1; }
-	
-    // pList.printPars();
-    
-    //initialize reactor flux
+	//initialize reactor flux
     err = initFlux(&pList);
-    if(err) { std::cout << "Problem with flux, exiting" << std::endl; return 1; }
+    if(err) { std::cout << "Flux not normalized, exiting" << std::endl; return 1; }
     
+    //initialize rate	
     SMrateInit(&pList, 0);
-    pList.rateFunc = &intSMrate;    
-    discLimit(&pList, 0);
-       
-    for (int i=50; i<1001; i+=10)
+    pList.rateFunc = &intSMrate;
+    
+	if ( mode < 1 ) 
     {
-        std::cout << (double)i << "   " << pList.detectors[0].exposure * intCNNSrate( (double) i/1e3, (double) (i+10)/1e3, &pList, 0) << "    " << 100*pList.detectors[0].exposure*1e-2 << std::endl; 
+        std::cout << "Problem with configuration, aborting" << std::endl;
+        return 0;
     }
-       
+	
+	//print rate mode
+	if(mode == 1)
+    {
+        std::cout << "Er (eV)  " << "dN/dE (events/kg/day/keV)" << std::endl;
+        for (int i=50; i<1001; i+=10)
+            std::cout << (double)i/1e3 << "     " << diffSMrate( (double) i/1e3, &pList, 0) << std::endl; 
+        
+        std::cout << "total rate: " << pList.rateFunc( pList.detectors[0].ErL, pList.detectors[0].ErU, &pList, 0) << " events/kg/day" << std::endl;
+        
+        return 0;
+    }   
+    
+    //discovery limit evolution mode
+    if ( mode == 2 )
+    {
+        std::cout << "Starting disc. evolution calculations..." << std::endl;
+
+        discLimit(&pList, 0);
+
+        return 0;
+    }
+    
     return 0;
 }

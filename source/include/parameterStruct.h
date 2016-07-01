@@ -5,7 +5,6 @@
 #ifndef IOSTREAM
 	#include <iostream>
 #endif
-
 #ifndef DETECTORSTRUCT_H
 	#include "detectorStruct.h"
 #endif	
@@ -16,9 +15,13 @@
 
 struct paramList {
 	
+	//root directory for file output
+	char root[50];
+	
 	//arrays for reactor flux data
-	gsl_interp *nuFlux;
+	gsl_interp *nuFluxInterp;
 	gsl_interp_accel *nuFluxAccel;
+	double nuFlux, nuFluxUn;
 	double nuFluxNorm, signalNorm;
 	double Er, EnuMax;
     
@@ -30,14 +33,19 @@ struct paramList {
 	double qA, qAn, qAp;
 	double qV, qVn, qVp;
 	
+	int BSM;
     int asimov;
 	int ndet, detj;
 	detector detectors[10];
 	
 	void printPars()
 	{
-		
-		printf("Detectors:");
+   		std::cout << "Conudl configuration:" << std::endl;		
+    	std::cout << "  root: " << root << std::endl;
+    	std::cout << "  BSM: " << BSM << std::endl;
+    	std::cout << "  asimov: " << asimov << std::endl;
+    	std::cout << "  flux: " << nuFlux << " +/- " << nuFluxUn*100 << "%" << std::endl;
+		std::cout << "Detectors:" << std::endl;
 		for(int i=0;i<ndet;i++)
 			detectors[i].printDetSpecs();
 	}
@@ -46,6 +54,7 @@ struct paramList {
 	{
 		ndet=0;
 		nuFluxNorm=1;
+		nuFluxUn=1e-99;
         signalNorm=1;
 		EnuMax=0;
         asimov=1;
@@ -64,68 +73,70 @@ struct paramList {
 		newDet.exposure = exp;
 		
 		//read in detector configuration
-		FILE *detsINI;
-		detsINI = fopen("detectors.ini","r");
-		if(detsINI==NULL)
-		{
-			printf("unable to open detectors.ini\n");
-			return 1;
-		}
+		    FILE *detsINI;
+		    detsINI = fopen("detectors.ini","r");
+		    if(detsINI==NULL)
+		    {
+			    printf("unable to open detectors.ini\n");
+			    return 1;
+		    }
 
-		char temp[200];
-		char *ret;
-		int err;
+		    char temp[200];
+		    char *ret;
+		    int err;
 		
-		ret = fgets(temp,200,detsINI);
+		    ret = fgets(temp,200,detsINI);
 		
-		while(strcmp(temp,name)!=0)
-		{
-			err = fscanf(detsINI,"%s",temp);
+		    while(strcmp(temp,name)!=0)
+		    {
+			    err = fscanf(detsINI,"%s",temp);
 			
-			if(feof(detsINI))
-			{
-				printf("detector '%s' not found\n",name); 
-				fclose(detsINI);
-				return 1;
-			}
-		}
+			    if(feof(detsINI))
+			    {
+				    printf("detector '%s' not found\n",name); 
+				    fclose(detsINI);
+				    return 1;
+			    }
+		    }
 		
-		sprintf( newDet.name, "%s", &(name[1]));
+		    sprintf( newDet.name, "%s", &(name[1]));
 		
-		while(temp[0]!='-')
-		{
-			err = fscanf(detsINI,"%s",temp);
-						 
-			if(strcmp(temp,"AM")==0)  
-				err=fscanf(detsINI,"%lf",&(newDet.AM)); 
-			if(strcmp(temp,"Er")==0)  
-				err=fscanf(detsINI,"%lf-%lf",&(newDet.ErL),&(newDet.ErU)); 
-			if(strcmp(temp,"bg")==0)  
-				err=fscanf(detsINI,"%d",&(newDet.bg));
-			if(strcmp(temp,"eff")==0) 
-				err=fscanf(detsINI,"%d",&(newDet.eff));			
-			if(strcmp(temp,"res")==0) 
-				err=fscanf(detsINI,"%d",&(newDet.res));
-		}
+		    while(temp[0]!='-')
+		    {
+			    err = fscanf(detsINI,"%s",temp);
+						     
+			    if(strcmp(temp,"AM")==0)  
+				    err=fscanf(detsINI,"%lf",&(newDet.AM)); 
+			    if(strcmp(temp,"Er")==0)  
+				    err=fscanf(detsINI,"%lf-%lf",&(newDet.ErL),&(newDet.ErU)); 
+			    if(strcmp(temp,"bg")==0)  
+				    err=fscanf(detsINI,"%d",&(newDet.bg));
+				if(strcmp(temp,"bgUn")==0)  
+				    err=fscanf(detsINI,"%lf",&(newDet.BgUn));
+			    if(strcmp(temp,"eff")==0) 
+				    err=fscanf(detsINI,"%d",&(newDet.eff));			
+			    if(strcmp(temp,"res")==0) 
+				    err=fscanf(detsINI,"%d",&(newDet.res));
+		    }
 
-		ret = fgets(temp,200,detsINI);
-		ret = fgets(temp,200,detsINI);
-		ret = fgets(temp,200,detsINI);
-		ret = fgets(temp,200,detsINI);
+		    ret = fgets(temp,200,detsINI);
+		    ret = fgets(temp,200,detsINI);
+		    ret = fgets(temp,200,detsINI);
+		    ret = fgets(temp,200,detsINI);
 		
-		while(!feof(detsINI) && temp[0]!='_')
-		{	
-			if(newDet.nIso==10)
-			{
-				std::cout << "already at max number of isotopes (10)" << std::endl;
-				break;
-			}
-			sscanf(temp,"%d %d %lf %lf %lf",&(newDet.isoZ[newDet.nIso]),&(newDet.isoA[newDet.nIso]),&(newDet.isoFrac[newDet.nIso]),&(newDet.isoSZ[newDet.nIso]),&(newDet.isoSN[newDet.nIso])); 
+		    while(!feof(detsINI) && temp[0]!='_')
+		    {	
+			    if(newDet.nIso==10)
+			    {
+				    std::cout << "already at max number of isotopes (10)" << std::endl;
+				    break;
+			    }
+			    sscanf(temp,"%d %d %lf %lf %lf",&(newDet.isoZ[newDet.nIso]),&(newDet.isoA[newDet.nIso]),&(newDet.isoFrac[newDet.nIso]),&(newDet.isoSZ[newDet.nIso]),&(newDet.isoSN[newDet.nIso])); 
 			
-			newDet.nIso++;
-			ret = fgets(temp,200,detsINI);		   
-		}
-				 
+			    newDet.nIso++;
+			    ret = fgets(temp,200,detsINI);		   
+		    }
+		    //finished reading in det data		 
 		fclose(detsINI);
 		
 		//only need to calculate background and SM signal once, store in a table for interpolation, stored as events/kg/day/keV
@@ -134,16 +145,12 @@ struct paramList {
 		double Bg[1000];
 		for(int i=0; i<1000; i++)
 		{
-			Er[i] = newDet.ErL + (double)i*(newDet.ErU-newDet.ErL)/999;
+			Er[i] = newDet.ErL + (double)i*(newDet.ErU-newDet.ErL)/900;
 			Bg[i] = detBackground(Er[i], newDet.bg);
 		}
 	
 		//create gsl interpolation object
 		gsl_spline_init(newDet.background,Er,Bg,1000);
-
-		//	std::cout << "problem initializing background of detector " << name << std::endl;
-		//	return 1;
-		
 		
 		//add new detector to the array
 		detectors[ndet] = newDet;

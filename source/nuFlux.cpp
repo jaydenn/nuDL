@@ -13,22 +13,25 @@ const int flux_points = 69;
 
 int initFlux(paramList *pList)
 {
-    pList->nuFlux = gsl_interp_alloc(gsl_interp_linear, flux_points);
-    gsl_interp_init(pList->nuFlux, flux_E, flux_N, flux_points);
+    pList->nuFluxInterp = gsl_interp_alloc(gsl_interp_linear, flux_points);
+    gsl_interp_init(pList->nuFluxInterp, flux_E, flux_N, flux_points);
     pList->nuFluxAccel = gsl_interp_accel_alloc();
 
     pList->EnuMax = flux_E[flux_points-1];
     
-    pList->nuFluxNorm =  gsl_interp_eval_integ (pList->nuFlux, flux_E, flux_N, flux_E[0], flux_E[flux_points-1], pList->nuFluxAccel);
+    double norm =  gsl_interp_eval_integ (pList->nuFluxInterp, flux_E, flux_N, flux_E[0], flux_E[flux_points-1], pList->nuFluxAccel);
     
-    return 0;
+    if ( fabs(norm-1.00) > .01)
+        return 1;
+    else
+        return 0;
 }
 
 //returns diffNuFlux in GeV per sec, at the point Enu(GeV) ( /cm^2/s/GeV * hc^2)
 double nuFlux(double EnuGeV, paramList *pList)
 {
     if(EnuGeV < pList->EnuMax)
-        return 5.875e-16 * gsl_interp_eval(pList->nuFlux, flux_E, flux_N, EnuGeV, pList->nuFluxAccel) / pList->nuFluxNorm;
+        return pList->nuFlux * gsl_interp_eval(pList->nuFluxInterp, flux_E, flux_N, EnuGeV, pList->nuFluxAccel);
     else
         return 0;
 }
