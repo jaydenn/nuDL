@@ -79,7 +79,7 @@ double CNSintegral(double ErGeV,  paramList *pList, int detj, int EnuPow)
 	double EnuMinGeV = sqrt( ErGeV * (MN*pList->detectors[detj].AM) / 2);
 
 	gsl_integration_qag(&(pList->F), EnuMinGeV, pList->EnuMax, tol, 1e-3, limit, 2, W, &integral, &absErr); 
-
+//std::cout << ErGeV  << " " << EnuIntegrand2(ErGeV,(void *)pList) << " " << EnuIntegrand1(ErGeV,(void *)pList) << " " << EnuIntegrand0(ErGeV,(void *)pList) << std::endl;
 	return integral;	
 }
 
@@ -94,7 +94,7 @@ double CNNSrate(double ErKeV, paramList *pList, int detj)
 	double intConst	   = CNSintegral( ErGeV, pList, detj, 0);
 	double intInvEnu   = CNSintegral( ErGeV, pList, detj, -1);
 	double intInvEnuSq = CNSintegral( ErGeV, pList, detj, -2);
-    //std::cout << intConst << " " << intInvEnu << " " << intInvEnuSq << std::endl;
+
 	return pow(GFERMI,2) / ( 2 * M_PI ) * (MN*pList->detectors[detj].AM) / GeVtoKeV * atomsPerKG * secsPerDay
 			* ( 
 				  intConst	  * 2*( pow(pList->qA,2) + pow(pList->qV,2) )
@@ -109,14 +109,29 @@ double BSMrate(double ErKeV, paramList *pList, int detj)
 	double rate = 0;
 	paramList pListBSM = *pList;
    
+    double Mzp = 1e3; //GeV)
+    if(pList->BSM == 1)
+    {
+        pListBSM.qVu=0.191004;
+        pListBSM.qVd=-0.351608-1939.0/pow(Mzp,2);
+        pListBSM.qAu=-0.501163+969.5/pow(Mzp,2);
+        pListBSM.qAd=0.506875-969.5/pow(Mzp,2);
+    }
+    else
+    {
+        pListBSM.qVu=0;
+        pListBSM.qVd=0;
+        pListBSM.qAu=0;
+        pListBSM.qAd=0;
+    }
 	//nucleon axial charges
-	pListBSM.qAp = 0;
-	pListBSM.qAn = 0;
+	pListBSM.qAp =  0.842*pListBSM.qAu-0.427*pListBSM.qAd;
+	pListBSM.qAn = -0.427*pListBSM.qAu+0.842*pListBSM.qAd;
 	
 	//nucleon vector charges
-	pListBSM.qVp = 0;
-	pListBSM.qVn = 0;
-	
+	pListBSM.qVp = 2*pListBSM.qVu + pListBSM.qVd;
+	pListBSM.qVn = pListBSM.qVu + 2*pListBSM.qVd;
+
 	//weighted sum over different isotopes
 	for(int i=0;i<pList->detectors[detj].nIso;i++)
 	{
@@ -126,7 +141,7 @@ double BSMrate(double ErKeV, paramList *pList, int detj)
 	   
 		rate += pList->detectors[detj].isoFrac[i] * CNNSrate( ErKeV, &pListBSM, detj);
 	}
-	   
+
 	return rate; 
 	
 }
@@ -140,11 +155,11 @@ double SMrate(double ErKeV, paramList *pList, int detj)
 	
 	for(int i=0;i<pList->detectors[detj].nIso;i++)
 	{
-		pListSM.qA = 0.5 * (pList->detectors[detj].isoSN[i] - pList->detectors[detj].isoSZ[i]);	 
-		pListSM.qV = 0.5 * (pList->detectors[detj].isoA[i] - 1.04*pList->detectors[detj].isoZ[i])* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
+		pListSM.qA = pList->detectors[detj].isoSN[i]*(-0.427*-0.501163+0.842*0.506875) + pList->detectors[detj].isoSZ[i]*(-0.427*0.506875+0.842*-0.501163);	 
+		pListSM.qV = (- 0.512213 * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + .0304*pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
 		rate += pList->detectors[detj].isoFrac[i] * CNNSrate( ErKeV, &pListSM, detj);
 	}
-	   
+
 	return rate; 
 }
 
@@ -168,27 +183,44 @@ double intCNNSrate(double Er_min, double Er_max, paramList *pList, int detj)
 	return DEIntegrator<ErIntegral>::Integrate(erInt,Er_min,Er_max,1e-4);
 }
 
-//should make this loop over detectors
-void SMrateInit( paramList *pList, int detj)	
+void rateInit( paramList *pList, int detj, double (*rateFunc)(double, paramList *, int), gsl_spline *rateSpline)	
 {
     double ErkeV[1000];
-    double sigSM[1000];
+    double rate[1000];
     for(int i=0; i<1000; i++)
     {
         ErkeV[i] = pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/900;
-        sigSM[i] = SMrate( (double)ErkeV[i], pList, detj);	
+        rate[i] = rateFunc( (double)ErkeV[i], pList, detj);	
     }
 
     //create gsl interpolation object
-    gsl_spline_init(pList->detectors[detj].signalSM,ErkeV,sigSM,1000);
+    gsl_spline_init(rateSpline,ErkeV,rate,1000);
 }
 
-double diffSMrate(double Er, paramList *pList, int detj)						  
+double diffSMrate(double ErkeV, paramList *pList, int detj)						  
 {   
-    return gsl_spline_eval(pList->detectors[detj].signalSM, Er, pList->detectors[detj].accelSM);
+
+    if( ErkeV < (pList->detectors[detj].ErL + (double)999*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/900) )
+        return gsl_spline_eval(pList->detectors[detj].signalSM, ErkeV, pList->detectors[detj].accelSM);
+    else
+        return 1e-99;
 }
 
 double intSMrate(double Er_min, double Er_max, paramList *pList, int detj)						  
 {   
     return gsl_spline_eval_integ(pList->detectors[detj].signalSM, Er_min, Er_max, pList->detectors[detj].accelSM);
+}
+
+double diffBSMrate(double ErkeV, paramList *pList, int detj)						  
+{   
+
+    if( ErkeV < (pList->detectors[detj].ErL + (double)999*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/900) )
+        return gsl_spline_eval(pList->detectors[detj].signalBSM, ErkeV, pList->detectors[detj].accelBSM);
+    else
+        return 1e-99;
+}
+
+double intBSMrate(double Er_min, double Er_max, paramList *pList, int detj)						  
+{   
+    return gsl_spline_eval_integ(pList->detectors[detj].signalBSM, Er_min, Er_max, pList->detectors[detj].accelBSM);
 }

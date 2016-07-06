@@ -2,12 +2,15 @@
 	#include "detectorStruct.h"
 #endif
 #define DETECTORFUNCTIONS_H
+#ifndef PARAMETERSTRUCT_H
+    #include "parameterStruct.h"
+#endif
 
 //detector efficiency as a function of recoil energy [keV]
 double detEff(double Er, int type);
 
 //detector background in dru as a function of recoil energy [keV]
-double detBackground(double Er, int type);		 
+double detBackground(double Er, paramList *pList, int detj);		 
 
 //detector background in keV as a function of recoil energy [keV]
 double detRes(double Er, int type);
@@ -19,4 +22,4 @@ double intBgRate(detector det, double Er_min, double Er_max);
 double diffBgRate(detector det, double Er);							   
 
 //for declaring a new detector
-int newDetector(detector *det, char *name, double exp, int ndet);
+int newDetector(paramList *pList, char *name, double exp);

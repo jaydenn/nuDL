@@ -32,7 +32,8 @@ double logLikelihood(paramList *pList)
 	double signal, background, l;
 	double loglike = 0;
     double Er_min, Er_max;
-
+    double SM=0;
+    
     //loop over detectors
     for(int detj=0; detj < pList->ndet; detj++)
     {   
@@ -43,10 +44,13 @@ double logLikelihood(paramList *pList)
             Er_min = (double)i*pList->detectors[detj].binW + pList->detectors[detj].ErL;
             Er_max = (double)(i+1)*pList->detectors[detj].binW + pList->detectors[detj].ErL;
             
-            background = pList->detectors[detj].BgNorm * intBgRate( pList->detectors[detj], Er_min, Er_max) * pList->detectors[detj].exposure;
+            if(pList->BSM)
+                SM = pList->nuFluxNorm * intSMrate( Er_min, Er_max, pList, detj) * pList->detectors[detj].exposure;
+                
+            background = pList->detectors[detj].BgNorm * intBgRate( pList->detectors[detj], Er_min, Er_max)  * pList->detectors[detj].exposure;
             signal     = pList->signalNorm * pList->nuFluxNorm * pList->rateFunc( Er_min, Er_max, pList, detj) * pList->detectors[detj].exposure; 
 
-            l = logPoisson( pList->detectors[detj].binnedData[i], signal+background+1e-99);
+            l = logPoisson( pList->detectors[detj].binnedData[i], signal+SM+background+1e-99);
             loglike += l;
             //cout << " " << i << ": bg " << background <<  " s " << signal << " obs " << pL->detectors[j].binnedData[i] << " l " << l << " tot " << loglike << endl;
         } 

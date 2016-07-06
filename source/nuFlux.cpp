@@ -19,7 +19,7 @@ int initFlux(paramList *pList)
 
     pList->EnuMax = flux_E[flux_points-1];
     
-    double norm =  gsl_interp_eval_integ (pList->nuFluxInterp, flux_E, flux_N, flux_E[0], flux_E[flux_points-1], pList->nuFluxAccel);
+    double norm = gsl_interp_eval_integ (pList->nuFluxInterp, flux_E, flux_N, flux_E[0], flux_E[flux_points-1], pList->nuFluxAccel);
     
     if ( fabs(norm-1.00) > .01)
         return 1;
@@ -33,5 +33,5 @@ double nuFlux(double EnuGeV, paramList *pList)
     if(EnuGeV < pList->EnuMax)
         return pList->nuFlux * gsl_interp_eval(pList->nuFluxInterp, flux_E, flux_N, EnuGeV, pList->nuFluxAccel);
     else
-        return 0;
+        return 1e-99;
 }

@@ -32,9 +32,12 @@ struct detector {
     double BgNorm, BgUn;  //norm factor for background and fractional uncertainty
     
     gsl_spline *background;
-    gsl_interp_accel *accel;
+    gsl_interp_accel *accelBg;
     gsl_spline *signalSM;
     gsl_interp_accel *accelSM;
+    gsl_spline *signalBSM;
+    gsl_interp_accel *accelBSM;
+   
     
     void printDetSpecs()
     {
@@ -58,9 +61,12 @@ struct detector {
         BgNorm = 1; BgUn = 1e-99;
                 
         background = gsl_spline_alloc(gsl_interp_linear,1000);
-        accel = gsl_interp_accel_alloc();
+        accelBg = gsl_interp_accel_alloc();
         signalSM = gsl_spline_alloc(gsl_interp_linear,1000);
         accelSM = gsl_interp_accel_alloc();
+        signalBSM = gsl_spline_alloc(gsl_interp_linear,1000);
+        accelBSM = gsl_interp_accel_alloc();
+    
     }
     
     

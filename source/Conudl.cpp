@@ -1,17 +1,10 @@
 #include <iostream>
-#include <gsl/gsl_errno.h>
 #ifndef PARAMETERSTRUCT_H
     #include "parameterStruct.h"
 #endif
 #include "fileIO.h"
 #include "CNNSrate.h"
 #include "discLimit.h"
-#include "nuFlux.h"
-
-void my_gsl_err_handler (const char * reason, const char * file, int line, int gsl_errno)
-{
- 
-}
 
 int main(int argc, char *argv[])
 {
@@ -40,21 +33,11 @@ int main(int argc, char *argv[])
     int err;
     paramList pList;
     
-    //Error handling
-    //gsl_error_handler_t *old_gsl_err;
-    //old_gsl_err = gsl_set_error_handler (&my_gsl_err_handler);
-    
 	//file input
 	int mode = readConfigFile(&pList,filename);
-	//pList.printPars();
+	pList.printPars();
 	
-	//initialize reactor flux
-    err = initFlux(&pList);
     if(err) { std::cout << "Flux not normalized, exiting" << std::endl; return 1; }
-    
-    //initialize rate	
-    SMrateInit(&pList, 0);
-    pList.rateFunc = &intSMrate;
     
 	if ( mode < 1 ) 
     {
@@ -65,11 +48,11 @@ int main(int argc, char *argv[])
 	//print rate mode
 	if(mode == 1)
     {
-        std::cout << "Er (eV)  " << "dN/dE (events/kg/day/keV)" << std::endl;
+        std::cout << "Er (eV)  " << "SM dN/dE     BSM dN/dE (events/kg/day/keV)" << std::endl;
         for (int i=50; i<1001; i+=10)
-            std::cout << (double)i/1e3 << "     " << diffSMrate( (double) i/1e3, &pList, 0) << std::endl; 
+            std::cout << (double)i/1e3 << "     " << diffSMrate( (double) i/1e3, &pList, 0) << "      " << diffBSMrate( (double) i/1e3, &pList, 0) << std::endl; 
         
-        std::cout << "total rate: " << pList.rateFunc( pList.detectors[0].ErL, pList.detectors[0].ErU, &pList, 0) << " events/kg/day" << std::endl;
+        //std::cout << "total rate: " << pList.rateFunc( pList.detectors[0].ErL, pList.detectors[0].ErU, &pList, 0) << " events/kg/day" << std::endl;
         
         return 0;
     }   

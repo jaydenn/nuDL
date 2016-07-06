@@ -4,7 +4,12 @@
 #include <stdio.h>
 #include <string.h> 
 #include <stdlib.h>
-#include "parameterStruct.h"
+#include "detectorFunctions.h"
+#include "nuFlux.h"
+#include "CNNSrate.h"
+#ifndef PARAMETERSTRUCT_H
+    #include "parameterStruct.h"
+#endif
 #ifndef DETECTORSTRUCT_H
 	#include "detectorStruct.h"
 #endif	
@@ -39,7 +44,25 @@ int readConfigFile(paramList *pL, char *filename)
     //which BSM model to consider
     ret = fgets(temp,200,input);
     sscanf(temp,"%d",&(pL->BSM));
-    pL->BSM = pL->BSM;
+    if(pL->BSM)
+        pL->rateFunc = *intBSMrate;
+    else
+        pL->rateFunc = *intSMrate;
+    
+    ret = fgets(temp,200,input);
+    ret = fgets(temp,200,input);
+    sscanf(temp,"%lf %*s %lf",&(pL->nuFlux),&(pL->nuFluxUn));
+    pL->nuFluxUn /= pL->nuFlux; //want fractional uncertainty
+    
+    //initialize reactor flux
+	double distance = 1.0;
+    pL->nuFlux /= pow(distance,2); 
+    int err = initFlux(pL);
+    if (err == 1)
+    {
+        std::cout << "Reactor flux data is not properly normalized" << std::endl;
+        return -1;
+    }
     
     //Detector setup
     char name[20];
@@ -51,15 +74,11 @@ int readConfigFile(paramList *pL, char *filename)
     {
         sscanf(temp,"%s %lf", name, &exp);
         
-	    if(pL->newDetector(name, exp)) { std::cout << "Could not create detector, exiting" << std::endl; return -1; }
-
+	    if(newDetector(pL, name, exp)) { std::cout << "Could not create detector, exiting" << std::endl; return -1; }
+        std::cout << "Using detector " << name << std::endl;
         ret = fgets(temp,200,input);
     }    
-    
-    ret = fgets(temp,200,input);
-    sscanf(temp,"%lf %*s %lf",&(pL->nuFlux),&(pL->nuFluxUn));
-    pL->nuFluxUn /= pL->nuFlux; //want fractional uncertainty
-    
+        
     //asimov or random sim?
     ret = fgets(temp,200,input);
     ret = fgets(temp,200,input);
