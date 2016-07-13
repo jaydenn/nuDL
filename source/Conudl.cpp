@@ -8,6 +8,7 @@
 #include "SMrate.h"
 #include "BSMrate.h"
 #include "discLimit.h"
+#include "calcRates.h"
 
 int main(int argc, char *argv[])
 {
@@ -66,22 +67,9 @@ int main(int argc, char *argv[])
 	//print rate mode
 	if(mode == 1)
     {
-        std::cout << "Calculating rates...\n\n"; 
-        std::cout << "Er (eV)  " << "SM dN/dE";
-        if(pList.BSM!=0)
-            std::cout << "     BSM dN/dE (events/kg/day/keV)" << std::endl;
-        else
-            std::cout << std::endl;
-            
-        for (int i=100; i<1001; i+=10)
-        {
-            std::cout << (double)i/1e3 << "     " << diffSMrate( (double) i/1e3, &pList, 0) << "      ";
-            if(pList.BSM!=0)
-                std::cout << diffBSMrate( (double) i/1e3, &pList, 0) << std::endl; 
-            else
-                std::cout << std::endl;
-        }
-        //std::cout << "total rate: " << pList.rateFunc( pList.detectors[0].ErL, pList.detectors[0].ErU, &pList, 0) << " events/kg/day" << std::endl;
+        std::cout << "\n"; 
+        
+        err = calcRates(&pList);
         
         return 0;
     }   

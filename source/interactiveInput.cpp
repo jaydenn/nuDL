@@ -205,17 +205,24 @@ int interactiveInput(paramList *pL)
             else
                 sprintf(name,"#%s",dets[det]);
         
-        std::cout << "Enter exposure (in kg.days) for " << name << " detector: ";
-        choose_a_valid_exp_loop:
-            std::getline(std::cin,stdinstr);
-            exp = atof(stdinstr.c_str());
-            
-            if( exp < 0 || std::cin.fail())
-            {
-                std::cout << "\nenter a valid exposure: ";
-                goto choose_a_valid_exp_loop;
-            }
-        
+        if(mode!=1)
+        {
+            std::cout << "Enter exposure (in kg.days) for " << name << " detector: ";
+            choose_a_valid_exp_loop:
+                std::getline(std::cin,stdinstr);
+                exp = atof(stdinstr.c_str());
+                
+                if( exp < 0 || std::cin.fail())
+                {
+                    std::cout << "\nenter a valid exposure: ";
+                    goto choose_a_valid_exp_loop;
+                }
+        }
+        else
+        {
+            exp=1;
+        }   
+             
 	    if(newDetector(pL, name, exp)) { std::cout << "Could not create detector, exiting" << std::endl; return -1; }
 
         ndet--; j++;
