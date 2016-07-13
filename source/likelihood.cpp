@@ -4,7 +4,8 @@
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_randist.h>
 #include "parameterStruct.h"
-#include "CNNSrate.h"
+#include "SMrate.h"
+#include "BSMrate.h"
 #ifndef DETECTORFUNCTIONS_H
 	#include "detectorFunctions.h"
 #endif
@@ -48,7 +49,7 @@ double logLikelihood(paramList *pList)
                 SM = pList->nuFluxNorm * intSMrate( Er_min, Er_max, pList, detj) * pList->detectors[detj].exposure;
                 
             background = pList->detectors[detj].BgNorm * intBgRate( pList->detectors[detj], Er_min, Er_max)  * pList->detectors[detj].exposure;
-            signal     = pList->signalNorm * pList->nuFluxNorm * pList->rateFunc( Er_min, Er_max, pList, detj) * pList->detectors[detj].exposure; 
+            signal     = pList->signalNorm * pList->nuFluxNorm * (pList->rateFunc( Er_min, Er_max, pList, detj) - intSMrate( Er_min, Er_max, pList, detj) )* pList->detectors[detj].exposure; 
 
             l = logPoisson( pList->detectors[detj].binnedData[i], signal+SM+background+1e-99);
             loglike += l;

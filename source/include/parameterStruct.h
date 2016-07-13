@@ -31,6 +31,11 @@ struct paramList {
 	double qV, qVn, qVp, qVu, qVd;
 	
 	int BSM;
+	int nucScat;
+	int elecScat;
+    int mediator;
+    double mMed;
+    
     int asimov;
 	int ndet, detj;
 	detector detectors[10];
@@ -42,7 +47,7 @@ struct paramList {
     	std::cout << "  BSM: " << BSM << std::endl;
     	std::cout << "  asimov: " << asimov << std::endl;
     	std::cout << "  flux: " << nuFlux << " +/- " << nuFluxUn*100 << "%" << std::endl;
-		std::cout << "Detectors:" << std::endl;
+		std::cout << ndet << " detectors:" << std::endl;
 		for(int i=0;i<ndet;i++)
 			detectors[i].printDetSpecs();
 	}
@@ -55,6 +60,9 @@ struct paramList {
         signalNorm=1;
 		EnuMax=0;
         asimov=1;
+        elecScat=0;
+        nucScat=0;
+        mediator=0;
 	}
 	
 };

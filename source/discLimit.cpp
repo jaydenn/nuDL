@@ -11,7 +11,8 @@
 #endif	
 #include "likelihood.h"
 #include "monteCarlo.h"
-#include "CNNSrate.h"
+#include "SMrate.h"
+#include "BSMrate.h"
 
 
 double my_LS(const gsl_vector *v, void *params)
@@ -232,18 +233,21 @@ void discLimit(paramList *pL, int detj)
     char filename[100];
     std::ofstream outfile;
     
-    sprintf(filename, "%s%c%c_discEvo.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1]);
-    
+    if(pL->elecScat)
+        sprintf(filename, "%s%c%c_discEvo%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],'E',pL->BSM);
+    else
+        sprintf(filename, "%s%c%c_discEvo%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],'N',pL->BSM);
+        
     std::cout << "writing output to: " << filename << std::endl;    
     outfile.open(filename,std::ios::out);
     
-    double mu=2;  //first guess
+    double mu=100;  //first guess
     pL->signalNorm = mu;
     pL->detj = detj;
     
     std::cout << std::setprecision(3);
     outfile << std::setprecision(6);
-    while (pL->detectors[detj].exposure < 1e3)
+    while (pL->detectors[detj].exposure < 1e7)
     {
 
         mu = findCoeff3sig(pL);

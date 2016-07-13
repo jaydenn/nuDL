@@ -4,7 +4,8 @@
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_rng.h>
 #include <iomanip>
-#include "CNNSrate.h"
+#include "SMrate.h"
+#include "BSMrate.h"
 #ifndef PARAMETERSTRUCT_H
     #include "parameterStruct.h"
 #endif
@@ -24,14 +25,19 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
     T=gsl_rng_default;
     r=gsl_rng_alloc(T);
     gsl_rng_set(r, simSeed + SEED++);
-
-    //total signal and background, for setting bin size
-    double signal     = pList->nuFluxNorm * pList->signalNorm * pList->rateFunc( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj) * pList->detectors[detj].exposure;
-    double background = pList->detectors[detj].BgNorm * b * intBgRate(pList->detectors[detj], pList->detectors[detj].ErL, pList->detectors[detj].ErU) * pList->detectors[detj].exposure;     
-    double SM = pList->nuFluxNorm * intSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj) * pList->detectors[detj].exposure;
     
-    //setup bins //somewhat arbitrary choice of number of bins.. seems to work for exponential data
-    pList->detectors[detj].nbins = floor( sqrt(signal+background+SM) )+2;
+    //total standard model, beyond SM and background rates
+    double SM, BSM, BG;
+    if(pList->BSM)
+        BSM = pList->nuFluxNorm * pList->signalNorm * intBSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj);
+    else
+        BSM = 0;
+        
+    SM = pList->nuFluxNorm * intSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj);
+    BG = pList->detectors[detj].BgNorm * b * intBgRate(pList->detectors[detj], pList->detectors[detj].ErL, pList->detectors[detj].ErU) ;     
+
+    //setup bins ~somewhat arbitrary choice of number of bins.. seems to work for exponential data
+    pList->detectors[detj].nbins = floor( sqrt(  pList->detectors[detj].exposure * ( SM + BSM + BG ) ) ) + 2;
     pList->detectors[detj].binW  = ( pList->detectors[detj].ErU - pList->detectors[detj].ErL ) / ( (double) pList->detectors[detj].nbins);
 
     try
@@ -51,17 +57,17 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
         Er_max = (double)(i+1)*pList->detectors[detj].binW+pList->detectors[detj].ErL;
         
         if(pList->BSM)
-            SM = pList->nuFluxNorm * intSMrate( Er_min, Er_max, pList, detj) * pList->detectors[detj].exposure;
+            BSM = pList->nuFluxNorm * pList->signalNorm * intBSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj);
         else
-            SM = 0;
+            BSM = 0;
             
-        background = pList->detectors[detj].BgNorm * b * intBgRate(pList->detectors[detj], Er_min, Er_max) * pList->detectors[detj].exposure;
-        signal     = pList->nuFluxNorm * pList->signalNorm * pList->rateFunc( Er_min, Er_max, pList, detj) * pList->detectors[detj].exposure; 
-
+        SM = pList->nuFluxNorm * intSMrate( Er_min, Er_max, pList, detj); 
+        BG = pList->detectors[detj].BgNorm * b * intBgRate(pList->detectors[detj], Er_min, Er_max) ;
+        
         if( pList->asimov == 1) 
-            pList->detectors[detj].binnedData[i] = signal + background + SM;
+            pList->detectors[detj].binnedData[i] = pList->detectors[detj].exposure *( SM + BSM + BG );
         else
-            pList->detectors[detj].binnedData[i] = gsl_ran_poisson(r,signal+background+SM);                       
+            pList->detectors[detj].binnedData[i] = gsl_ran_poisson(r, pList->detectors[detj].exposure *( SM + BSM + BG ));                       
         
         pList->detectors[detj].nEvents += pList->detectors[detj].binnedData[i];
     }

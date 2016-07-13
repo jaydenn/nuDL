@@ -7,7 +7,9 @@
 #ifndef PARAMETERSTRUCT_H
     #include "parameterStruct.h"
 #endif
-#include "CNNSrate.h"
+#include "nuRate.h"
+#include "SMrate.h"
+#include "BSMrate.h"
 
 double detEff(double Er, int type)
 {
@@ -145,9 +147,16 @@ int newDetector(paramList *pList, char *name, double exp)
 		
 		//only need to calculate background and SM signal once, store in a table for interpolation, stored as events/kg/day/keV
 		//get values of bg at relevant energies
+		std::cout << "Initializing rates:" << std::endl << "SM rate..." << std::endl; 
 		rateInit( pList, pList->ndet,        &SMrate,   pList->detectors[pList->ndet].signalSM);
-		rateInit( pList, pList->ndet,       &BSMrate,  pList->detectors[pList->ndet].signalBSM);
+		if(pList->BSM!=0)
+		{   
+		    std::cout << "BSM rate..." << std::endl; 
+		    rateInit( pList, pList->ndet,       &BSMrate,  pList->detectors[pList->ndet].signalBSM);
+        }
+        std::cout << "Background rate..." << std::endl; 
 		rateInit( pList, pList->ndet, &detBackground, pList->detectors[pList->ndet].background);
+		std::cout << "done." << std::endl; 
 		
 		pList->ndet++;
 		

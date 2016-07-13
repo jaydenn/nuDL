@@ -19,6 +19,7 @@ struct detector {
     double isoSN[10];
     double ErL;
     double ErU;
+    
     int bg;
     int eff;
     int res;

@@ -6,7 +6,8 @@
 #include <stdlib.h>
 #include "detectorFunctions.h"
 #include "nuFlux.h"
-#include "CNNSrate.h"
+#include "SMrate.h"
+#include "BSMrate.h"
 #ifndef PARAMETERSTRUCT_H
     #include "parameterStruct.h"
 #endif
@@ -41,14 +42,36 @@ int readConfigFile(paramList *pL, char *filename)
     sscanf(temp,"%s %*s",root);
     sprintf(pL->root, "%s", root);		 
   
+    //include nuclear scattering?
+    ret = fgets(temp,200,input);
+    sscanf(temp,"%d",&(pL->nucScat));
+    
+    //include electron scattering?
+    ret = fgets(temp,200,input);
+    sscanf(temp,"%d",&(pL->elecScat));
+    
+    if( (pL->nucScat == 0 && pL->elecScat == 0) || (pL->nucScat == 1 && pL->elecScat == 1))
+    {
+        std::cout << "Must choose one of electron or nuclear scattering" << std::endl;
+        return -1;
+    }
+    
     //which BSM model to consider
     ret = fgets(temp,200,input);
     sscanf(temp,"%d",&(pL->BSM));
-    if(pL->BSM)
-        pL->rateFunc = *intBSMrate;
+    if(pL->BSM==0)
+    {
+        std::cout << "Must choose a BSM type" << std::endl;
+        return -1;
+    }
     else
-        pL->rateFunc = *intSMrate;
+        pL->rateFunc = *intBSMrate;
     
+    //mediator mass
+    ret = fgets(temp,200,input);
+    sscanf(temp,"%lf",&(pL->mMed));
+    
+    //reactor flux
     ret = fgets(temp,200,input);
     ret = fgets(temp,200,input);
     sscanf(temp,"%lf %*s %lf",&(pL->nuFlux),&(pL->nuFluxUn));
