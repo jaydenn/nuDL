@@ -1,10 +1,9 @@
 CC = g++
-FLAGS = #-g -O3 #-DMPI -DOMPI_SKIP_MPICXX
-NESTLIBDIR = ../MultiNest_v3.9
+FLAGS = -g #-Ofast
 
-LIBS = -L$(NESTLIBDIR) -lnest3 -llapack -lgsl -lgslcblas -lstdc++ -lm #-lgfortran
+LIBS = -lgsl -lgslcblas -lstdc++ -lm
 INCLUDE = -I./source/include
-OBJECTS = source/Conudl.o source/discLimit.o source/nuFlux.o source/detectorFunctions.o source/formfactorSI.o source/monteCarlo.o source/likelihood.o source/CNNSrate.o
+OBJECTS = source/Conudl.o source/fileIO.o source/interactiveInput.o source/discLimit.o source/nuFlux.o source/detectorFunctions.o source/formfactorSI.o source/monteCarlo.o source/likelihood.o source/nuRate.o source/SMrate.o source/BSMrate.o
 
 default: Conudl
 
@@ -16,4 +15,4 @@ source/%.o: source/%.cpp
 
 clean:
 	-rm source/*.o
-	-rm -f ./BSMNu
+	-rm -f ./Conudl
