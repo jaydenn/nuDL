@@ -18,10 +18,13 @@ Optional dependancy:
 git
 
 Either download the code from GitHub and extract it from the archive, or clone the git repository by typing:
+```
 git clone https://github.com/jaydenn/Conudl.git
+```
 future updates can be obtained by typing:
+```
 git pull origin master
-
+```
 Once GSL is installed you can build Conudl by typing 'make' in the main directory.
 
 ## Running Conudl
