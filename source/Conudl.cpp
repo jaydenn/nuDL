@@ -67,10 +67,7 @@ int main(int argc, char *argv[])
 	//print rate mode
 	if(mode == 1)
     {
-        std::cout << "\n"; 
-        
         err = calcRates(&pList);
-        
         return 0;
     }   
     

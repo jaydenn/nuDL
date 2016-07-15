@@ -96,9 +96,9 @@ double BSMrateN(double ErKeV, paramList *pList, double Mt)
     double Qv = pList->qV; //SM vector
     double Qa = pList->qA; //SM axial coupling
     
-    double Qs = 1e-5;//scalar
-    double Qvp = 1e-5;//vector
-    double Qap = 1e-5;//axial 
+    double Qs = 1e-6;//scalar
+    double Qvp = 1e-6;//vector
+    double Qap = 1e-6;//axial 
 
     double intConst, intInvEnu, intInvEnuSq;
     
@@ -163,7 +163,6 @@ double BSMrate(double ErKeV, paramList *pList, int detj)
     	{
     	    pList->qA = pList->detectors[detj].isoSN[i]*(-0.427*-0.501163+0.842*0.506875) + pList->detectors[detj].isoSZ[i]*(-0.427*0.506875+0.842*-0.501163);	 
 		    pList->qV = (- 0.512213 * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + .0304*pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
-		    std::cout << "first check the charges" << std::endl; 
 		    rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateN( ErKeV, pList, MN*pList->detectors[detj].isoA[i]);
 	    }
 	    if(pList->elecScat)

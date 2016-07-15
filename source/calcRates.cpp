@@ -18,13 +18,25 @@ int calcRates(paramList *pList)
     switch(pList->BSM)
     {
         case 1:
+        {
             sprintf(BSMname,"scalar");
+            break;
+        }
         case 2:
+        {
             sprintf(BSMname,"pseudoS");
+            break;
+        }
         case 3:
+        {
             sprintf(BSMname,"vector");
+            break;
+        }
         case 4:
+        {
             sprintf(BSMname,"axial");
+            break;
+        }
     }
     
     //format output streams
@@ -32,13 +44,16 @@ int calcRates(paramList *pList)
     outfile   << setiosflags(std::ios::scientific) << std::setprecision(5);
     
     //output model
-    int masskeV = (int)(pList->mMed*1e6);
-    std::cout << "BSM rate for " << masskeV << " keV "<< BSMname << " mediator\n";
+    int masskeV = (int)(pList->mMed*1e9);
+    std::cout << "\nBSM rate for " << masskeV << " keV "<< BSMname << " mediator\n";
       
     for(int detj=0; detj < pList->ndet; detj++)
     {
         //open file
-        sprintf(filename,"%s%s_%sRate_m%dkeV.dat", pList->root, pList->detectors[detj].name, BSMname,  masskeV);
+        if(pList->nucScat)
+            sprintf(filename,"%s%s_%sRate%c_m%deV.dat", pList->root, pList->detectors[detj].name, BSMname,  'N', masskeV);
+        else
+            sprintf(filename,"%s%s_%sRate%c_m%deV.dat", pList->root, pList->detectors[detj].name, BSMname,  'E', masskeV);
         outfile.open(filename,std::ios::out);
         
         if(outfile==NULL)
@@ -69,9 +84,9 @@ int calcRates(paramList *pList)
             outfile   << " (events/kg/day/keV)" << std::endl;
         }
             
-        for (int i=0; i<101; i+=1)
+        for (int i=0; i<201; i+=1)
         {
-            ErkeV = pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/100;
+            ErkeV = pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/200;
             std::cout << "    " << ErkeV << "      " << diffSMrate( ErkeV, pList, detj) << "      " << diffBgRate( pList->detectors[detj], ErkeV);
             outfile   << "    " << ErkeV << "      " << diffSMrate( ErkeV, pList, detj) << "      " << diffBgRate( pList->detectors[detj], ErkeV);
             
