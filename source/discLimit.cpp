@@ -9,6 +9,9 @@
 #ifndef PARAMETERSTRUCT_H
 	#include "parameterStruct.h"
 #endif	
+#ifndef DETECTORFUNCTIONS_H
+	#include "detectorFunctions.h"
+#endif
 #include "likelihood.h"
 #include "monteCarlo.h"
 #include "SMrate.h"
@@ -21,9 +24,9 @@ double my_LS(const gsl_vector *v, void *params)
     paramList *pL = (paramList *)params;
     double l;
 
-    pL->nuFluxNorm = gsl_vector_get(v, 0);
+    pL->nuFluxNorm = fabs(gsl_vector_get(v, 0));
     pL->signalNorm = gsl_vector_get(v, 1);
-    pL->detectors[pL->detj].BgNorm = gsl_vector_get(v, 2);
+    pL->detectors[pL->detj].BgNorm = fabs(gsl_vector_get(v, 2));
         
     l = - logLikelihood(pL) 
         + 0.5/pow(pL->nuFluxUn,2) * pow(pL->nuFluxNorm - 1,2) 
@@ -37,9 +40,11 @@ double my_L0(const gsl_vector *v, void *params)
     paramList *pL = (paramList *)params;
     double l;
 
-    pL->detectors[pL->detj].BgNorm  = gsl_vector_get(v, 0);
+    pL->nuFluxNorm = gsl_vector_get(v, 0);
+    pL->detectors[pL->detj].BgNorm  = gsl_vector_get(v, 1);
         
     l = - logLikelihood(pL) 
+        + 0.5/pow(pL->nuFluxUn,2) * pow(pL->nuFluxNorm - 1,2) 
         + 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2) ;
     return l;
 }
@@ -79,9 +84,9 @@ double findMaxLS(paramList *pL)
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);       
-    //    std::cout << "       " <<iter << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
+        //std::cout << "       " <<iter << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 2000 && gsl_multimin_fminimizer_size(s)>.001); //s->fval>1e-2);
+    while (iter < 2000 && gsl_multimin_fminimizer_size(s)>.0005); //s->fval>1e-2);
     
    if(iter==2000)
         std::cout << "LS non-convergence size = " << gsl_multimin_fminimizer_size(s) << " > .001  " << std::endl;
@@ -103,28 +108,29 @@ double findMaxL0(paramList *pL)
     size_t iter = 0;
     int status;
     
-    double mu = pL->signalNorm;
+    double mu = pL->signalNorm; //save current mu for later
     pL->signalNorm = 0;
     
     const gsl_multimin_fminimizer_type *T;
     gsl_multimin_fminimizer *s;
     gsl_multimin_function my_func;
 
-    
     my_func.f = my_L0;
     my_func.params = (void *)pL;
 
     //start point
     gsl_vector *x,*dx;
-    my_func.n = 1;
+    my_func.n = 2;
     
-    x = gsl_vector_alloc (1);
-    dx = gsl_vector_alloc (1);
-    gsl_vector_set (x, 0, 1.0); 
+    x = gsl_vector_alloc (2);
+    dx = gsl_vector_alloc (2);
+    gsl_vector_set (x, 0, 1.0);
     gsl_vector_set(dx, 0, .05);
+    gsl_vector_set (x, 1, 1.0); 
+    gsl_vector_set(dx, 1, .05);
 
     T = gsl_multimin_fminimizer_nmsimplex2;
-    s = gsl_multimin_fminimizer_alloc (T, 1);
+    s = gsl_multimin_fminimizer_alloc (T, 2);
 
     gsl_multimin_fminimizer_set (s, &my_func, x, dx);
 
@@ -132,9 +138,9 @@ double findMaxL0(paramList *pL)
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);
-        //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << s->fval << std::endl; 
+        //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 2000 && gsl_multimin_fminimizer_size(s)>.001);  //s->fval > 1e-2 && !status);
+    while (iter < 2000 && gsl_multimin_fminimizer_size(s)>.0005);  //s->fval > 1e-2 && !status);
     if(iter==2000)
         std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)  << " > .001  " <<  std::endl;
     
@@ -169,7 +175,9 @@ double my_q0(const gsl_vector *v, void *params)
     paramList *pL = (paramList *)params;    
     
     pL->nuFluxNorm = 1;
-    pL->signalNorm = gsl_vector_get(v, 0);       
+    pL->detectors[pL->detj].BgNorm = 1;
+    pL->signalNorm = gsl_vector_get(v, 0);
+    
     generateBinnedData( pL, pL->detj, 1, simSeed);
 
     return pow( sqrt(q0(pL)) - 4.28, 2);  //arbitrary function with a minima at 3 sigma 90% of the time
@@ -208,9 +216,9 @@ double findCoeff3sig(paramList *pL)
     {
         status = gsl_multimin_fminimizer_iterate (s);
         iter++;
-     //   std::cout <<  pL->detectors[0].exposure << "  " << iter << " " << gsl_vector_get(s->x,0) << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
+        // std::cout <<  pL->detectors[0].exposure << "  " << iter << " " << gsl_vector_get(s->x,0) << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
     }
-    while (iter < 2000 && s->fval > .0002 && !status); //under 1% error in 4.28 sigma value
+    while (iter < 2000 && s->fval > .0015 && !status); //under 1% error in 4.28 sigma value
         
     double mu = gsl_vector_get(s->x, 0);
     
@@ -241,7 +249,12 @@ void discLimit(paramList *pL, int detj)
     std::cout << "writing output to: " << filename << std::endl;    
     outfile.open(filename,std::ios::out);
     
-    double mu=100;  //first guess
+    //determine first guess for mu, need a mu that gives BSM ~ SM/100
+    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
+    double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
+    double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
+    double mu  = (SM+BG)/(20*BSM);    
+    
     pL->signalNorm = mu;
     pL->detj = detj;
     

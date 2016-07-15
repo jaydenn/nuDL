@@ -36,10 +36,15 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
     SM = pList->nuFluxNorm * intSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj);
     BG = pList->detectors[detj].BgNorm * b * intBgRate(pList->detectors[detj], pList->detectors[detj].ErL, pList->detectors[detj].ErU) ;     
 
+    //std::cout << SM << " " << BG << " " << BSM << std::endl;
+
     //setup bins ~somewhat arbitrary choice of number of bins.. seems to work for exponential data
     pList->detectors[detj].nbins = floor( sqrt(  pList->detectors[detj].exposure * ( SM + BSM + BG ) ) ) + 2;
-    pList->detectors[detj].binW  = ( pList->detectors[detj].ErU - pList->detectors[detj].ErL ) / ( (double) pList->detectors[detj].nbins);
 
+    if (pList->detectors[detj].nbins > 50)
+        pList->detectors[detj].nbins = 50;
+    pList->detectors[detj].binW  = ( pList->detectors[detj].ErU - pList->detectors[detj].ErL ) / ( (double) pList->detectors[detj].nbins);
+            
     try
     {
         pList->detectors[detj].binnedData = new double[pList->detectors[detj].nbins];
@@ -57,7 +62,7 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
         Er_max = (double)(i+1)*pList->detectors[detj].binW+pList->detectors[detj].ErL;
         
         if(pList->BSM)
-            BSM = pList->nuFluxNorm * pList->signalNorm * intBSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj);
+            BSM = pList->nuFluxNorm * pList->signalNorm * intBSMrate( Er_min, Er_max, pList, detj);
         else
             BSM = 0;
             
