@@ -33,12 +33,13 @@ double BSMrateE(double ErKeV, paramList *pList, double Mt)
     double gv = pList->qV;
     double ga = pList->qA;
     
-    double gEs = 1e-6;   //scalar electron
-    double gEp = 1e-6;   //pseudoscalar electron
-    double gNuV = 1e-6;  //vector neutrino
-    double gNuS = 1e-6;  //vector neutrino
-    double gEv =  1e-6;  //vector electron
-    double gEa =  1e-6;  //axial-vector electron
+    //makes reading calculations more readable
+    double gEs = pList->gEs;   //scalar electron
+    double gEp = pList->gEp;   //pseudoscalar electron
+    double gNuV = pList->gNuV;  //vector neutrino
+    double gNuS = pList->gNuS;  //vector neutrino
+    double gEv =  pList->gEv;  //vector electron
+    double gEa =  pList->gEa;  //axial-vector electron
     
     double intConst, intInvEnu, intInvEnuSq;
         
@@ -96,9 +97,10 @@ double BSMrateN(double ErKeV, paramList *pList, double Mt)
     double Qv = pList->qV; //SM vector
     double Qa = pList->qA; //SM axial coupling
     
-    double Qs = 1e-6;//scalar
-    double Qvp = 1e-6;//vector
-    double Qap = 1e-6;//axial 
+    //makes calculations more readable
+    double Qs = pList->Qs;  //scalar
+    double Qvp = pList->Qv; //vector
+    double Qap = pList->Qa; //axial 
 
     double intConst, intInvEnu, intInvEnuSq;
     
@@ -133,11 +135,11 @@ double BSMrateN(double ErKeV, paramList *pList, double Mt)
         case 4:
         {
             return convFactor * ( 
-                       GFERMI*Mt*Qa*Qap / (2*sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
+                       GFERMI*Mt*Qa*Qa / (2*sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
 	                     * ( 2*intConst + intInvEnuSq * ErGeV * Mt ) 
-	                 - GFERMI*MN*Qv*Qap*ErGeV / (sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
+	                 - GFERMI*MN*Qv*Qa*ErGeV / (sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
 	                     * intInvEnu 
-	                 + pow(Qap,2)*Mt / (4*M_PI * pow( 2*ErGeV*Mt + pow(pList->mMed,2) ,2) ) 
+	                 + pow(Qa,2)*Mt / (4*M_PI * pow( 2*ErGeV*Mt + pow(pList->mMed,2) ,2) ) 
 	                     * ( 2*intConst + intInvEnuSq * ErGeV * Mt ) ); 
         }
         default:
@@ -163,6 +165,10 @@ double BSMrate(double ErKeV, paramList *pList, int detj)
     	{
     	    pList->qA = pList->detectors[detj].isoSN[i]*(-0.427*-0.501163+0.842*0.506875) + pList->detectors[detj].isoSZ[i]*(-0.427*0.506875+0.842*-0.501163);	 
 		    pList->qV = (- 0.512213 * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + .0304*pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
+		    pList->Qs = (pList->detectors[detj].isoA[i]-pList->detectors[detj].isoZ[i]) * pList->qNs + pList->detectors[detj].isoZ[i] * pList->qPs;
+		    pList->Qv = (pList->detectors[detj].isoA[i]-pList->detectors[detj].isoZ[i]) * pList->qNv + pList->detectors[detj].isoZ[i] * pList->qPv;
+		    pList->Qa = pList->detectors[detj].isoSN[i] * pList->qNa + pList->detectors[detj].isoSZ[i] * pList->qPa;
+		    
 		    rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateN( ErKeV, pList, MN*pList->detectors[detj].isoA[i]);
 	    }
 	    if(pList->elecScat)
@@ -247,7 +253,6 @@ double E6rate(double ErKeV, paramList *pList, int detj)
 
 double diffBSMrate(double ErkeV, paramList *pList, int detj)						  
 {   
-
     return gsl_spline_eval(pList->detectors[detj].signalBSM, ErkeV, pList->detectors[detj].accelBSM);
 }
 

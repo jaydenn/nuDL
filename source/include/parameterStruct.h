@@ -30,6 +30,30 @@ struct paramList {
 	double qA, qAn, qAp, qAu, qAd;
 	double qV, qVn, qVp, qVu, qVd;
 	
+	//fiducial coupling
+	double C;
+	
+	//nucleon couplings
+	double Qs;  //scalar nuclear
+	double qPs; //scalar
+	double qNs; //scalar
+	double Qv;  //vector nuclear
+    double qPv; //vector
+    double qNv; //vector
+    double Qa;  //axial nuclear
+    double qPa; //axial
+    double qNa; //axial
+    
+    //neutrino couplings
+    double gNuV;  //vector neutrino
+    double gNuS;  //scalar neutrino
+        
+    //electron couplings	
+	double gEs;   //scalar electron
+    double gEp;   //pseudoscalar electron
+    double gEv;  //vector electron
+    double gEa;  //axial-vector electron
+    
 	int BSM;
 	int nucScat;
 	int elecScat;
@@ -54,6 +78,7 @@ struct paramList {
 	
 	paramList()
 	{
+	    Qs=qNs=qPs=qNv=qPv=qNa=qPa=gNuS=gNuV=gEs=gEp=gEv=gEa=C=0;
 		ndet=0;
 		nuFluxNorm=1;
 		nuFluxUn=1e-99;

@@ -59,13 +59,109 @@ int readConfigFile(paramList *pL, char *filename)
     //which BSM model to consider
     ret = fgets(temp,200,input);
     sscanf(temp,"%d",&(pL->BSM));
-    if(pL->BSM==0)
+    
+    //fiducial coupling
+    ret = fgets(temp,200,input);
+    sscanf(temp,"%lf",&(pL->C));
+    
+    switch(pL->BSM)
     {
-        std::cout << "Must choose a BSM type" << std::endl;
-        return -1;
+        case 1:
+        {
+            pL->gNuS=pL->C;
+            switch(pL->nucScat)
+            {
+                case 1:
+                {
+                    pL->qNs=pL->qPs=pL->C;
+                    break;
+                }    
+                case 2:
+                {
+                    pL->qNs=pL->C;
+                    break;
+                }
+                case 3:
+                {
+                    pL->qPs=pL->C;
+                    break;
+                }    
+            }
+            if(pL->elecScat)
+            {
+                pL->gEs=pL->C;
+            }
+            break;
+        }
+        case 2:
+        {
+            pL->gNuS=pL->C;
+            if(pL->elecScat)
+            {
+                pL->gEp=pL->C;
+            }
+            break;
+        }
+        case 3:
+        {
+            pL->gNuV=pL->C;
+            switch(pL->nucScat)
+            {
+                case 1:
+                {
+                    pL->qNv=pL->qPv=pL->C;
+                    break;
+                }    
+                case 2:
+                {
+                    pL->qNv=pL->C;
+                    break;
+                }
+                case 3:
+                {
+                    pL->qPv=pL->C;
+                    break;
+                }    
+            }
+            if(pL->elecScat)
+            {
+                pL->gEv=pL->C;
+            }
+            break;
+        }
+        case 4:
+        {
+            pL->gNuV=pL->C;
+            switch(pL->nucScat)
+            {
+                case 1:
+                {
+                    pL->qNa=pL->qPa=pL->C;
+                    break;
+                }    
+                case 2:
+                {
+                    pL->qNa=pL->C;
+                    break;
+                }
+                case 3:
+                {
+                    pL->qPa=pL->C;
+                    break;
+                }    
+            }
+            if(pL->elecScat)
+            {
+                pL->gEa=pL->C;
+            }
+            break;
+        }
+        default:
+        {
+            std::cout << "Must choose a BSM type" << std::endl;
+            return -1;
+        }
     }
-    else
-        pL->rateFunc = *intBSMrate;
     
     //mediator mass
     ret = fgets(temp,200,input);
