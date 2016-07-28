@@ -68,7 +68,7 @@ int calcRates(paramList *pList)
         std::cout << "  total rates: \n"; 
         std::cout << "     SM  = " << intSMrate(  pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj)        << " events/kg/day" << std::endl;
         std::cout << "     BG  = " << intBgRate(  pList->detectors[detj], pList->detectors[detj].ErL, pList->detectors[0].ErU) << " events/kg/day" << std::endl;
-        std::cout << "     BSM = " << intBSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj)        << " events/kg/day" << std::endl;
+        std::cout << "     BSM = " << intBSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj,1)        << " events/kg/day" << std::endl;
         
         std::cout << "  differential rates: \n"; 
         std::cout << "    Er (keV)        " << "SM dN/dE        " << "BG dN/dE";
@@ -92,8 +92,8 @@ int calcRates(paramList *pList)
             
             if(pList->BSM!=0)
             {
-                std::cout << "      " << diffBSMrate( ErkeV, pList, detj) << std::endl; 
-                outfile   << "      " << diffBSMrate( ErkeV, pList, detj) << std::endl; 
+                std::cout << "      " << diffBSMrate( ErkeV, pList, detj, 1) << std::endl; 
+                outfile   << "      " << diffBSMrate( ErkeV, pList, detj, 1) << std::endl; 
             }
             else
             {
