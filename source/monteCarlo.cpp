@@ -29,7 +29,7 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
     //total standard model, beyond SM and background rates
     double SM, BSM, BG;
     if(pList->BSM)
-        BSM = pList->nuFluxNorm * pList->signalNorm * intBSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj);
+        BSM = pList->nuFluxNorm * intBSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj, pList->signalNorm);
     else
         BSM = 0;
         
@@ -62,7 +62,7 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
         Er_max = (double)(i+1)*pList->detectors[detj].binW+pList->detectors[detj].ErL;
         
         if(pList->BSM)
-            BSM = pList->nuFluxNorm * pList->signalNorm * intBSMrate( Er_min, Er_max, pList, detj);
+            BSM = pList->nuFluxNorm * intBSMrate( Er_min, Er_max, pList, detj, pList->signalNorm);
         else
             BSM = 0;
             

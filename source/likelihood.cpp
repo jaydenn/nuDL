@@ -46,7 +46,7 @@ double logLikelihood(paramList *pList)
             
             SM  = pList->nuFluxNorm * intSMrate( Er_min, Er_max, pList, detj);
             BG  = pList->detectors[detj].BgNorm * intBgRate( pList->detectors[detj], Er_min, Er_max);
-            BSM = pList->signalNorm * pList->nuFluxNorm * intBSMrate( Er_min, Er_max, pList, detj); 
+            BSM = pList->nuFluxNorm * intBSMrate( Er_min, Er_max, pList, detj, pList->signalNorm); 
 
             l = logPoisson( pList->detectors[detj].binnedData[i], pList->detectors[detj].exposure*(SM+BG+BSM)+1e-99);
             loglike += l;
