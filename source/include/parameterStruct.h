@@ -27,20 +27,21 @@ struct paramList {
 	double (*rateFunc)(double, double, paramList *, int);
      
 	double A; //is this used?
-	double qA, qAn, qAp, qAu, qAd;
-	double qV, qVn, qVp, qVu, qVd;
+	double Qa, qA, qAn, qAp, qAu, qAd;
+	double Qv, qV, qVn, qVp, qVu, qVd;
 	
 	//fiducial coupling
 	double C;
+	double SMinterference1,SMinterference2; //so it can be turned off when needed (in initialization)
 	
 	//nucleon couplings
 	double Qs;  //scalar nuclear
 	double qPs; //scalar
 	double qNs; //scalar
-	double Qv;  //vector nuclear
+	double Qvp;  //vector nuclear
     double qPv; //vector
     double qNv; //vector
-    double Qa;  //axial nuclear
+    double Qap;  //axial nuclear
     double qPa; //axial
     double qNa; //axial
     
@@ -78,7 +79,8 @@ struct paramList {
 	
 	paramList()
 	{
-	    Qs=qNs=qPs=qNv=qPv=qNa=qPa=gNuS=gNuV=gEs=gEp=gEv=gEa=C=0;
+	    Qv=Qa=Qs=Qvp=Qap=qNs=qPs=qNv=qPv=qNa=qPa=gNuS=gNuV=gEs=gEp=gEv=gEa=C=0;
+	    SMinterference1=SMinterference2=1;
 		ndet=0;
 		nuFluxNorm=1;
 		nuFluxUn=1e-99;

@@ -36,8 +36,10 @@ struct detector {
     gsl_interp_accel *accelBg;
     gsl_spline *signalSM;
     gsl_interp_accel *accelSM;
-    gsl_spline *signalBSM;
-    gsl_interp_accel *accelBSM;
+    gsl_spline *signalBSM1;
+    gsl_interp_accel *accelBSM1;
+    gsl_spline *signalBSM2;
+    gsl_interp_accel *accelBSM2;
    
     
     void printDetSpecs()
@@ -65,8 +67,10 @@ struct detector {
         accelBg = gsl_interp_accel_alloc();
         signalSM = gsl_spline_alloc(gsl_interp_linear,1000);
         accelSM = gsl_interp_accel_alloc();
-        signalBSM = gsl_spline_alloc(gsl_interp_linear,1000);
-        accelBSM = gsl_interp_accel_alloc();
+        signalBSM1 = gsl_spline_alloc(gsl_interp_linear,1000);
+        accelBSM1 = gsl_interp_accel_alloc();
+        signalBSM2 = gsl_spline_alloc(gsl_interp_linear,1000);
+        accelBSM2 = gsl_interp_accel_alloc();
     
     }
     
