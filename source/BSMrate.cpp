@@ -268,11 +268,11 @@ double intBSMrate(double Er_min, double Er_max, paramList *pList, int detj, doub
 {   
     if(pList->BSM==3 || pList->BSM==4)
     {
-        return signalNorm + gsl_spline_eval_integ(pList->detectors[detj].signalBSM1, Er_min, Er_max, pList->detectors[detj].accelBSM1)
-            + pow(signalNorm,2) + gsl_spline_eval_integ(pList->detectors[detj].signalBSM2, Er_min, Er_max, pList->detectors[detj].accelBSM2);
+        return signalNorm * gsl_spline_eval_integ(pList->detectors[detj].signalBSM1, Er_min, Er_max, pList->detectors[detj].accelBSM1)
+            + pow(signalNorm,2) * gsl_spline_eval_integ(pList->detectors[detj].signalBSM2, Er_min, Er_max, pList->detectors[detj].accelBSM2);
     }
     else
     {
-        return signalNorm + gsl_spline_eval_integ(pList->detectors[detj].signalBSM1, Er_min, Er_max, pList->detectors[detj].accelBSM1);
+        return signalNorm * gsl_spline_eval_integ(pList->detectors[detj].signalBSM1, Er_min, Er_max, pList->detectors[detj].accelBSM1);
     }
 }

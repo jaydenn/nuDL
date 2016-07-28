@@ -44,16 +44,16 @@ int calcRates(paramList *pList)
     outfile   << setiosflags(std::ios::scientific) << std::setprecision(5);
     
     //output model
-    int masskeV = (int)(pList->mMed*1e9);
+    int masskeV = (int)(pList->mMed*1e6);
     std::cout << "\nBSM rate for " << masskeV << " keV "<< BSMname << " mediator\n";
       
     for(int detj=0; detj < pList->ndet; detj++)
     {
         //open file
         if(pList->nucScat)
-            sprintf(filename,"%s%s_%sRate%c_m%deV.dat", pList->root, pList->detectors[detj].name, BSMname,  'N', masskeV);
+            sprintf(filename,"%s%sRateN_%s_m%dkeV.dat", pList->root, BSMname, pList->detectors[detj].name, masskeV);
         else
-            sprintf(filename,"%s%s_%sRate%c_m%deV.dat", pList->root, pList->detectors[detj].name, BSMname,  'E', masskeV);
+            sprintf(filename,"%s%sRateE_%s_m%dkeV.dat", pList->root, BSMname, pList->detectors[detj].name, masskeV);
         outfile.open(filename,std::ios::out);
         
         if(outfile==NULL)

@@ -214,11 +214,12 @@ double findCoeff3sig(paramList *pL)
 
     gsl_multimin_fminimizer_set (s, &my_func, x, dx);
 
+   pL->printPars();
     do
     {
         status = gsl_multimin_fminimizer_iterate (s);
         iter++;
-        // std::cout <<  pL->detectors[0].exposure << "  " << iter << " " << gsl_vector_get(s->x,0) << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
+       // std::cout <<  pL->detectors[0].exposure << "  " << iter << " " << gsl_vector_get(s->x,0) << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
     }
     while (iter < 2000 && s->fval > .0015 && !status); //under 1% error in 4.28 sigma value
         
@@ -237,27 +238,6 @@ double findCoeff3sig(paramList *pL)
         return mu;
 }
 
-double discLimit(paramList *pL, int detj, double mMed)
-{
-    
-    pL->mMed = mMed;
-    
-    //determine first guess for mu, need a mu that gives BSM ~ SM/100
-    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, 1);
-    double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
-    double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
-    double mu  = (SM+BG)/(20*BSM);
-    
-    pL->signalNorm = mu;
-    pL->detj = detj;
-    
-    mu = findCoeff3sig(pL);
-    std::cout << pL->detectors[detj].exposure << "  " << mu*pL->C << std::endl;
-
-    return mu*pL->C;             
-
-}
-
 void discLimitEvolution(paramList *pL, int detj)
 {
 
@@ -274,12 +254,20 @@ void discLimitEvolution(paramList *pL, int detj)
     std::cout << "writing output to: " << filename << std::endl;    
     outfile.open(filename,std::ios::out);
     
-    double mu;
+         
+    //determine first guess for mu, need a mu that gives BSM ~ SM/100
+    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, 1);
+    double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
+    double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
+    double mu  = (SM+BG)/(30*BSM);
     
-    while (pL->detectors[detj].exposure < 1e7)
+    pL->detj = detj;
+    pL->signalNorm = mu;         
+    
+    while (pL->detectors[detj].exposure < 1e6)
     {
 
-        mu = discLimit(pL, detj, pL->mMed);
+        mu = findCoeff3sig(pL);
 
         if (mu==mu) //check for NAN
         {
@@ -313,24 +301,32 @@ void discLimitVsMmed(paramList *pL, int detj)
     std::cout << "writing output to: " << filename << std::endl;    
     outfile.open(filename,std::ios::out);
     
-    double mMed = 1e-5;
-    double mu;
+    pL->mMed = 1e-5;
     
-    while (mMed < 1e-1)
+    //determine first guess for mu, need a mu that gives BSM ~ SM/100
+    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, 1);
+    double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
+    double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
+    double mu  = (SM+BG)/(30*BSM);
+        
+    pL->signalNorm = mu;
+    pL->detj = detj;
+    
+    while (pL->mMed < 1e-1)
     {
 
-        mu = discLimit(pL, detj, mMed);
+        mu = findCoeff3sig(pL);
 
         if (mu==mu) //check for NAN
         {
             //print out result
-            std::cout << pL->detectors[detj].exposure << "  " << mu*pL->C << std::endl;
-            outfile   << pL->detectors[detj].exposure << "  " << mu*pL->C << std::endl;
+            std::cout << pL->mMed << "  " << mu*pL->C << std::endl;
+            outfile   << pL->mMed << "  " << mu*pL->C << std::endl;
             
             pL->signalNorm = mu;      //update guess
         }
         
-        mMed*=1.2; //increment exposure
+        pL->mMed*=1.2; //increment exposure
         
     }
     outfile.close();
