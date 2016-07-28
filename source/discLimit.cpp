@@ -32,6 +32,7 @@ double my_LS(const gsl_vector *v, void *params)
         + 0.5/pow(pL->nuFluxUn,2) * pow(pL->nuFluxNorm - 1,2) 
         + 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2) ;   
     return l;
+
 }
 
 double my_L0(const gsl_vector *v, void *params)
@@ -47,6 +48,7 @@ double my_L0(const gsl_vector *v, void *params)
         + 0.5/pow(pL->nuFluxUn,2) * pow(pL->nuFluxNorm - 1,2) 
         + 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2) ;
     return l;
+
 }
 
 double findMaxLS(paramList *pL)
@@ -89,7 +91,7 @@ double findMaxLS(paramList *pL)
     while (iter < 2000 && gsl_multimin_fminimizer_size(s)>.0005); //s->fval>1e-2);
     
    if(iter==2000)
-        std::cout << "LS non-convergence size = " << gsl_multimin_fminimizer_size(s) << " > .001  " << std::endl;
+        std::cout << "LS non-convergence size = " << gsl_multimin_fminimizer_size(s) << " > .0005  " << std::endl;
     
     double LS =  s->fval;
     pL->signalNorm = gsl_vector_get(s->x, 1);
@@ -142,7 +144,7 @@ double findMaxL0(paramList *pL)
     }
     while (iter < 2000 && gsl_multimin_fminimizer_size(s)>.0005);  //s->fval > 1e-2 && !status);
     if(iter==2000)
-        std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)  << " > .001  " <<  std::endl;
+        std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)  << " > .0005  " <<  std::endl;
     
     double L0 = s->fval;
     
@@ -228,48 +230,62 @@ double findCoeff3sig(paramList *pL)
 
     if(iter==2000)
     {
-        std::cout << "non-convergence f = " << s->fval << " > .0002" << std::endl;
+        std::cout << "non-convergence f = " << s->fval << " > .0015" << std::endl;
         return NAN;
     }
     else
         return mu;
 }
 
-void discLimit(paramList *pL, int detj)
+double discLimit(paramList *pL, int detj, double mMed)
 {
+    
+    pL->mMed = mMed;
+    
+    //determine first guess for mu, need a mu that gives BSM ~ SM/100
+    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, 1);
+    double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
+    double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
+    double mu  = (SM+BG)/(20*BSM);
+    
+    pL->signalNorm = mu;
+    pL->detj = detj;
+    
+    mu = findCoeff3sig(pL);
+    std::cout << pL->detectors[detj].exposure << "  " << mu*pL->C << std::endl;
+
+    return mu*pL->C;             
+
+}
+
+void discLimitEvolution(paramList *pL, int detj)
+{
+
+    std::cout << "Starting disc. evolution calculations..." << std::endl;
 
     char filename[100];
     std::ofstream outfile;
     
     if(pL->elecScat)
-        sprintf(filename, "%s%c%c_discEvo%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],'E',pL->BSM);
+        sprintf(filename, "%sdiscEvoE_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
     else
-        sprintf(filename, "%s%c%c_discEvo%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],'N',pL->BSM);
+        sprintf(filename, "%sdiscEvoN_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
         
     std::cout << "writing output to: " << filename << std::endl;    
     outfile.open(filename,std::ios::out);
     
-    //determine first guess for mu, need a mu that gives BSM ~ SM/100
-    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
-    double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
-    double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
-    double mu  = (SM+BG)/(20*BSM);    
+    double mu;
     
-    pL->signalNorm = mu;
-    pL->detj = detj;
-    
-    std::cout << std::setprecision(3);
-    outfile << std::setprecision(6);
     while (pL->detectors[detj].exposure < 1e7)
     {
 
-        mu = findCoeff3sig(pL);
+        mu = discLimit(pL, detj, pL->mMed);
 
         if (mu==mu) //check for NAN
         {
             //print out result
-            std::cout << pL->detectors[detj].exposure << "  " << mu << std::endl;
-            outfile   << pL->detectors[detj].exposure << "  " << mu << std::endl;
+            std::cout << pL->detectors[detj].exposure << "  " << mu*pL->C << std::endl;
+            outfile   << pL->detectors[detj].exposure << "  " << mu*pL->C << std::endl;
             
             pL->signalNorm = mu;      //update guess
         }
@@ -280,4 +296,45 @@ void discLimit(paramList *pL, int detj)
     outfile.close();
 
 }
+
+void discLimitVsMmed(paramList *pL, int detj)
+{
+
+    std::cout << "Starting disc. limit calculations..." << std::endl;
+
+    char filename[100];
+    std::ofstream outfile;
+    
+    if(pL->elecScat)
+        sprintf(filename, "%sDLe_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
+    else
+        sprintf(filename, "%sDLn_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
+        
+    std::cout << "writing output to: " << filename << std::endl;    
+    outfile.open(filename,std::ios::out);
+    
+    double mMed = 1e-5;
+    double mu;
+    
+    while (mMed < 1e-1)
+    {
+
+        mu = discLimit(pL, detj, mMed);
+
+        if (mu==mu) //check for NAN
+        {
+            //print out result
+            std::cout << pL->detectors[detj].exposure << "  " << mu*pL->C << std::endl;
+            outfile   << pL->detectors[detj].exposure << "  " << mu*pL->C << std::endl;
+            
+            pL->signalNorm = mu;      //update guess
+        }
+        
+        mMed*=1.2; //increment exposure
+        
+    }
+    outfile.close();
+
+}
+
 

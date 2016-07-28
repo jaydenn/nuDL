@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
         }
     } 
     
-	pList.printPars();
+	//pList.printPars();
 	
     
 	if ( mode < 1 ) 
@@ -74,10 +74,14 @@ int main(int argc, char *argv[])
     //discovery limit evolution mode
     if ( mode == 2 )
     {
-        std::cout << "Starting disc. evolution calculations..." << std::endl;
-
-        discLimit(&pList, 0);
-
+        discLimitEvolution(&pList, 0);
+        return 0;
+    }
+    
+    //discovery limit as a function of mediator mass
+    if ( mode == 3 )
+    {
+        discLimitVsMmed(&pList, 0);
         return 0;
     }
     
