@@ -28,15 +28,15 @@ double SMrate(double ErKeV, paramList *pList, int detj)
 	{
         targetsPerKG = GeVperKG/(MN*pList->detectors[detj].isoA[i]); //how many targets per kg of detector
 		
-    	if(pList->nucScat)
+    	//if(pList->nucScat)
 	    {
 	        pListSM.qA = pList->detectors[detj].isoSN[i]*(-0.427*-0.501163+0.842*0.506875) + pList->detectors[detj].isoSZ[i]*(-0.427*0.506875+0.842*-0.501163);	 
 		    pListSM.qV = (- 0.512213 * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + .0304*pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
 		    rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i]);
 	    }	
-	    if(pList->elecScat)
+	    //if(pList->elecScat)
 	    {
-		    pListSM.qA = -0.5;
+		    pListSM.qA = 0.5;
 		    pListSM.qV = 0.5+2*0.2312;
 		    rate += (pList->detectors[detj].isoZ[i] * targetsPerKG) * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME);
 	    }

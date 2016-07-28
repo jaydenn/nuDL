@@ -152,7 +152,15 @@ int newDetector(paramList *pList, char *name, double exp)
 		if(pList->BSM!=0)
 		{   
 		    std::cout << "BSM rate..." << std::endl; 
-		    rateInit( pList, pList->ndet,       &BSMrate,  pList->detectors[pList->ndet].signalBSM);
+		    pList->SMinterference1=1;  pList->SMinterference2=0;
+		    rateInit( pList, pList->ndet, &BSMrate,  pList->detectors[pList->ndet].signalBSM1);
+		    
+		    if(pList->BSM==3 || pList->BSM==4)
+		    {
+		            pList->SMinterference2=1; pList->SMinterference1=0;
+		            rateInit( pList, pList->ndet, &BSMrate,  pList->detectors[pList->ndet].signalBSM2);
+		    }
+		    pList->SMinterference1=pList->SMinterference2=1;
         }
         std::cout << "Background rate..." << std::endl; 
 		rateInit( pList, pList->ndet, &detBackground, pList->detectors[pList->ndet].background);

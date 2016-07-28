@@ -64,17 +64,17 @@ double BSMrateE(double ErKeV, paramList *pList, double Mt)
         //vector
         case 3:
         {
-            return convFactor * ( sqrt(2)*GFERMI*gv*gNuV*gEv*ME /  M_PI 
+            return convFactor * ( pList->SMinterference1 * sqrt(2)*GFERMI*gv*gNuV*gEv*ME /  M_PI 
                 * intConst / ( 2*ErGeV*ME + pow(pList->mMed,2) )
-                + pow(gEv*gNuV,2) * ME / ( 2 * M_PI ) 
+                + pList->SMinterference2 * pow(gEv*gNuV,2) * ME / ( 2 * M_PI ) 
                 * intConst / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2) );   
         }
         //axialvector
         case 4:
         {
-            return convFactor * ( sqrt(2)*GFERMI*ME*ga*gNuV*gEa /  M_PI 
+            return convFactor * ( pList->SMinterference1 * sqrt(2)*GFERMI*ME*ga*gNuV*gEa /  M_PI 
                 * intConst / ( 2*ErGeV*ME + pow(pList->mMed,2) )
-                + pow(gEa*gNuV,2)* ME / ( 2 * M_PI ) 
+                + pList->SMinterference2 * pow(gEa*gNuV,2)* ME / ( 2 * M_PI ) 
                 * intConst / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2) );   
         }
         default:
@@ -94,13 +94,13 @@ double BSMrateN(double ErKeV, paramList *pList, double Mt)
     double convFactor =  1/GeVtoKeV * secsPerDay; //units GeV*s/keV/kg/day
     
     //nuclear couplings
-    double Qv = pList->qV; //SM vector
-    double Qa = pList->qA; //SM axial coupling
+    double Qv = pList->Qv; //SM vector
+    double Qa = pList->Qa; //SM axial coupling
     
     //makes calculations more readable
     double Qs = pList->Qs;  //scalar
-    double Qvp = pList->Qv; //vector
-    double Qap = pList->Qa; //axial 
+    double Qvp = pList->Qvp; //vector
+    double Qap = pList->Qap; //axial 
 
     double intConst, intInvEnu, intInvEnuSq;
     
@@ -126,20 +126,20 @@ double BSMrateN(double ErKeV, paramList *pList, double Mt)
         case 3:
         {
             return convFactor * ( 
-                     - GFERMI*Mt*Qv*Qvp / (2*sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
+                     - pList->SMinterference1 * GFERMI*Mt*Qv*Qvp / (2*sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
 	                     * ( 2*intConst - intInvEnuSq * ErGeV * Mt ) 
-	                 + pow(Qvp,2)*Mt / (4*M_PI * pow( 2*ErGeV*Mt + pow(pList->mMed,2) ,2) ) 
+	                 + pList->SMinterference2 * pow(Qvp,2)*Mt / (4*M_PI * pow( 2*ErGeV*Mt + pow(pList->mMed,2) ,2) ) 
 	                     * ( 2*intConst - intInvEnuSq * ErGeV * Mt ) ); 
         }
         //axialvector
         case 4:
         {
             return convFactor * ( 
-                       GFERMI*Mt*Qa*Qa / (2*sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
+                       pList->SMinterference1 * GFERMI*Mt*Qa*Qap / (2*sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
 	                     * ( 2*intConst + intInvEnuSq * ErGeV * Mt ) 
-	                 - GFERMI*MN*Qv*Qa*ErGeV / (sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
+	                 - pList->SMinterference1 * GFERMI*MN*Qvp*Qa*ErGeV / (sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
 	                     * intInvEnu 
-	                 + pow(Qa,2)*Mt / (4*M_PI * pow( 2*ErGeV*Mt + pow(pList->mMed,2) ,2) ) 
+	                 + pList->SMinterference2 * pow(Qap,2)*Mt / (4*M_PI * pow( 2*ErGeV*Mt + pow(pList->mMed,2) ,2) ) 
 	                     * ( 2*intConst + intInvEnuSq * ErGeV * Mt ) ); 
         }
         default:
@@ -163,18 +163,18 @@ double BSMrate(double ErKeV, paramList *pList, int detj)
 		
     	if(pList->nucScat)
     	{
-    	    pList->qA = pList->detectors[detj].isoSN[i]*(-0.427*-0.501163+0.842*0.506875) + pList->detectors[detj].isoSZ[i]*(-0.427*0.506875+0.842*-0.501163);	 
-		    pList->qV = (- 0.512213 * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + .0304*pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
-		    pList->Qs = (pList->detectors[detj].isoA[i]-pList->detectors[detj].isoZ[i]) * pList->qNs + pList->detectors[detj].isoZ[i] * pList->qPs;
-		    pList->Qv = (pList->detectors[detj].isoA[i]-pList->detectors[detj].isoZ[i]) * pList->qNv + pList->detectors[detj].isoZ[i] * pList->qPv;
-		    pList->Qa = pList->detectors[detj].isoSN[i] * pList->qNa + pList->detectors[detj].isoSZ[i] * pList->qPa;
-		    
+    	    pList->Qa = pList->detectors[detj].isoSN[i]*(-0.427*-0.501163+0.842*0.506875) + pList->detectors[detj].isoSZ[i]*(-0.427*0.506875+0.842*-0.501163);	 
+		    pList->Qv = ( (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) - (1-4*0.2312*pList->detectors[detj].isoZ[i]) ) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
+		    pList->Qs = ((pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) * pList->qNs + pList->detectors[detj].isoZ[i] * pList->qPs ) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);
+		    pList->Qvp = ((pList->detectors[detj].isoA[i]-pList->detectors[detj].isoZ[i]) * pList->qNv + pList->detectors[detj].isoZ[i] * pList->qPv) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);
+		    pList->Qap = pList->detectors[detj].isoSN[i] * pList->qNa + pList->detectors[detj].isoSZ[i] * pList->qPa;
+
 		    rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateN( ErKeV, pList, MN*pList->detectors[detj].isoA[i]);
 	    }
 	    if(pList->elecScat)
 	    {
             pList->qV = 0.5+2*0.2312;
-	        pList->qA = -0.5;
+	        pList->qA = 0.5;
 		    rate += pList->detectors[detj].isoZ[i] * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME);
 		}
 	}	
@@ -251,12 +251,28 @@ double E6rate(double ErKeV, paramList *pList, int detj)
 	
 }
 
-double diffBSMrate(double ErkeV, paramList *pList, int detj)						  
+double diffBSMrate(double ErkeV, paramList *pList, int detj, double signalNorm)						  
 {   
-    return gsl_spline_eval(pList->detectors[detj].signalBSM, ErkeV, pList->detectors[detj].accelBSM);
+    if(pList->BSM==3 || pList->BSM==4)
+    {
+        return signalNorm * gsl_spline_eval(pList->detectors[detj].signalBSM1, ErkeV, pList->detectors[detj].accelBSM1)
+            + pow(signalNorm,2) * gsl_spline_eval(pList->detectors[detj].signalBSM2, ErkeV, pList->detectors[detj].accelBSM2);
+    }
+    else
+    {
+        return signalNorm * gsl_spline_eval(pList->detectors[detj].signalBSM1, ErkeV, pList->detectors[detj].accelBSM1);
+    }
 }
 
-double intBSMrate(double Er_min, double Er_max, paramList *pList, int detj)						  
+double intBSMrate(double Er_min, double Er_max, paramList *pList, int detj, double signalNorm)						  
 {   
-    return gsl_spline_eval_integ(pList->detectors[detj].signalBSM, Er_min, Er_max, pList->detectors[detj].accelBSM);
+    if(pList->BSM==3 || pList->BSM==4)
+    {
+        return signalNorm + gsl_spline_eval_integ(pList->detectors[detj].signalBSM1, Er_min, Er_max, pList->detectors[detj].accelBSM1)
+            + pow(signalNorm,2) + gsl_spline_eval_integ(pList->detectors[detj].signalBSM2, Er_min, Er_max, pList->detectors[detj].accelBSM2);
+    }
+    else
+    {
+        return signalNorm + gsl_spline_eval_integ(pList->detectors[detj].signalBSM1, Er_min, Er_max, pList->detectors[detj].accelBSM1);
+    }
 }
