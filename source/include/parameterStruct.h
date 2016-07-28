@@ -75,7 +75,25 @@ struct paramList {
 		std::cout << ndet << " detectors:" << std::endl;
 		for(int i=0;i<ndet;i++)
 			detectors[i].printDetSpecs();
-	}
+    	std::cout << "  Mediator mass = " << mMed << std::endl;
+        std::cout << "  Couplings: " << std::endl;    
+        std::cout << "       electron: " << std::endl; 
+        std::cout << "             gEs = " << gEs << std::endl; //Qv=Qa=Qs=Qvp=Qap=
+        std::cout << "             gEp = " << gEp << std::endl; 
+        std::cout << "             gEv = " << gEv << std::endl; 
+        std::cout << "             gEa = " << gEa << std::endl; 
+        std::cout << "       neutron:      " << std::endl; 
+        std::cout << "             qNs = " << qNs << std::endl; 
+        std::cout << "             qNv = " << qNv << std::endl; 
+        std::cout << "             qNa = " << qNa << std::endl; 
+        std::cout << "       proton:     " << std::endl; 
+        std::cout << "             qPs = " << qPs << std::endl; 
+        std::cout << "             qPv = " << qPv << std::endl; 
+        std::cout << "             qPa = " << qPa << std::endl; 
+        std::cout << "       neutrino:     " << std::endl; 
+        std::cout << "             gNuS = " << gNuS << std::endl; 
+        std::cout << "             gNuV = " << gNuV << std::endl; 
+    }
 	
 	paramList()
 	{
