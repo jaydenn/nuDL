@@ -109,8 +109,6 @@ int interactiveInput(paramList *pL)
             goto choose_a_valid_BSM_loop;
         }
         
-    pL->rateFunc = *intBSMrate;
-    
     //mediator mass
     choose_a_valid_mMed_loop:
         std::cout << "\nEnter mediator mass in GeV: ";
