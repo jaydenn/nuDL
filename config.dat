@@ -1,10 +1,10 @@
 //Conudl configuration options
-2                  // running mode: 1=rate calculation, 2=disc. limit evolution, 3=exclusion limits
+3                  // running mode: 1=rate calculation, 2=disc. limit evolution, 3=disc. limit vs. mass
 ./results/CN_      // root of output file names, can include directories
 1                  // do nuclear scattering? 1=yes, 0=no
 0                  // do electron scattering? 1=yes, 0=no
 3                  // which BSM to consider? (0=SM, 1=scalar, 2=pseudoscalar, 3=vector, 4=axialvector)
-1e-6               // fiducial coupling
+1e-10               // fiducial coupling
 1e-3               // mediator mass in GeV
 // Reactor data: flux@1m +/- uncertainty (in units of GeV/s)
 5.875e-16  +/- 0.1e-16
