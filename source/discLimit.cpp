@@ -14,6 +14,7 @@
 #endif
 #include "likelihood.h"
 #include "monteCarlo.h"
+#include "nuRate.h"
 #include "SMrate.h"
 #include "BSMrate.h"
 
@@ -214,12 +215,11 @@ double findCoeff3sig(paramList *pL)
 
     gsl_multimin_fminimizer_set (s, &my_func, x, dx);
 
-   pL->printPars();
     do
     {
         status = gsl_multimin_fminimizer_iterate (s);
         iter++;
-       // std::cout <<  pL->detectors[0].exposure << "  " << iter << " " << gsl_vector_get(s->x,0) << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
+        //std::cout <<  pL->detectors[0].exposure << "  " << iter << " " << gsl_vector_get(s->x,0) << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
     }
     while (iter < 2000 && s->fval > .0015 && !status); //under 1% error in 4.28 sigma value
         
@@ -253,16 +253,19 @@ void discLimitEvolution(paramList *pL, int detj)
         
     std::cout << "writing output to: " << filename << std::endl;    
     outfile.open(filename,std::ios::out);
-    
          
     //determine first guess for mu, need a mu that gives BSM ~ SM/100
     double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, 1);
     double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
     double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
-    double mu  = (SM+BG)/(30*BSM);
+    double mu  = (SM+BG)/(50*BSM);
+    
+    std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
     
     pL->detj = detj;
     pL->signalNorm = mu;         
+    
+    double coup;
     
     while (pL->detectors[detj].exposure < 1e6)
     {
@@ -271,11 +274,16 @@ void discLimitEvolution(paramList *pL, int detj)
 
         if (mu==mu) //check for NAN
         {
-            //print out result
-            std::cout << pL->detectors[detj].exposure << "  " << mu*pL->C << std::endl;
-            outfile   << pL->detectors[detj].exposure << "  " << mu*pL->C << std::endl;
+            if(pL->BSM==3 || pL->BSM==4)
+                coup=mu*pL->C;
+            else
+                coup=sqrt(mu)*pL->C;
             
-            pL->signalNorm = mu;      //update guess
+            //print out result
+            std::cout << pL->detectors[detj].exposure << "  " << coup << std::endl;
+            outfile   << pL->detectors[detj].exposure << "  " << coup << std::endl;
+            
+            pL->signalNorm = mu/2;      //update guess
         }
         
         pL->detectors[detj].exposure*=1.2; //increment exposure
@@ -301,8 +309,6 @@ void discLimitVsMmed(paramList *pL, int detj)
     std::cout << "writing output to: " << filename << std::endl;    
     outfile.open(filename,std::ios::out);
     
-    pL->mMed = 1e-5;
-    
     //determine first guess for mu, need a mu that gives BSM ~ SM/100
     double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, 1);
     double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
@@ -312,6 +318,8 @@ void discLimitVsMmed(paramList *pL, int detj)
     pL->signalNorm = mu;
     pL->detj = detj;
     
+    double coup;
+    
     while (pL->mMed < 1e-1)
     {
 
@@ -319,15 +327,31 @@ void discLimitVsMmed(paramList *pL, int detj)
 
         if (mu==mu) //check for NAN
         {
+            if(pL->BSM==3 || pL->BSM==4)
+                coup=mu*pL->C;
+            else
+                coup=sqrt(mu)*pL->C;
+                
             //print out result
-            std::cout << pL->mMed << "  " << mu*pL->C << std::endl;
-            outfile   << pL->mMed << "  " << mu*pL->C << std::endl;
+            std::cout << pL->mMed << "  " << coup << std::endl;
+            outfile   << pL->mMed << "  " << coup << std::endl;
             
             pL->signalNorm = mu;      //update guess
         }
+
+        pL->nuFluxNorm = 1;
+        pL->mMed*=1.2; //increment mass
         
-        pL->mMed*=1.2; //increment exposure
-        
+        //reinitialize BSM rates
+        pL->SMinterference1=1;  pL->SMinterference2=0;
+        rateInit( pL, detj, &BSMrate,  pL->detectors[detj].signalBSM1);
+	    if(pL->BSM==3 || pL->BSM==4)
+	    {
+	            pL->SMinterference2=1; pL->SMinterference1=0;
+	            rateInit( pL, detj, &BSMrate,  pL->detectors[detj].signalBSM2);
+	    }
+	    pL->SMinterference1=pL->SMinterference2=1;
+
     }
     outfile.close();
 
