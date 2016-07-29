@@ -149,6 +149,9 @@ int newDetector(paramList *pList, char *name, double exp)
 		//get values of bg at relevant energies
 		std::cout << "Initializing rates:" << std::endl << "SM rate..." << std::endl; 
 		rateInit( pList, pList->ndet,        &SMrate,   pList->detectors[pList->ndet].signalSM);
+		std::cout << "Background rate..." << std::endl; 
+		rateInit( pList, pList->ndet, &detBackground, pList->detectors[pList->ndet].background);
+		//initialization is a little more complicated for the BSM case because of interference terms 
 		if(pList->BSM!=0)
 		{   
 		    std::cout << "BSM rate..." << std::endl; 
@@ -162,8 +165,7 @@ int newDetector(paramList *pList, char *name, double exp)
 		    }
 		    pList->SMinterference1=pList->SMinterference2=1;
         }
-        std::cout << "Background rate..." << std::endl; 
-		rateInit( pList, pList->ndet, &detBackground, pList->detectors[pList->ndet].background);
+        
 		std::cout << "done." << std::endl; 
 		
 		pList->ndet++;

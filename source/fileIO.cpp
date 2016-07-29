@@ -68,7 +68,7 @@ int readConfigFile(paramList *pL, char *filename)
     {
         case 1:
         {
-            pL->gNuS=pL->C;
+            pL->gNuS=1;
             switch(pL->nucScat)
             {
                 case 1:
@@ -95,7 +95,7 @@ int readConfigFile(paramList *pL, char *filename)
         }
         case 2:
         {
-            pL->gNuS=pL->C;
+            pL->gNuS=1;
             if(pL->elecScat)
             {
                 pL->gEp=pL->C;
@@ -104,7 +104,7 @@ int readConfigFile(paramList *pL, char *filename)
         }
         case 3:
         {
-            pL->gNuV=pL->C;
+            pL->gNuV=1;
             switch(pL->nucScat)
             {
                 case 1:
@@ -131,7 +131,7 @@ int readConfigFile(paramList *pL, char *filename)
         }
         case 4:
         {
-            pL->gNuV=pL->C;
+            pL->gNuV=1;
             switch(pL->nucScat)
             {
                 case 1:

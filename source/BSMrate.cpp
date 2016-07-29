@@ -41,10 +41,9 @@ double BSMrateE(double ErKeV, paramList *pList, double Mt)
     double gEv =  pList->gEv;  //vector electron
     double gEa =  pList->gEa;  //axial-vector electron
     
-    double intConst, intInvEnu, intInvEnuSq;
+    double intConst, intInvEnuSq;
         
     intConst	= fluxIntegral( ErGeV, pList, ME, 0);  //units GeV^2/s
-    intInvEnu   = fluxIntegral( ErGeV, pList, ME, -1); //units GeV/s
     intInvEnuSq = fluxIntegral( ErGeV, pList, ME, -2); //units 1/s
 
     switch( pList->BSM )
@@ -105,7 +104,7 @@ double BSMrateN(double ErKeV, paramList *pList, double Mt)
     double intConst, intInvEnu, intInvEnuSq;
     
 	//nuclear or electron scattering 
-    intConst	= fluxIntegral( ErGeV, pList, Mt,  0);  //units GeV^2/s
+    intConst	= fluxIntegral( ErGeV, pList, Mt,  0); //units GeV^2/s
     intInvEnu   = fluxIntegral( ErGeV, pList, Mt, -1); //units GeV/s
     intInvEnuSq = fluxIntegral( ErGeV, pList, Mt, -2); //units 1/s
 
@@ -137,7 +136,7 @@ double BSMrateN(double ErKeV, paramList *pList, double Mt)
             return convFactor * ( 
                        pList->SMinterference1 * GFERMI*Mt*Qa*Qap / (2*sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
 	                     * ( 2*intConst + intInvEnuSq * ErGeV * Mt ) 
-	                 - pList->SMinterference1 * GFERMI*MN*Qvp*Qa*ErGeV / (sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
+	                 - pList->SMinterference1 * GFERMI*MN*Qv*Qap*ErGeV / (sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
 	                     * intInvEnu 
 	                 + pList->SMinterference2 * pow(Qap,2)*Mt / (4*M_PI * pow( 2*ErGeV*Mt + pow(pList->mMed,2) ,2) ) 
 	                     * ( 2*intConst + intInvEnuSq * ErGeV * Mt ) ); 
@@ -256,7 +255,7 @@ double diffBSMrate(double ErkeV, paramList *pList, int detj, double signalNorm)
     if(pList->BSM==3 || pList->BSM==4)
     {
         return signalNorm * gsl_spline_eval(pList->detectors[detj].signalBSM1, ErkeV, pList->detectors[detj].accelBSM1)
-            + pow(signalNorm,2) * gsl_spline_eval(pList->detectors[detj].signalBSM2, ErkeV, pList->detectors[detj].accelBSM2);
+            + ((signalNorm > 0) - (signalNorm < 0) )*pow(signalNorm,2) * gsl_spline_eval(pList->detectors[detj].signalBSM2, ErkeV, pList->detectors[detj].accelBSM2);
     }
     else
     {
@@ -269,7 +268,7 @@ double intBSMrate(double Er_min, double Er_max, paramList *pList, int detj, doub
     if(pList->BSM==3 || pList->BSM==4)
     {
         return signalNorm * gsl_spline_eval_integ(pList->detectors[detj].signalBSM1, Er_min, Er_max, pList->detectors[detj].accelBSM1)
-            + pow(signalNorm,2) * gsl_spline_eval_integ(pList->detectors[detj].signalBSM2, Er_min, Er_max, pList->detectors[detj].accelBSM2);
+            + ((signalNorm > 0) - (signalNorm < 0) )*pow(signalNorm,2) * gsl_spline_eval_integ(pList->detectors[detj].signalBSM2, Er_min, Er_max, pList->detectors[detj].accelBSM2);
     }
     else
     {

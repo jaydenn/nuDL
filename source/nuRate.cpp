@@ -46,7 +46,6 @@ void rateInit( paramList *pList, int detj, double (*rateFunc)(double, paramList 
         ErkeV[i] = pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/900;
         rate[i] = rateFunc( (double)ErkeV[i], pList, detj);	
     }
-
     //create gsl interpolation object
     gsl_spline_init(rateSpline,ErkeV,rate,1000);
 }

@@ -39,10 +39,14 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
     //std::cout << SM << " " << BG << " " << BSM << std::endl;
 
     //setup bins ~somewhat arbitrary choice of number of bins.. seems to work for exponential data
-    pList->detectors[detj].nbins = floor( sqrt(  pList->detectors[detj].exposure * ( SM + BSM + BG ) ) ) + 2;
-
+    if(SM + BSM + BG > 0)
+        pList->detectors[detj].nbins = floor( sqrt(  pList->detectors[detj].exposure * ( SM + BSM + BG ) ) ) + 1;
+    else
+        pList->detectors[detj].nbins = 1;
+        
     if (pList->detectors[detj].nbins > 50)
         pList->detectors[detj].nbins = 50;
+    
     pList->detectors[detj].binW  = ( pList->detectors[detj].ErU - pList->detectors[detj].ErL ) / ( (double) pList->detectors[detj].nbins);
             
     try

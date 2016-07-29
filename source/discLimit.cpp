@@ -258,7 +258,7 @@ void discLimitEvolution(paramList *pL, int detj)
     double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, 1);
     double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
     double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
-    double mu  = (SM+BG)/(50*BSM);
+    double mu  = (SM+BG)/(100*BSM);
     
     std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
     
@@ -320,7 +320,7 @@ void discLimitVsMmed(paramList *pL, int detj)
     
     double coup;
     
-    while (pL->mMed < 1e-1)
+    while (pL->mMed < 1e-2)
     {
 
         mu = findCoeff3sig(pL);
@@ -340,7 +340,7 @@ void discLimitVsMmed(paramList *pL, int detj)
         }
 
         pL->nuFluxNorm = 1;
-        pL->mMed*=1.2; //increment mass
+        pL->mMed*=1.3; //increment mass
         
         //reinitialize BSM rates
         pL->SMinterference1=1;  pL->SMinterference2=0;
