@@ -30,7 +30,7 @@ struct paramList {
 	double Qa, qA, qAn, qAp, qAu, qAd;
 	double Qv, qV, qVn, qVp, qVu, qVd;
 	
-	//fiducial coupling
+	//initial coupling
 	double C;
 	double SMinterference1,SMinterference2; //so it can be turned off when needed (in initialization)
 	
@@ -55,13 +55,16 @@ struct paramList {
     double gEv;  //vector electron
     double gEa;  //axial-vector electron
     
+    //BSM model parameters
 	int BSM;
 	int nucScat;
 	int elecScat;
     int mediator;
     double mMed;
     
+    double maxL; 
     int asimov;
+    
 	int ndet, detj;
 	detector detectors[10];
 	

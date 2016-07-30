@@ -8,7 +8,9 @@
 #include "SMrate.h"
 #include "BSMrate.h"
 #include "discLimit.h"
+#include "exclusionLimit.h"
 #include "calcRates.h"
+
 
 int main(int argc, char *argv[])
 {
@@ -82,6 +84,19 @@ int main(int argc, char *argv[])
     if ( mode == 3 )
     {
         discLimitVsMmed(&pList, 0);
+        return 0;
+    }
+    
+    //exclusion limit as a function of mediator mass
+    if ( mode == 4 )
+    {
+        exclusionLimit(&pList, 0);
+        return 0;
+    }
+    
+    if ( mode > 4 ) 
+    {
+        std::cout << "Choose a valid mode" << std::endl;
         return 0;
     }
     

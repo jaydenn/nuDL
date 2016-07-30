@@ -19,9 +19,8 @@
 #include "BSMrate.h"
 
 
-double my_LS(const gsl_vector *v, void *params)
+double my_LmuM(const gsl_vector *v, void *params)
 {
-
     paramList *pL = (paramList *)params;
     double l;
 
@@ -33,12 +32,12 @@ double my_LS(const gsl_vector *v, void *params)
         + 0.5/pow(pL->nuFluxUn,2) * pow(pL->nuFluxNorm - 1,2) 
         + 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2) ;   
     return l;
-
 }
 
-double my_L0(const gsl_vector *v, void *params)
+double my_Lmu(const gsl_vector *v, void *params)
 {
 
+ 
     paramList *pL = (paramList *)params;
     double l;
 
@@ -52,9 +51,8 @@ double my_L0(const gsl_vector *v, void *params)
 
 }
 
-double findMaxLS(paramList *pL)
+double findMaxLmuM(paramList *pL)
 {
-
     size_t iter = 0;
     int status;
 
@@ -62,7 +60,7 @@ double findMaxLS(paramList *pL)
     gsl_multimin_fminimizer *s;
     gsl_multimin_function my_func;
     
-    my_func.f = my_LS;
+    my_func.f = my_LmuM;
     my_func.params = (void *)pL;
 
     //start point and step size
@@ -87,12 +85,12 @@ double findMaxLS(paramList *pL)
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);       
-        //std::cout << "       " <<iter << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
+    //        cout << "   " <<iter << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " <<  gsl_vector_get (s->x, 2)*3e5 << " " <<  gsl_vector_get (s->x, 3)*3e5 << " " << s->fval << " " << gsl_multimin_fminimizer_size(s) << endl; 
     }
-    while (iter < 2000 && gsl_multimin_fminimizer_size(s)>.0005); //s->fval>1e-2);
-    
-   if(iter==2000)
-        std::cout << "LS non-convergence size = " << gsl_multimin_fminimizer_size(s) << " > .0005  " << std::endl;
+    while (iter < 900 && gsl_multimin_fminimizer_size(s)>.0001); //s->fval>1e-2);
+
+   if(iter==900)
+        std::cout << "non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval << " > .0001  " << std::endl;
     
     double LS =  s->fval;
     pL->signalNorm = gsl_vector_get(s->x, 1);
@@ -105,24 +103,22 @@ double findMaxLS(paramList *pL)
 }
 
 
-double findMaxL0(paramList *pL)
+double findMaxLmu(paramList *pL)
 {
-
     size_t iter = 0;
     int status;
-    
-    double mu = pL->signalNorm; //save current mu for later
-    pL->signalNorm = 0;
-    
+
     const gsl_multimin_fminimizer_type *T;
     gsl_multimin_fminimizer *s;
     gsl_multimin_function my_func;
 
-    my_func.f = my_L0;
+    
+    my_func.f = my_Lmu;
     my_func.params = (void *)pL;
+    my_func.n = 3;
 
     //start point
-    gsl_vector *x,*dx;
+     gsl_vector *x,*dx;
     my_func.n = 2;
     
     x = gsl_vector_alloc (2);
@@ -134,60 +130,62 @@ double findMaxL0(paramList *pL)
 
     T = gsl_multimin_fminimizer_nmsimplex2;
     s = gsl_multimin_fminimizer_alloc (T, 2);
-
+    
     gsl_multimin_fminimizer_set (s, &my_func, x, dx);
 
     do
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);
-        //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
+  //      cout << "       " << iter << "  c " << pL->w.coeff << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " <<  gsl_vector_get (s->x, 2) << " " << s->fval << " " << gsl_multimin_fminimizer_size(s) << endl; 
     }
-    while (iter < 2000 && gsl_multimin_fminimizer_size(s)>.0005);  //s->fval > 1e-2 && !status);
-    if(iter==2000)
-        std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)  << " > .0005  " <<  std::endl;
+    while (iter < 900 && gsl_multimin_fminimizer_size(s)>.0001);///s->fval > 1e-2 && !status);
+    if(iter==900)
+        std::cout << "non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > .0001  " <<  std::endl;
     
-    double L0 = s->fval;
+    double Lmu = s->fval;
     
     gsl_multimin_fminimizer_free (s);
     gsl_vector_free (x);
     gsl_vector_free (dx);
-    
-    pL->signalNorm = mu;
-    
-    return L0;
+            
+    return Lmu;
 }
 
 //statistic for discovery
-double q0(paramList *pL)
+double qMu(paramList *pL)
 {	 
+    double maxLmu = findMaxLmu( pL );
+    double q;
 
-    double maxL0 = -findMaxL0( pL );
-    double maxL  = -findMaxLS( pL ); //-ve because functions return -loglike for minimization
-    
-    if( pL->signalNorm > 0 )
-        return - 2 * ( maxL0 - maxL );  
+    if( pL->signalNorm < 0)
+        q = 0.0;
     else
+        q = 2 * ( maxLmu - pL->maxL );  //no -ve because functions return -loglike
+
+    if (q < 0 )
+    {
+        if (q < -1e-5)
+            std::cout << "warning maximum in likelihood not reached max L = " << pL->maxL << " < " << maxLmu << std::endl;
         return 0;
+    }
+    else
+        return q;
 }
 
-double my_q0(const gsl_vector *v, void *params)
+double my_qMu(const gsl_vector *v, void *params)
 {
 
     double simSeed = 0;
-    paramList *pL = (paramList *)params;    
+    paramList *pL = (paramList *)params;
+    pL->signalNorm  = gsl_vector_get(v, 0);
     
-    pL->nuFluxNorm = 1;
-    pL->detectors[pL->detj].BgNorm = 1;
-    pL->signalNorm = gsl_vector_get(v, 0);
+    return pow( sqrt(qMu(pL)) - 1.282, 2);  //90% confidence exclusion
     
-    generateBinnedData( pL, pL->detj, 1, simSeed);
-
-    return pow( sqrt(q0(pL)) - 4.28, 2);  //arbitrary function with a minima at 3 sigma 90% of the time
 }
 
 
-double findCoeff3sig(paramList *pL)
+double findqMu90(paramList *pL)
 {
 
     size_t iter = 0;
@@ -200,15 +198,21 @@ double findCoeff3sig(paramList *pL)
     gsl_multimin_function my_func;
 
     my_func.n = 1;
-    my_func.f = my_q0;
+    my_func.f = my_qMu;
     my_func.params = (void *)pL;
 
+    //only need to calc max likelihood once per mass
+    //pL->maxL = findMaxLmuM( pL );
+ 
+    //cout << "maxL " << pL->p.maxL << endl;
+    //cout << "maxL " << pL->w.coeff << endl;
+    
     //start point
     x = gsl_vector_alloc (1);
     dx = gsl_vector_alloc (1);
-
+    
     gsl_vector_set (x, 0, pL->signalNorm);
-    gsl_vector_set(dx, 0, pL->signalNorm/5);
+    gsl_vector_set(dx, 0, pL->signalNorm/10);
 
     T = gsl_multimin_fminimizer_nmsimplex2;
     s = gsl_multimin_fminimizer_alloc (T, 1);
@@ -219,112 +223,59 @@ double findCoeff3sig(paramList *pL)
     {
         status = gsl_multimin_fminimizer_iterate (s);
         iter++;
-        //std::cout <<  pL->detectors[0].exposure << "  " << iter << " " << gsl_vector_get(s->x,0) << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
+      //  std::cout << iter << " c = " << gsl_vector_get(s->x,0) << ",  f = " << s->fval << ", q= " << 0.5*pow(sqrt( s->fval)+1.282,2)+1 << "  size = " << gsl_multimin_fminimizer_size(s) << std::endl;
     }
-    while (iter < 2000 && s->fval > .0015 && !status); //under 1% error in 4.28 sigma value
+    while (iter < 1200 && s->fval > .0002 && !status); 
+    if(iter==1200)
+        std::cout << "non-convergence (sig-1.28)^2 = " << s->fval << " > .0002" << std::endl;
         
-    double mu = gsl_vector_get(s->x, 0);
+    double c = gsl_vector_get(s->x, 0);
     
     gsl_multimin_fminimizer_free (s);
     gsl_vector_free (x);
     gsl_vector_free (dx);
 
-    if(iter==2000)
-    {
-        std::cout << "non-convergence f = " << s->fval << " > .0015" << std::endl;
-        return NAN;
-    }
-    else
-        return mu;
+    return c;
 }
 
-void discLimitEvolution(paramList *pL, int detj)
+void exclusionLimit(paramList *pL, int detj)
 {
-
-    std::cout << "Starting disc. evolution calculations..." << std::endl;
 
     char filename[100];
     std::ofstream outfile;
     
     if(pL->elecScat)
-        sprintf(filename, "%sdiscEvoE_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
+        sprintf(filename, "%sexclusionE_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
     else
-        sprintf(filename, "%sdiscEvoN_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
-        
-    std::cout << "writing output to: " << filename << std::endl;    
+        sprintf(filename, "%sexclusionN_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
+    
     outfile.open(filename,std::ios::out);
-         
-    //determine first guess for mu, need a mu that gives BSM ~ SM/100
+    std::cout << "writing output to: " << filename << std::endl;
+    
+    //find a good starting point
     double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, 1);
     double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
     double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
     double mu  = (SM+BG)/(100*BSM);
     
-    std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
+    //produce a null result
+    pL->signalNorm = 0;
     
-    pL->detj = detj;
-    pL->signalNorm = mu;         
+    generateBinnedData( pL, pL->detj, 1, 0);
+      
+    pL->maxL = logLikelihood(pL);
+  
+//    std::cout << mu << "  " << pL->maxL << std::endl;      
     
     double coup;
-    
-    while (pL->detectors[detj].exposure < 1e6)
-    {
-
-        mu = findCoeff3sig(pL);
-
-        if (mu==mu) //check for NAN
-        {
-            if(pL->BSM==3 || pL->BSM==4)
-                coup=mu*pL->C;
-            else
-                coup=sqrt(mu)*pL->C;
-            
-            //print out result
-            std::cout << pL->detectors[detj].exposure << "  " << coup << std::endl;
-            outfile   << pL->detectors[detj].exposure << "  " << coup << std::endl;
-            
-            pL->signalNorm = mu/2;      //update guess
-        }
-        
-        pL->detectors[detj].exposure*=1.2; //increment exposure
-        
-    }
-    outfile.close();
-
-}
-
-void discLimitVsMmed(paramList *pL, int detj)
-{
-
-    std::cout << "Starting disc. limit calculations..." << std::endl;
-
-    char filename[100];
-    std::ofstream outfile;
-    
-    if(pL->elecScat)
-        sprintf(filename, "%sDLe_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
-    else
-        sprintf(filename, "%sDLn_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
-        
-    std::cout << "writing output to: " << filename << std::endl;    
-    outfile.open(filename,std::ios::out);
-    
-    //determine first guess for mu, need a mu that gives BSM ~ SM/100
-    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, 1);
-    double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
-    double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
-    double mu  = (SM+BG)/(40*BSM);
-        
     pL->signalNorm = mu;
     pL->detj = detj;
-    
-    double coup;
     
     while (pL->mMed < 1)
     {
 
-        mu = findCoeff3sig(pL);
-
+        mu = findqMu90(pL);
+        
         if (mu==mu) //check for NAN
         {
             if(pL->BSM==3 || pL->BSM==4)
@@ -338,7 +289,7 @@ void discLimitVsMmed(paramList *pL, int detj)
             
             pL->signalNorm = mu;      //update guess
         }
-
+        
         pL->nuFluxNorm = 1;
         pL->mMed*=1.2; //increment mass
         
@@ -351,10 +302,9 @@ void discLimitVsMmed(paramList *pL, int detj)
 	            rateInit( pL, detj, &BSMrate,  pL->detectors[detj].signalBSM2);
 	    }
 	    pL->SMinterference1=pL->SMinterference2=1;
-
+        
     }
     outfile.close();
 
 }
-
 
