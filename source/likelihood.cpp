@@ -50,7 +50,7 @@ double logLikelihood(paramList *pList)
 
             l = logPoisson( pList->detectors[detj].binnedData[i], pList->detectors[detj].exposure*(SM+BG+BSM)+1e-99);
             loglike += l;
-            //cout << " " << i << ": bg " << background <<  " s " << signal << " obs " << pL->detectors[j].binnedData[i] << " l " << l << " tot " << loglike << endl;
+            //std::cout << " " << i << ": bg " << BG <<  " sm " << SM << " bsm " << BSM << " obs " << pList->detectors[detj].binnedData[i] << " l " << l << " tot " << loglike << std::endl;
         } 
         
     }
