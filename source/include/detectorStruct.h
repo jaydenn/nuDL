@@ -26,7 +26,7 @@ struct detector {
     
     double *binnedData;     //array of i bins with binnedData[i] number of events per bin
     int nbins;
-    double binW[60];
+    double binW[80];
     double *unbinnedData;   //array of i events which occured at energy unbinnedData[i]
     double nEvents;
     

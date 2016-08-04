@@ -44,8 +44,8 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
     else
         pList->detectors[detj].nbins = 1;
         
-    if (pList->detectors[detj].nbins > 60)
-        pList->detectors[detj].nbins = 60;
+    if (pList->detectors[detj].nbins > 80)
+        pList->detectors[detj].nbins = 80;
     
     try
     {

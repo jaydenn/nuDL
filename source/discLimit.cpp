@@ -255,10 +255,22 @@ void discLimitEvolution(paramList *pL, int detj)
     outfile.open(filename,std::ios::out);
          
     //determine first guess for mu, need a mu that gives BSM ~ SM/100
-    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, 1);
-    double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
-    double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
-    double mu  = (SM+BG)/(100*BSM);
+    pL->signalNorm=.1;
+    makeAguessEvo:
+        double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, 1);
+        double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
+        double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
+        double mu;
+   
+    while(fabs(BSM) < SM/10 )
+    {
+        pL->signalNorm*=1.05;
+        BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, pL->signalNorm);
+        BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
+        SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
+        //std::cout << SM << " " << BG << " " << BSM << " " << pL->signalNorm << std::endl;
+    }
+    mu=pL->signalNorm;
     
     std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
     
@@ -284,6 +296,11 @@ void discLimitEvolution(paramList *pL, int detj)
             outfile   << pL->detectors[detj].exposure << "  " << coup << std::endl;
             
             pL->signalNorm = mu/2;      //update guess
+        }
+        else
+        {
+            pL->signalNorm=.001;
+            goto makeAguessEvo;
         }
         
         pL->detectors[detj].exposure*=1.2; //increment exposure
@@ -311,6 +328,7 @@ void discLimitVsMmed(paramList *pL, int detj)
     
     //determine first guess for mu, need a mu that gives BSM ~ SM
     pL->signalNorm = .1;
+    makeAguess:
     double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, 1);
     double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
     double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
@@ -325,34 +343,22 @@ void discLimitVsMmed(paramList *pL, int detj)
         BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, pL->signalNorm);
         BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
         SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
-        std::cout << SM << " " << BG << " " << BSM << " " << pL->signalNorm << std::endl;
+        //std::cout << SM << " " << BG << " " << BSM << " " << pL->signalNorm << std::endl;
     }
     mu=pL->signalNorm;
     if(pL->elecScat)
     {
         if(pL->BSM==3 || pL->BSM==4)
-        {
-    //        mu  = 50*(SM+BG)/BSM;
             coup=mu*pL->C;
-        }
         else
-        {
-     //       mu  = (SM+BG)/(40*BSM);
             coup=sqrt(mu)*pL->C;
-        }
     }
     else
     {
         if(pL->BSM==3 || pL->BSM==4)
-        {
-       //     mu  = (SM+BG)/(1e-1*BSM);
             coup=mu*pL->C;
-        }
         else
-        {
-         //   mu  = (SM+BG)/(40*BSM);
             coup=sqrt(mu)*pL->C;
-        }
     }        
     std::cout << "starting guess = " << coup << ", mu = " << coup/pL->C << std::endl;           
     
@@ -374,7 +380,12 @@ void discLimitVsMmed(paramList *pL, int detj)
             
             pL->signalNorm = mu;      //update guess
         }
-
+        else
+        {
+            pL->signalNorm=.001;
+            goto makeAguessDL;
+        }
+        
         pL->nuFluxNorm = 1;
         pL->mMed*=1.2; //increment mass
         
