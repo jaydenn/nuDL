@@ -44,11 +44,9 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
     else
         pList->detectors[detj].nbins = 1;
         
-    if (pList->detectors[detj].nbins > 50)
-        pList->detectors[detj].nbins = 50;
+    if (pList->detectors[detj].nbins > 60)
+        pList->detectors[detj].nbins = 60;
     
-    pList->detectors[detj].binW  = ( pList->detectors[detj].ErU - pList->detectors[detj].ErL ) / ( (double) pList->detectors[detj].nbins);
-            
     try
     {
         pList->detectors[detj].binnedData = new double[pList->detectors[detj].nbins];
@@ -59,19 +57,22 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
       return 1;
     }
 
+    Er_min = pList->detectors[detj].ErL;    
+    double logBinW = ( log10( pList->detectors[detj].ErU ) - log10 (pList->detectors[detj].ErL ) ) / ( (double) pList->detectors[detj].nbins);
     
     for(int i=0; i<pList->detectors[detj].nbins; i++)
     {
-        Er_min = (double)i*pList->detectors[detj].binW+pList->detectors[detj].ErL;
-        Er_max = (double)(i+1)*pList->detectors[detj].binW+pList->detectors[detj].ErL;
         
-        if(pList->BSM)
-            BSM = pList->nuFluxNorm * intBSMrate( Er_min, Er_max, pList, detj, pList->signalNorm);
+        if(pList->logBins==1)
+            pList->detectors[detj].binW[i] = pow(10, log10(Er_min) + logBinW) - Er_min;
         else
-            BSM = 0;
+            pList->detectors[detj].binW[i] = ( pList->detectors[detj].ErU - pList->detectors[detj].ErL ) / ( (double) pList->detectors[detj].nbins);
             
-        SM = pList->nuFluxNorm * intSMrate( Er_min, Er_max, pList, detj); 
-        BG = pList->detectors[detj].BgNorm * b * intBgRate(pList->detectors[detj], Er_min, Er_max) ;
+        Er_max = Er_min + pList->detectors[detj].binW[i];
+        
+        BSM = pList->nuFluxNorm * intBSMrate( Er_min, Er_max, pList, detj, pList->signalNorm);
+        SM  = pList->nuFluxNorm * intSMrate( Er_min, Er_max, pList, detj); 
+        BG  = pList->detectors[detj].BgNorm * b * intBgRate(pList->detectors[detj], Er_min, Er_max) ;
         
         if( pList->asimov == 1) 
             pList->detectors[detj].binnedData[i] = pList->detectors[detj].exposure *( SM + BSM + BG );
@@ -79,6 +80,8 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
             pList->detectors[detj].binnedData[i] = gsl_ran_poisson(r, pList->detectors[detj].exposure *( SM + BSM + BG ));                       
         
         pList->detectors[detj].nEvents += pList->detectors[detj].binnedData[i];
+        
+        Er_min = Er_max; //update lower bin limit
     }
    
     return 0;

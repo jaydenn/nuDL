@@ -37,12 +37,12 @@ double logLikelihood(paramList *pList)
     //loop over detectors
     for(int detj=0; detj < pList->ndet; detj++)
     {   
+        Er_min = pList->detectors[detj].ErL;
         //loop over recoil energy bins
         for(int i=0; i< pList->detectors[detj].nbins; i++)			
         {
             //set bin limits
-            Er_min = (double)i*pList->detectors[detj].binW + pList->detectors[detj].ErL;
-            Er_max = (double)(i+1)*pList->detectors[detj].binW + pList->detectors[detj].ErL;
+            Er_max = Er_min + pList->detectors[detj].binW[i];
             
             SM  = pList->nuFluxNorm * intSMrate( Er_min, Er_max, pList, detj);
             BG  = pList->detectors[detj].BgNorm * intBgRate( pList->detectors[detj], Er_min, Er_max);
@@ -51,6 +51,7 @@ double logLikelihood(paramList *pList)
             l = logPoisson( pList->detectors[detj].binnedData[i], pList->detectors[detj].exposure*(SM+BG+BSM)+1e-99);
             loglike += l;
             //std::cout << " " << i << ": bg " << BG <<  " sm " << SM << " bsm " << BSM << " obs " << pList->detectors[detj].binnedData[i] << " l " << l << " tot " << loglike << std::endl;
+            Er_min = Er_max; //update lower bin limit
         } 
         
     }

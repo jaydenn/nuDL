@@ -64,6 +64,7 @@ struct paramList {
     
     double maxL; 
     int asimov;
+    int logBins;
     
 	int ndet, detj;
 	detector detectors[10];
