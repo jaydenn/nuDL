@@ -1,0 +1,5 @@
+This folder contains flux data for various nu sources.
+
+The columns are Er [MeV] and flux [MeV^-1]
+
+The total flux should be normalized to 1, and multiplied by flux normalization factor in source.ini
