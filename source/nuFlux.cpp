@@ -55,6 +55,7 @@ int nuFluxInit(paramList *pL, std::string sourceName)
             pL->source.nuFluxUn[fluxj] /= pL->source.nuFlux[fluxj]; //want fractional uncertainty
             pL->source.nuFlux[fluxj] /= pow(pL->source.distance,2);
             pL->source.nuFlux[fluxj] *= pow(HBARC,2)*1000;          //convert units
+            pL->source.lineE[fluxj] = lineEnergy/1000;
     
         }
         else
@@ -80,8 +81,8 @@ int nuFluxInit(paramList *pL, std::string sourceName)
             int maxPoints=100;
             while( flux >> fluxE >> fluxN )
             {
-                pL->source.flux_E[fluxj][i  ] = fluxE;
-                pL->source.flux_N[fluxj][i++] = fluxN;
+                pL->source.flux_E[fluxj][i  ] = fluxE/1000;   //convert to GeV
+                pL->source.flux_N[fluxj][i++] = fluxN*1000;
                 pL->source.flux_points[fluxj]++;     
                 
                 if(i==maxPoints)
@@ -125,8 +126,8 @@ int nuFluxInit(paramList *pL, std::string sourceName)
 //returns diffNuFlux in GeV per sec, at the point Enu(GeV) ( /cm^2/s/GeV * hc^2)
 double nuFlux(double EnuGeV, paramList *pL, int fluxj)
 {
-    if(EnuGeV < pL->source.EnuMax[fluxj]/1000 && EnuGeV > pL->source.flux_E[fluxj][0])
-        return pL->source.nuFlux[fluxj] * gsl_interp_eval(pL->source.nuFluxInterp[fluxj], pL->source.flux_E[fluxj], pL->source.flux_N[fluxj], 1000*EnuGeV, pL->source.nuFluxAccel[fluxj])/1000;
+    if(EnuGeV < pL->source.EnuMax[fluxj] && EnuGeV > pL->source.flux_E[fluxj][0])
+        return pL->source.nuFlux[fluxj] * gsl_interp_eval(pL->source.nuFluxInterp[fluxj], pL->source.flux_E[fluxj], pL->source.flux_N[fluxj], EnuGeV, pL->source.nuFluxAccel[fluxj]);
     else
         return 1e-199;
 }
@@ -190,15 +191,12 @@ double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow)
     {
         pList->fluxj = i;
         if(pList->source.isLine[i]==1)
-        {
             integral = pList->F.function( pList->source.lineE[i], (void *)pList);
-        }
         else
 	        gsl_integration_qag(&(pList->F), EnuMinGeV, pList->source.EnuMax[i], tol, 1e-3, limit, 2, W, &integral, &absErr); 
 
 	    total+=pList->source.nuFluxNorm[i]*integral;
 	}
-    //std::cout << ErGeV  << " " << EnuIntegrand2(ErGeV,(void *)pList) << " " << EnuIntegrand1(ErGeV,(void *)pList) << " " << EnuIntegrand0(ErGeV,(void *)pList) << std::endl;
 	
 	return total;	
 }

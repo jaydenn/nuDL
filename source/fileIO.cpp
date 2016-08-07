@@ -170,7 +170,6 @@ int readConfigFile(paramList *pL, char *filename)
     ret = fgets(temp,200,input);
     sscanf(temp,"%lf",&(pL->mMed));
     
-    
     //initialize source
 	char name[20];
     ret = fgets(temp,200,input);

@@ -151,6 +151,10 @@ int newDetector(paramList *pList, char *name, double exp)
 		rateInit( pList, pList->ndet, &detBackground, pList->detectors[pList->ndet].background);
         std::cout << ".";
     
+        //must initialize each flux in turn
+        for(int i=0; i< pList->source.numFlux; i++)
+            pList->source.nuFluxNorm[i] = 0;
+                 
         for(int i=0; i< pList->source.numFlux; i++)
         {
             pList->source.nuFluxNorm[i] = 1;
@@ -173,6 +177,8 @@ int newDetector(paramList *pList, char *name, double exp)
             pList->source.nuFluxNorm[i] = 0;
             std::cout << ".";
         }
+        for(int i=0; i< pList->source.numFlux; i++)
+            pList->source.nuFluxNorm[i] = 1;
         
 		std::cout << "\ndone." << std::endl; 
 		

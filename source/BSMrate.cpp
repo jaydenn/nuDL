@@ -255,14 +255,11 @@ double diffBSMrate(double ErkeV, paramList *pList, int detj, double signalNorm)
     for(int i=0; i< pList->source.numFlux; i++)
     {
         if(pList->BSM==3 || pList->BSM==4)
-        {
             rate += pList->source.nuFluxNorm[i] * ( signalNorm * gsl_spline_eval(pList->detectors[detj].signalBSM1[i], ErkeV, pList->detectors[detj].accelBSM1[i])
                 + ((signalNorm > 0) - (signalNorm < 0) )*pow(signalNorm,2) * gsl_spline_eval(pList->detectors[detj].signalBSM2[i], ErkeV, pList->detectors[detj].accelBSM2[i]) );
-        }
         else
-        {
             rate += pList->source.nuFluxNorm[i] * signalNorm * gsl_spline_eval(pList->detectors[detj].signalBSM1[i], ErkeV, pList->detectors[detj].accelBSM1[i]);
-        }
+
     }
     return rate;
 }
@@ -273,14 +270,10 @@ double intBSMrate(double Er_min, double Er_max, paramList *pList, int detj, doub
     for(int i=0; i< pList->source.numFlux; i++)
     {
         if(pList->BSM==3 || pList->BSM==4)
-        {
             rate +=  pList->source.nuFluxNorm[i] *( signalNorm * gsl_spline_eval_integ(pList->detectors[detj].signalBSM1[i], Er_min, Er_max, pList->detectors[detj].accelBSM1[i])
                 + ((signalNorm > 0) - (signalNorm < 0) )*pow(signalNorm,2) * gsl_spline_eval_integ(pList->detectors[detj].signalBSM2[i], Er_min, Er_max, pList->detectors[detj].accelBSM2[i]) );
-        }
         else
-        {
             rate += pList->source.nuFluxNorm[i] * signalNorm * gsl_spline_eval_integ(pList->detectors[detj].signalBSM1[i], Er_min, Er_max, pList->detectors[detj].accelBSM1[i]);
-        }
     }
     return rate;
 }
