@@ -48,15 +48,21 @@ double SMrate(double ErKeV, paramList *pList, int detj)
 
 double diffSMrate(double ErkeV, paramList *pList, int detj)						  
 {   
-
-    if( ErkeV < (pList->detectors[detj].ErL + (double)999*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/900) )
-        return gsl_spline_eval(pList->detectors[detj].signalSM, ErkeV, pList->detectors[detj].accelSM);
-    else
-        return 1e-99;
+    double rate=1e-99;
+    for(int i=0; i< pList->source.numFlux; i++)
+    {
+        if( ErkeV < (pList->detectors[detj].ErL + (double)999*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/900) )
+            rate += gsl_spline_eval(pList->detectors[detj].signalSM[i], ErkeV, pList->detectors[detj].accelSM[i]);
+    }
+    return rate;
 }
 
 double intSMrate(double Er_min, double Er_max, paramList *pList, int detj)						  
 {   
-    return gsl_spline_eval_integ(pList->detectors[detj].signalSM, Er_min, Er_max, pList->detectors[detj].accelSM);
+    double rate = 0;
+    for(int i=0; i< pList->source.numFlux; i++)
+        rate += gsl_spline_eval_integ(pList->detectors[detj].signalSM[i], Er_min, Er_max, pList->detectors[detj].accelSM[i]);
+    
+    return rate;
 }
 

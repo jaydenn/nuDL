@@ -1,13 +1,13 @@
 //Conudl configuration options
-3                  // running mode: 1=rate calculation, 2=disc. limit evolution, 3=disc. limit vs. mass
+1                  // running mode: 1=rate calculation, 2=disc. limit evolution, 3=disc. limit vs. mass
 ./results/CN_      // root of output file names, can include directories
 0                  // do nuclear scattering? 1=yes, 0=no
 1                  // do electron scattering? 1=yes, 0=no
 2                  // which BSM to consider? (0=SM, 1=scalar, 2=pseudoscalar, 3=vector, 4=axialvector)
 1e-9               // initial coupling
 1e-6               // mediator mass in GeV
-// Reactor data: flux@1m +/- uncertainty (in units of GeV/s)
-5.875e-16  +/- 0.1e-16
+// Source
+TAMU_reactor   1 
 // Detector  |  Exposure (kg*days) (or starting exposure in evolution mode)
 #GERMANIUM 20000 
 //Asimov data set/random Monte-Carlo (1/0)

@@ -2,7 +2,7 @@
     #include "parameterStruct.h"
 #endif
 
-int initFlux(paramList *pList);
+int nuFluxInit(paramList *pList, std::string sourceName);
 
 double nuFlux(double Enu, paramList *pList);
 

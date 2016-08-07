@@ -14,6 +14,9 @@
 #ifndef DETECTORSTRUCT_H
 	#include "detectorStruct.h"
 #endif	
+#ifndef SOURCESTRUCT_H
+	#include "sourceStruct.h"
+#endif	
 
 //gets sampling parameters from file
 int readConfigFile(paramList *pL, char *filename) 
@@ -167,24 +170,18 @@ int readConfigFile(paramList *pL, char *filename)
     ret = fgets(temp,200,input);
     sscanf(temp,"%lf",&(pL->mMed));
     
-    //reactor flux
-    ret = fgets(temp,200,input);
-    ret = fgets(temp,200,input);
-    sscanf(temp,"%lf %*s %lf",&(pL->nuFlux),&(pL->nuFluxUn));
-    pL->nuFluxUn /= pL->nuFlux; //want fractional uncertainty
     
-    //initialize reactor flux
-	double distance = 1.0;
-    pL->nuFlux /= pow(distance,2); 
-    int err = initFlux(pL);
-    if (err == 1)
-    {
-        std::cout << "Reactor flux data is not properly normalized" << std::endl;
+    //initialize source
+	char name[20];
+    ret = fgets(temp,200,input);
+    ret = fgets(temp,200,input);
+    sscanf(temp, "%s %lf", name, &(pL->source.distance));
+    std::string sourceName(name);
+    int err = nuFluxInit(pL, sourceName);  
+    if(err < 0)
         return -1;
-    }
     
     //Detector setup
-    char name[20];
     double exp;
     ret = fgets(temp,200,input);
     ret = fgets(temp,200,input);
