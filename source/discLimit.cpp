@@ -311,7 +311,8 @@ void discLimitVsMmed(paramList *pL, int detj)
 {
 
     std::cout << "Starting disc. limit calculations..." << std::endl;
-
+    pL->detj = detj;
+        
     char filename[100];
     std::ofstream outfile;
     
@@ -324,50 +325,26 @@ void discLimitVsMmed(paramList *pL, int detj)
     outfile.open(filename,std::ios::out);
     
     //determine first guess for mu, need a mu that gives BSM ~ SM
-    pL->signalNorm = .1;
-    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, 1);
+    double mu = pL->signalNorm = 1e-3;
+    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
     double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
     double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
+    
+    starting_guess_loop:
+        while(fabs(BSM) < SM/10 )
+        {
+            mu*=1.02;
+            BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
+            std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
+        }
+        pL->signalNorm = mu;
         
-    pL->detj = detj;
-    
-    double coup,mu;
-    
-    while(fabs(BSM) < SM/10 )
-    {
-        pL->signalNorm*=1.05;
-        BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, pL->signalNorm);
-        BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
-        SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
-        std::cout << SM << " " << BG << " " << BSM << " " << pL->signalNorm << std::endl;
-    }
-    mu=pL->signalNorm;
-    if(pL->elecScat)
-    {
-        if(pL->BSM==3 || pL->BSM==4)
-        {
-    //        mu  = 50*(SM+BG)/BSM;
-            coup=mu*pL->C;
-        }
-        else
-        {
-     //       mu  = (SM+BG)/(40*BSM);
-            coup=sqrt(mu)*pL->C;
-        }
-    }
+    double coup;
+    if(pL->BSM==3 || pL->BSM==4)
+        coup=mu*pL->C;
     else
-    {
-        if(pL->BSM==3 || pL->BSM==4)
-        {
-       //     mu  = (SM+BG)/(1e-1*BSM);
-            coup=mu*pL->C;
-        }
-        else
-        {
-         //   mu  = (SM+BG)/(40*BSM);
-            coup=sqrt(mu)*pL->C;
-        }
-    }        
+        coup=sqrt(mu)*pL->C;
+
     std::cout << "starting guess = " << coup << ", mu = " << coup/pL->C << std::endl;           
     
     while (pL->mMed < 1)
@@ -388,7 +365,11 @@ void discLimitVsMmed(paramList *pL, int detj)
             
             pL->signalNorm = mu;      //update guess
         }
-
+        else
+        {
+            mu = 1e-6;
+            goto starting_guess_loop;
+        }
         
         for(int i=0; i < pL->source.numFlux; i++)
             pL->source.nuFluxNorm[i] = 1;
