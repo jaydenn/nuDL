@@ -102,8 +102,13 @@ int readConfigFile(paramList *pL, char *filename)
             if(pL->elecScat)
             {
                 pL->gEp=pL->C;
+                break;
             }
-            break;
+            else
+            {
+                std::cout << "there is no pseudo-scalar scattering in the nuclear case, exiting.\n";
+                return -1;
+            }
         }
         case 3:
         {
