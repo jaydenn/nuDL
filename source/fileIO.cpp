@@ -171,11 +171,10 @@ int readConfigFile(paramList *pL, char *filename)
     sscanf(temp,"%lf",&(pL->mMed));
     
     //initialize source
-	char name[20];
     ret = fgets(temp,200,input);
     ret = fgets(temp,200,input);
-    sscanf(temp, "%s %lf", name, &(pL->source.distance));
-    std::string sourceName(name);
+    sscanf(temp, "%s %lf", pL->source.name, &(pL->source.distance));
+    std::string sourceName(pL->source.name);
     int err = nuFluxInit(pL, sourceName);  
     if(err < 0)
         return -1;
@@ -185,6 +184,7 @@ int readConfigFile(paramList *pL, char *filename)
     ret = fgets(temp,200,input);
     ret = fgets(temp,200,input);
 
+    char name[30];
     while(temp[0]=='#')
     {
         sscanf(temp,"%s %lf", name, &exp);

@@ -4,7 +4,7 @@
 
 struct sourceStruct {
 
-    char name[];
+    char name[50];
     int numFlux;
     double distance;
     

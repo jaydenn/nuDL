@@ -261,9 +261,9 @@ void discLimitEvolution(paramList *pL, int detj)
     std::ofstream outfile;
     
     if(pL->elecScat)
-        sprintf(filename, "%sdiscEvoE_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
+        sprintf(filename, "%sdiscEvoE_%c%c_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->source.name[0],pL->source.name[1],pL->BSM);
     else
-        sprintf(filename, "%sdiscEvoN_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
+        sprintf(filename, "%sdiscEvoE_%c%c_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->source.name[0],pL->source.name[1],pL->BSM);
         
     std::cout << "writing output to: " << filename << std::endl;    
     outfile.open(filename,std::ios::out);
@@ -334,9 +334,9 @@ void discLimitVsMmed(paramList *pL, int detj)
     std::ofstream outfile;
     
     if(pL->elecScat)
-        sprintf(filename, "%sDLe_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
+        sprintf(filename, "%sDLe_%c%c_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->source.name[0],pL->source.name[1],pL->BSM);
     else
-        sprintf(filename, "%sDLn_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
+        sprintf(filename, "%sDLn_%c%c_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->source.name[0],pL->source.name[1],pL->BSM);
         
     std::cout << "writing output to: " << filename << std::endl;    
     outfile.open(filename,std::ios::out);
@@ -352,7 +352,7 @@ void discLimitVsMmed(paramList *pL, int detj)
         {
             mu*=1.02;
             BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
-            std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
+            //std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
         }
         pL->signalNorm = mu;
         

@@ -40,8 +40,8 @@ int calcRates(paramList *pList)
     }
     
     //format output streams
-    std::cout << setiosflags(std::ios::scientific) << std::setprecision(4);
-    outfile   << setiosflags(std::ios::scientific) << std::setprecision(5);
+    std::cout << std::setiosflags(std::ios::scientific) << std::setprecision(4);
+    outfile   << std::setiosflags(std::ios::scientific) << std::setprecision(5);
     
     //output model
     int masskeV = (int)(pList->mMed*1e6);
@@ -58,7 +58,7 @@ int calcRates(paramList *pList)
         
         if(outfile==NULL)
         {
-            std::cout << "output file could not be created" << std::endl;
+            std::cout << "output file could not be created (try creating the directory \'results\'" << std::endl;
             return 1;
         }
         
