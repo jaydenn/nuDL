@@ -34,12 +34,12 @@ struct detector {
     
     gsl_spline *background;
     gsl_interp_accel *accelBg;
-    gsl_spline *signalSM;
-    gsl_interp_accel *accelSM;
-    gsl_spline *signalBSM1;
-    gsl_interp_accel *accelBSM1;
-    gsl_spline *signalBSM2;
-    gsl_interp_accel *accelBSM2;
+    gsl_spline *signalSM[10];
+    gsl_interp_accel *accelSM[10];
+    gsl_spline *signalBSM1[10];
+    gsl_interp_accel *accelBSM1[10];
+    gsl_spline *signalBSM2[10];
+    gsl_interp_accel *accelBSM2[10];
    
     
     void printDetSpecs()
@@ -65,13 +65,15 @@ struct detector {
                 
         background = gsl_spline_alloc(gsl_interp_linear,1000);
         accelBg = gsl_interp_accel_alloc();
-        signalSM = gsl_spline_alloc(gsl_interp_linear,1000);
-        accelSM = gsl_interp_accel_alloc();
-        signalBSM1 = gsl_spline_alloc(gsl_interp_linear,1000);
-        accelBSM1 = gsl_interp_accel_alloc();
-        signalBSM2 = gsl_spline_alloc(gsl_interp_linear,1000);
-        accelBSM2 = gsl_interp_accel_alloc();
-    
+        for(int i=0; i<10; i++)
+        {
+            signalSM[i] = gsl_spline_alloc(gsl_interp_linear,1000);
+            accelSM[i] = gsl_interp_accel_alloc();
+            signalBSM1[i] = gsl_spline_alloc(gsl_interp_linear,1000);
+            accelBSM1[i] = gsl_interp_accel_alloc();
+            signalBSM2[i] = gsl_spline_alloc(gsl_interp_linear,1000);
+            accelBSM2[i] = gsl_interp_accel_alloc();
+        }
     }
     
     

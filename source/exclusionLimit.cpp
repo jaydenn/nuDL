@@ -22,16 +22,20 @@
 double my_LmuM(const gsl_vector *v, void *params)
 {
     paramList *pL = (paramList *)params;
-    double l;
-
-    pL->nuFluxNorm = fabs(gsl_vector_get(v, 0));
-    pL->signalNorm = gsl_vector_get(v, 1);
-    pL->detectors[pL->detj].BgNorm = fabs(gsl_vector_get(v, 2));
-        
-    l = - logLikelihood(pL) 
-        + 0.5/pow(pL->nuFluxUn,2) * pow(pL->nuFluxNorm - 1,2) 
-        + 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2) ;   
-    return l;
+    double l = 0;
+    
+    pL->signalNorm = gsl_vector_get(v, 0);
+    
+    pL->detectors[pL->detj].BgNorm = fabs(gsl_vector_get(v, 1));
+    l += 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2);
+    
+    for(int i=0; i < pL->source.numFlux; i++)
+    {
+        pL->source.nuFluxNorm[i] = fabs(gsl_vector_get(v, i+2));
+        l += 0.5/pow(pL->source.nuFluxUn[i],2) * pow(pL->source.nuFluxNorm[i] - 1,2);
+    }
+    
+    l -= logLikelihood(pL);
 }
 
 double my_Lmu(const gsl_vector *v, void *params)
@@ -39,14 +43,19 @@ double my_Lmu(const gsl_vector *v, void *params)
 
  
     paramList *pL = (paramList *)params;
-    double l;
-
-    pL->nuFluxNorm = gsl_vector_get(v, 0);
-    pL->detectors[pL->detj].BgNorm  = gsl_vector_get(v, 1);
-        
-    l = - logLikelihood(pL) 
-        + 0.5/pow(pL->nuFluxUn,2) * pow(pL->nuFluxNorm - 1,2) 
-        + 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2) ;
+    double l = 0;
+    
+    pL->detectors[pL->detj].BgNorm  = gsl_vector_get(v, 0);
+    l += 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2);
+    
+    for(int i=0; i < pL->source.numFlux; i++)
+    {
+        pL->source.nuFluxNorm[i] = fabs(gsl_vector_get(v, i+1));
+        l += 0.5/pow(pL->source.nuFluxUn[i],2) * pow(pL->source.nuFluxNorm[i] - 1,2);
+    }
+    
+    l -= logLikelihood(pL);
+    
     return l;
 
 }
@@ -65,20 +74,19 @@ double findMaxLmuM(paramList *pL)
 
     //start point and step size
     gsl_vector *x,*dx;
-    my_func.n = 3;
+    my_func.n = 2 + + pL->source.numFlux;
 
-    x = gsl_vector_alloc (3);
-    dx = gsl_vector_alloc (3);
-    gsl_vector_set (x, 0, 1.0);
-    gsl_vector_set(dx, 0, .05);
-    gsl_vector_set (x, 1, pL->signalNorm);
-    gsl_vector_set(dx, 1, pL->signalNorm/10);
-    gsl_vector_set (x, 2, 1.0);
-    gsl_vector_set(dx, 2, .05);
+    x = gsl_vector_alloc ( my_func.n );
+    dx = gsl_vector_alloc ( my_func.n );
+    gsl_vector_set (x, 0, pL->signalNorm);
+    gsl_vector_set(dx, 0, pL->signalNorm/10);
     
-    T = gsl_multimin_fminimizer_nmsimplex2;
-    s = gsl_multimin_fminimizer_alloc (T, 3);
-
+    for(int i=1; i < my_func.n; i++)
+    {
+        gsl_vector_set (x, i, 1.0);
+        gsl_vector_set(dx, i, .05);
+    }
+    
     gsl_multimin_fminimizer_set (s, &my_func, x, dx);
 
     do
@@ -115,22 +123,21 @@ double findMaxLmu(paramList *pL)
     
     my_func.f = my_Lmu;
     my_func.params = (void *)pL;
-    my_func.n = 3;
 
     //start point
      gsl_vector *x,*dx;
-    my_func.n = 2;
+    my_func.n = 1 + pL->source.numFlux;
     
-    x = gsl_vector_alloc (2);
-    dx = gsl_vector_alloc (2);
-    gsl_vector_set (x, 0, 1.0);
-    gsl_vector_set(dx, 0, .05);
-    gsl_vector_set (x, 1, 1.0); 
-    gsl_vector_set(dx, 1, .05);
-
+    x = gsl_vector_alloc (my_func.n);
+    dx = gsl_vector_alloc (my_func.n);
+    for(int i=0; i < my_func.n; i++)
+    {
+        gsl_vector_set (x, i, 1.0);
+        gsl_vector_set(dx, i, .05);
+    }
     T = gsl_multimin_fminimizer_nmsimplex2;
-    s = gsl_multimin_fminimizer_alloc (T, 2);
-    
+    s = gsl_multimin_fminimizer_alloc (T, my_func.n);
+
     gsl_multimin_fminimizer_set (s, &my_func, x, dx);
 
     do
@@ -290,19 +297,22 @@ void exclusionLimit(paramList *pL, int detj)
             pL->signalNorm = mu;      //update guess
         }
         
-        pL->nuFluxNorm = 1;
+        for(int i=0; i < pL->source.numFlux; i++)
+            pL->source.nuFluxNorm[i] = 1;
         pL->mMed*=1.2; //increment mass
         
         //reinitialize BSM rates
-        pL->SMinterference1=1;  pL->SMinterference2=0;
-        rateInit( pL, detj, &BSMrate,  pL->detectors[detj].signalBSM1);
-	    if(pL->BSM==3 || pL->BSM==4)
-	    {
-	            pL->SMinterference2=1; pL->SMinterference1=0;
-	            rateInit( pL, detj, &BSMrate,  pL->detectors[detj].signalBSM2);
-	    }
-	    pL->SMinterference1=pL->SMinterference2=1;
-        
+        for(int i=0; i< pL->source.numFlux; i++)
+        {
+            pL->SMinterference1=1;  pL->SMinterference2=0;
+            rateInit( pL, detj, &BSMrate,  pL->detectors[detj].signalBSM1[i]);
+	        if(pL->BSM==3 || pL->BSM==4)
+	        {
+	                pL->SMinterference2=1; pL->SMinterference1=0;
+	                rateInit( pL, detj, &BSMrate,  pL->detectors[detj].signalBSM2[i]);
+	        }
+	        pL->SMinterference1=pL->SMinterference2=1;
+        }    
     }
     outfile.close();
 

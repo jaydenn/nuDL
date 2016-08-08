@@ -18,20 +18,25 @@
 #include "SMrate.h"
 #include "BSMrate.h"
 
-
 double my_LS(const gsl_vector *v, void *params)
 {
 
     paramList *pL = (paramList *)params;
-    double l;
+    double l = 0;
 
-    pL->nuFluxNorm = fabs(gsl_vector_get(v, 0));
-    pL->signalNorm = gsl_vector_get(v, 1);
-    pL->detectors[pL->detj].BgNorm = fabs(gsl_vector_get(v, 2));
-        
-    l = - logLikelihood(pL) 
-        + 0.5/pow(pL->nuFluxUn,2) * pow(pL->nuFluxNorm - 1,2) 
-        + 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2) ;   
+    pL->signalNorm = gsl_vector_get(v, 0);
+    
+    pL->detectors[pL->detj].BgNorm = fabs(gsl_vector_get(v, 1));
+    l += 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2);
+    
+    for(int i=0; i < pL->source.numFlux; i++)
+    {
+        pL->source.nuFluxNorm[i] = fabs(gsl_vector_get(v, i+2));
+        l += 0.5/pow(pL->source.nuFluxUn[i],2) * pow(pL->source.nuFluxNorm[i] - 1,2);
+    }
+    
+    l -= logLikelihood(pL);
+    
     return l;
 
 }
@@ -40,14 +45,19 @@ double my_L0(const gsl_vector *v, void *params)
 {
 
     paramList *pL = (paramList *)params;
-    double l;
+    double l = 0;
 
-    pL->nuFluxNorm = gsl_vector_get(v, 0);
-    pL->detectors[pL->detj].BgNorm  = gsl_vector_get(v, 1);
-        
-    l = - logLikelihood(pL) 
-        + 0.5/pow(pL->nuFluxUn,2) * pow(pL->nuFluxNorm - 1,2) 
-        + 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2) ;
+    pL->detectors[pL->detj].BgNorm  = gsl_vector_get(v, 0);
+l += 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2);
+    
+    for(int i=0; i < pL->source.numFlux; i++)
+    {
+        pL->source.nuFluxNorm[i] = fabs(gsl_vector_get(v, i+1));
+        l += 0.5/pow(pL->source.nuFluxUn[i],2) * pow(pL->source.nuFluxNorm[i] - 1,2);
+    }
+    
+    l -= logLikelihood(pL);
+    
     return l;
 
 }
@@ -67,19 +77,21 @@ double findMaxLS(paramList *pL)
 
     //start point and step size
     gsl_vector *x,*dx;
-    my_func.n = 3;
+    my_func.n = 2 + pL->source.numFlux;
 
-    x = gsl_vector_alloc (3);
-    dx = gsl_vector_alloc (3);
-    gsl_vector_set (x, 0, 1.0);
-    gsl_vector_set(dx, 0, .05);
-    gsl_vector_set (x, 1, pL->signalNorm);
-    gsl_vector_set(dx, 1, pL->signalNorm/10);
-    gsl_vector_set (x, 2, 1.0);
-    gsl_vector_set(dx, 2, .05);
+    x = gsl_vector_alloc ( my_func.n );
+    dx = gsl_vector_alloc ( my_func.n );
+    gsl_vector_set (x, 0, pL->signalNorm);
+    gsl_vector_set(dx, 0, pL->signalNorm/10);
+    
+    for(int i=1; i < my_func.n; i++)
+    {
+        gsl_vector_set (x, i, 1.0);
+        gsl_vector_set(dx, i, .05);
+    }
     
     T = gsl_multimin_fminimizer_nmsimplex2;
-    s = gsl_multimin_fminimizer_alloc (T, 3);
+    s = gsl_multimin_fminimizer_alloc (T, my_func.n);
 
     gsl_multimin_fminimizer_set (s, &my_func, x, dx);
 
@@ -123,17 +135,17 @@ double findMaxL0(paramList *pL)
 
     //start point
     gsl_vector *x,*dx;
-    my_func.n = 2;
+    my_func.n = 1 + pL->source.numFlux;
     
-    x = gsl_vector_alloc (2);
-    dx = gsl_vector_alloc (2);
-    gsl_vector_set (x, 0, 1.0);
-    gsl_vector_set(dx, 0, .05);
-    gsl_vector_set (x, 1, 1.0); 
-    gsl_vector_set(dx, 1, .05);
-
+    x = gsl_vector_alloc (my_func.n);
+    dx = gsl_vector_alloc (my_func.n);
+    for(int i=0; i < my_func.n; i++)
+    {
+        gsl_vector_set (x, i, 1.0);
+        gsl_vector_set(dx, i, .05);
+    }
     T = gsl_multimin_fminimizer_nmsimplex2;
-    s = gsl_multimin_fminimizer_alloc (T, 2);
+    s = gsl_multimin_fminimizer_alloc (T, my_func.n);
 
     gsl_multimin_fminimizer_set (s, &my_func, x, dx);
 
@@ -177,7 +189,9 @@ double my_q0(const gsl_vector *v, void *params)
     double simSeed = 0;
     paramList *pL = (paramList *)params;    
     
-    pL->nuFluxNorm = 1;
+    for(int i=0; i < pL->source.numFlux; i++)
+        pL->source.nuFluxNorm[i] = 1;
+        
     pL->detectors[pL->detj].BgNorm = 1;
     pL->signalNorm = gsl_vector_get(v, 0);
     
@@ -314,7 +328,8 @@ void discLimitVsMmed(paramList *pL, int detj)
 {
 
     std::cout << "Starting disc. limit calculations..." << std::endl;
-
+    pL->detj = detj;
+        
     char filename[100];
     std::ofstream outfile;
     
@@ -327,39 +342,26 @@ void discLimitVsMmed(paramList *pL, int detj)
     outfile.open(filename,std::ios::out);
     
     //determine first guess for mu, need a mu that gives BSM ~ SM
-    pL->signalNorm = .1;
-    makeAguess:
-    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, 1);
+    double mu = pL->signalNorm = 1e-3;
+    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
     double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
     double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
+    
+    starting_guess_loop:
+        while(fabs(BSM) < SM/10 )
+        {
+            mu*=1.02;
+            BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
+            std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
+        }
+        pL->signalNorm = mu;
         
-    pL->detj = detj;
-    
-    double coup,mu;
-    
-    while(fabs(BSM) < SM/10 )
-    {
-        pL->signalNorm*=1.05;
-        BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, pL->signalNorm);
-        BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
-        SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
-        //std::cout << SM << " " << BG << " " << BSM << " " << pL->signalNorm << std::endl;
-    }
-    mu=pL->signalNorm;
-    if(pL->elecScat)
-    {
-        if(pL->BSM==3 || pL->BSM==4)
-            coup=mu*pL->C;
-        else
-            coup=sqrt(mu)*pL->C;
-    }
+    double coup;
+    if(pL->BSM==3 || pL->BSM==4)
+        coup=mu*pL->C;
     else
-    {
-        if(pL->BSM==3 || pL->BSM==4)
-            coup=mu*pL->C;
-        else
-            coup=sqrt(mu)*pL->C;
-    }        
+        coup=sqrt(mu)*pL->C;
+
     std::cout << "starting guess = " << coup << ", mu = " << coup/pL->C << std::endl;           
     
     while (pL->mMed < 1)
@@ -382,23 +384,27 @@ void discLimitVsMmed(paramList *pL, int detj)
         }
         else
         {
-            pL->signalNorm=.001;
-            goto makeAguessDL;
+            mu = 1e-5;
+            goto starting_guess_loop;
         }
         
-        pL->nuFluxNorm = 1;
+        for(int i=0; i < pL->source.numFlux; i++)
+            pL->source.nuFluxNorm[i] = 1;
+        
         pL->mMed*=1.2; //increment mass
         
         //reinitialize BSM rates
-        pL->SMinterference1=1;  pL->SMinterference2=0;
-        rateInit( pL, detj, &BSMrate,  pL->detectors[detj].signalBSM1);
-	    if(pL->BSM==3 || pL->BSM==4)
-	    {
-	            pL->SMinterference2=1; pL->SMinterference1=0;
-	            rateInit( pL, detj, &BSMrate,  pL->detectors[detj].signalBSM2);
-	    }
-	    pL->SMinterference1=pL->SMinterference2=1;
-
+        for(int i=0; i< pL->source.numFlux; i++)
+        {
+            pL->SMinterference1=1;  pL->SMinterference2=0;
+            rateInit( pL, detj, &BSMrate,  pL->detectors[detj].signalBSM1[i]);
+	        if(pL->BSM==3 || pL->BSM==4)
+	        {
+	                pL->SMinterference2=1; pL->SMinterference1=0;
+	                rateInit( pL, detj, &BSMrate,  pL->detectors[detj].signalBSM2[i]);
+	        }
+	        pL->SMinterference1=pL->SMinterference2=1;
+        }
     }
     outfile.close();
 

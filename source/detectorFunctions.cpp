@@ -147,26 +147,40 @@ int newDetector(paramList *pList, char *name, double exp)
 		
 		//only need to calculate background and SM signal once, store in a table for interpolation, stored as events/kg/day/keV
 		//get values of bg at relevant energies
-		std::cout << "Initializing rates:" << std::endl << "SM rate..." << std::endl; 
-		rateInit( pList, pList->ndet,        &SMrate,   pList->detectors[pList->ndet].signalSM);
-		std::cout << "Background rate..." << std::endl; 
+		std::cout << "Initializing rates"; 		
 		rateInit( pList, pList->ndet, &detBackground, pList->detectors[pList->ndet].background);
-		//initialization is a little more complicated for the BSM case because of interference terms 
-		if(pList->BSM!=0)
-		{   
-		    std::cout << "BSM rate..." << std::endl; 
-		    pList->SMinterference1=1;  pList->SMinterference2=0;
-		    rateInit( pList, pList->ndet, &BSMrate,  pList->detectors[pList->ndet].signalBSM1);
-		    
-		    if(pList->BSM==3 || pList->BSM==4)
-		    {
-		            pList->SMinterference2=1; pList->SMinterference1=0;
-		            rateInit( pList, pList->ndet, &BSMrate,  pList->detectors[pList->ndet].signalBSM2);
-		    }
-		    pList->SMinterference1=pList->SMinterference2=1;
+        std::cout << ".";
+    
+        //must initialize each flux in turn
+        for(int i=0; i< pList->source.numFlux; i++)
+            pList->source.nuFluxNorm[i] = 0;
+                 
+        for(int i=0; i< pList->source.numFlux; i++)
+        {
+            pList->source.nuFluxNorm[i] = 1;
+            
+		    rateInit( pList, pList->ndet,        &SMrate,   pList->detectors[pList->ndet].signalSM[i]);
+		    std::cout << ".";
+		    //initialization is a little more complicated for the BSM case because of interference terms 
+		    if(pList->BSM!=0)
+		    {   
+		        pList->SMinterference1=1;  pList->SMinterference2=0;
+		        rateInit( pList, pList->ndet, &BSMrate,  pList->detectors[pList->ndet].signalBSM1[i]);
+		        
+		        if(pList->BSM==3 || pList->BSM==4)
+		        {
+		                pList->SMinterference2=1; pList->SMinterference1=0;
+		                rateInit( pList, pList->ndet, &BSMrate,  pList->detectors[pList->ndet].signalBSM2[i]);
+		        }
+		        pList->SMinterference1=pList->SMinterference2=1;
+            }
+            pList->source.nuFluxNorm[i] = 0;
+            std::cout << ".";
         }
+        for(int i=0; i< pList->source.numFlux; i++)
+            pList->source.nuFluxNorm[i] = 1;
         
-		std::cout << "done." << std::endl; 
+		std::cout << "\ndone." << std::endl; 
 		
 		pList->ndet++;
 		

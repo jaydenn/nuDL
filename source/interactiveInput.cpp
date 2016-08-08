@@ -118,33 +118,44 @@ int interactiveInput(paramList *pL)
         if(std::cin.fail() || pL->mMed < 0 || stdinstr=="")
         {
             std::cout << "invalid mass\n";
-            goto choose_a_valid_flux_loop;
+            goto choose_a_valid_mMed_loop;
         }
     
-    //reactor flux
-    choose_a_valid_flux_loop:
-        std::cout << "\nEnter reactor flux in GeV/s (default for TAMU reactor is 5.875e-16 @1m): ";
+    //source setup
+    std::cout << "\nAvailable sources:\n";
+    std::ifstream sourceFile("sources.ini");
+    
+    int i=1;
+    std::string sources[10];
+    while(!sourceFile.eof())
+    {
+        std::getline(sourceFile, stdinstr); 
+        if(stdinstr[0]=='-' && i < 10)
+        {
+            std::getline(sourceFile, stdinstr);
+            sources[i] = stdinstr;
+            std::cout << i << ". " << sources[i] << std::endl;
+            i++;
+        }
+        if(i==10)
+            std::cout << "max number of sources reached (10)\n";
+    }
+    
+    choose_a_valid_source_loop:
+        std::cout << "\nchoose source from above list: ";
         std::getline(std::cin,stdinstr);
-        pL->nuFlux = atof(stdinstr.c_str());		 
+        int s = atof(stdinstr.c_str());		 
+        if(std::cin.fail() || s < 1)
+        {
+            std::cout << "invalid source\n";
+            goto choose_a_valid_source_loop;
+        }
         
-        if(std::cin.fail() || pL->nuFlux < 0)
-        {
-            std::cout << "invalid flux\n";
-            goto choose_a_valid_flux_loop;
-        }
-        if(stdinstr=="")
-        {
-            std::cout << "using default TAMU flux\n";
-            pL->nuFlux = 5.875e-16;
-        }
-
-    pL->nuFluxUn = 0.02; //want fractional uncertainty
-    
     //initialize reactor flux
-    int err = initFlux(pL);
+    int err = nuFluxInit(pL, sources[s]);
     if (err == 1)
     {
-        std::cout << "Reactor flux data is not properly normalized\n";
+        std::cout << "problem with flux initialization\n";
         return -1;
     }
     
@@ -173,7 +184,7 @@ int interactiveInput(paramList *pL)
 	    return 1;
     }
 
-    int i=1;
+    i=1;
     char dets[20][100];
     while(!feof(detsINI))
     {

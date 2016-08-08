@@ -8,30 +8,30 @@
 #ifndef DETECTORSTRUCT_H
 	#include "detectorStruct.h"
 #endif	
+#ifndef SOURCESTRUCT_H
+    #include "sourceStruct.h"
+#endif  
 #define PARAMETERSTRUCT_H
 
 struct paramList {
-	
+
 	//root directory for file output
 	char root[50];
-	
-	//arrays for reactor flux data
-	gsl_interp *nuFluxInterp;
-	gsl_interp_accel *nuFluxAccel;
-	double nuFlux, nuFluxUn;
-	double nuFluxNorm, signalNorm;
-	double Er, EnuMax;
+
+	//Struct for neutrino source flux
+    sourceStruct source;
+	double Er;
     
 	//setup for rate integration
 	gsl_function F;
 	double (*rateFunc)(double, double, paramList *, int);
-     
+
 	double A; //is this used?
 	double Qa, qA, qAn, qAp, qAu, qAd;
 	double Qv, qV, qVn, qVp, qVu, qVd;
-	
+
 	//initial coupling
-	double C;
+	double C, signalNorm;
 	double SMinterference1,SMinterference2; //so it can be turned off when needed (in initialization)
 	
 	//nucleon couplings
@@ -66,7 +66,7 @@ struct paramList {
     int asimov;
     int logBins;
     
-	int ndet, detj;
+	int ndet, detj, fluxj;
 	detector detectors[10];
 	
 	void printPars()
@@ -75,7 +75,7 @@ struct paramList {
     	std::cout << "  root: " << root << std::endl;
     	std::cout << "  BSM: " << BSM << std::endl;
     	std::cout << "  asimov: " << asimov << std::endl;
-    	std::cout << "  flux: " << nuFlux << " +/- " << nuFluxUn*100 << "%" << std::endl;
+    	//std::cout << "  flux: " << nuFlux << " +/- " << nuFluxUn*100 << "%" << std::endl;
 		std::cout << ndet << " detectors:" << std::endl;
 		for(int i=0;i<ndet;i++)
 			detectors[i].printDetSpecs();
@@ -104,10 +104,7 @@ struct paramList {
 	    Qv=Qa=Qs=Qvp=Qap=qNs=qPs=qNv=qPv=qNa=qPa=gNuS=gNuV=gEs=gEp=gEv=gEa=C=0;
 	    SMinterference1=SMinterference2=1;
 		ndet=0;
-		nuFluxNorm=1;
-		nuFluxUn=1e-99;
         signalNorm=1;
-		EnuMax=0;
         asimov=1;
         elecScat=0;
         nucScat=0;

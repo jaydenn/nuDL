@@ -29,11 +29,11 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
     //total standard model, beyond SM and background rates
     double SM, BSM, BG;
     if(pList->BSM)
-        BSM = pList->nuFluxNorm * intBSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj, pList->signalNorm);
+        BSM = intBSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj, pList->signalNorm);
     else
         BSM = 0;
         
-    SM = pList->nuFluxNorm * intSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj);
+    SM = intSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj);
     BG = pList->detectors[detj].BgNorm * b * intBgRate(pList->detectors[detj], pList->detectors[detj].ErL, pList->detectors[detj].ErU) ;     
 
     //std::cout << SM << " " << BG << " " << BSM << std::endl;
@@ -70,8 +70,8 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
             
         Er_max = Er_min + pList->detectors[detj].binW[i];
         
-        BSM = pList->nuFluxNorm * intBSMrate( Er_min, Er_max, pList, detj, pList->signalNorm);
-        SM  = pList->nuFluxNorm * intSMrate( Er_min, Er_max, pList, detj); 
+        BSM = intBSMrate( Er_min, Er_max, pList, detj, pList->signalNorm);
+        SM  = intSMrate( Er_min, Er_max, pList, detj); 
         BG  = pList->detectors[detj].BgNorm * b * intBgRate(pList->detectors[detj], Er_min, Er_max) ;
         
         if( pList->asimov == 1) 
