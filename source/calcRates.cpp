@@ -83,23 +83,19 @@ int calcRates(paramList *pList)
             std::cout << " (events/kg/day/keV)" << std::endl;
             outfile   << " (events/kg/day/keV)" << std::endl;
         }
-            
-        for (int i=0; i<201; i+=1)
+
+        int skip=0;            
+        for (int i=0; i<501; i+=1)
         {
-            ErkeV = pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/200;
-            std::cout << "    " << ErkeV << "      " << diffSMrate( ErkeV, pList, detj) << "      " << diffBgRate( pList->detectors[detj], ErkeV);
-            outfile   << "    " << ErkeV << "      " << diffSMrate( ErkeV, pList, detj) << "      " << diffBgRate( pList->detectors[detj], ErkeV);
-            
-            if(pList->BSM!=0)
-            {
-                std::cout << "      " << diffBSMrate( ErkeV, pList, detj, 1) << std::endl; 
-                outfile   << "      " << diffBSMrate( ErkeV, pList, detj, 1) << std::endl; 
-            }
+            if(pList->logBins == 1)
+                ErkeV = pow(10, log10(pList->detectors[detj].ErL) + (double)i*(log10(pList->detectors[detj].ErU)-log10(pList->detectors[detj].ErL))/500)+1e-4;
             else
-            {
-                std::cout << std::endl;
-                outfile   << std::endl;
-            }
+                ErkeV = pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/500;
+
+            if( skip++ % 5 == 0 ) //only print out every fifth value to terminal    
+                std::cout << "    " << ErkeV << "      " << diffSMrate( ErkeV, pList, detj) << "      " << diffBgRate( pList->detectors[detj], ErkeV) << "      " << diffBSMrate( ErkeV, pList, detj, 1) << std::endl; ;
+            
+            outfile   << "    " << ErkeV << "      " << diffSMrate( ErkeV, pList, detj) << "      " << diffBgRate( pList->detectors[detj], ErkeV) << "      " << diffBSMrate( ErkeV, pList, detj, 1) << std::endl; 
         }
         
         outfile.close();
