@@ -54,9 +54,9 @@ int nuFluxInit(paramList *pL, std::string sourceName)
             }
             pL->source.nuFluxUn[fluxj] /= pL->source.nuFlux[fluxj]; //want fractional uncertainty
             pL->source.nuFlux[fluxj] /= pow(pL->source.distance,2);
-            pL->source.nuFlux[fluxj] *= pow(HBARC,2)*1000;          //convert units
+            pL->source.nuFlux[fluxj] *= pow(HBARC,2);               //convert units
             pL->source.lineE[fluxj] = lineEnergy/1000;
-    
+            pL->source.isLine[fluxj] = 1;
         }
         else
         {
@@ -69,7 +69,7 @@ int nuFluxInit(paramList *pL, std::string sourceName)
 
             pL->source.nuFluxUn[fluxj] /= pL->source.nuFlux[fluxj];  //want fractional uncertainty
             pL->source.nuFlux[fluxj] /= pow(pL->source.distance,2);   
-            pL->source.nuFlux[fluxj] *= pow(HBARC,2)*1000;           //convert units
+            pL->source.nuFlux[fluxj] *= pow(HBARC,2);           //convert units from /cm^2
             
             fluxFile.insert (0,  "source/fluxes/");
             std::cout<< "reading " << fluxFile << std::endl;
@@ -191,10 +191,15 @@ double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow)
     {
         pList->fluxj = i;
         if(pList->source.isLine[i]==1)
-            integral = pList->F.function( pList->source.lineE[i], (void *)pList);
+        {
+            if(EnuMinGeV < pList->source.lineE[i] )
+                integral = pList->source.nuFlux[i] * pow( pList->source.lineE[i], EnuPow);
+            else
+                integral = 1e-199;
+        }
         else
 	        gsl_integration_qag(&(pList->F), EnuMinGeV, pList->source.EnuMax[i], tol, 1e-3, limit, 2, W, &integral, &absErr); 
-
+        
 	    total+=pList->source.nuFluxNorm[i]*integral;
 	}
 	

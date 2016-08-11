@@ -260,10 +260,19 @@ void exclusionLimit(paramList *pL, int detj)
     std::cout << "writing output to: " << filename << std::endl;
     
     //find a good starting point
-    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, 1);
+    double mu  = 1e-4;
+    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
     double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
     double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
-    double mu  = (SM+BG)/(100*BSM);
+    
+    starting_Ex_guess_loop:
+        while(fabs(BSM) < SM/10 )
+        {
+            mu*=1.02;
+            BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
+            //std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
+        }
+        pL->signalNorm = mu;
     
     //produce a null result
     pL->signalNorm = 0;
@@ -295,6 +304,11 @@ void exclusionLimit(paramList *pL, int detj)
             outfile   << pL->mMed << "  " << coup << std::endl;
             
             pL->signalNorm = mu;      //update guess
+        }
+        else
+        {
+            mu = 1e-6;
+            goto starting_Ex_guess_loop;
         }
         
         for(int i=0; i < pL->source.numFlux; i++)

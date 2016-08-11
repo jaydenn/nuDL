@@ -14,6 +14,7 @@ struct detector {
     int nIso;
     int isoZ[10];
     int isoA[10];
+    double ionization[100];
     double isoFrac[10];
     double isoSZ[10];
     double isoSN[10];

@@ -280,8 +280,6 @@ void discLimitEvolution(paramList *pL, int detj)
     {
         pL->signalNorm*=1.05;
         BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, pL->signalNorm);
-        BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
-        SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
         //std::cout << SM << " " << BG << " " << BSM << " " << pL->signalNorm << std::endl;
     }
     mu=pL->signalNorm;

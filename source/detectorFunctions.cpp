@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cstdio>
 #include <cmath>
+#include <sstream>
+#include <string>
 #ifndef DETECTORSTRUCT_H
 	#include "detectorStruct.h"
 #endif	
@@ -127,7 +129,7 @@ int newDetector(paramList *pList, char *name, double exp)
 	    ret = fgets(temp,200,detsINI);
 	    ret = fgets(temp,200,detsINI);
 	
-	    while(!feof(detsINI) && temp[0]!='_')
+	    while(!feof(detsINI) && temp[0]!='-')
 	    {	
 		    if(newDet.nIso==10)
 		    {
@@ -138,6 +140,19 @@ int newDetector(paramList *pList, char *name, double exp)
 			
 		    newDet.nIso++;
 		    ret = fgets(temp,200,detsINI);		   
+	    }
+	    ret = fgets(temp,200,detsINI);	
+	    ret = fgets(temp,200,detsINI);	
+	    
+	    std::istringstream ionizations(temp);
+	    std::string comma;
+	    int i = 0;
+	    //there must be a better way to do this..
+	    std::fill_n(pList->detectors[pList->ndet].ionization,100,0);
+	    while( std::getline(ionizations,comma,',') )
+	    {
+	        pList->detectors[pList->ndet].ionization[i++] = atof(comma.c_str());
+	        //std::cout << pList->detectors[pList->ndet].ionization[i-1] << std::endl;
 	    }
 	    //finished reading in det data		 
 		fclose(detsINI);

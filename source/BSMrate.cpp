@@ -154,7 +154,7 @@ double BSMrate(double ErKeV, paramList *pList, int detj)
 
     double rate = 0;
     double targetsPerKG;
-    
+   
     for(int i=0;i<pList->detectors[detj].nIso;i++)
 	{   
         targetsPerKG = GeVperKG/(MN*pList->detectors[detj].isoA[i]); //how many targets per kg of detector
@@ -172,7 +172,9 @@ double BSMrate(double ErKeV, paramList *pList, int detj)
 	    {
             pList->qV = 0.5+2*0.2312;
 	        pList->qA = 0.5;
-		    rate += pList->detectors[detj].isoZ[i] * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME);
+	        int Ne=pList->detectors[detj].isoZ[i];
+	        while(pList->detectors[detj].ionization[-1+Ne--] > ErKeV && Ne>0);
+		    rate += ((double) Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME);
 		}
 	}	
 	

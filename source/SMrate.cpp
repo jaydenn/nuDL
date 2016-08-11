@@ -38,7 +38,9 @@ double SMrate(double ErKeV, paramList *pList, int detj)
 	    {
 		    pListSM.qA = 0.5;
 		    pListSM.qV = 0.5+2*0.2312;
-		    rate += (pList->detectors[detj].isoZ[i] * targetsPerKG) * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME);
+		    int Ne=pList->detectors[detj].isoZ[i];
+	        while(pList->detectors[detj].ionization[-1+Ne--] > ErKeV && Ne>0);
+		    rate += (Ne * targetsPerKG) * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME);
 	    }
 		
     }

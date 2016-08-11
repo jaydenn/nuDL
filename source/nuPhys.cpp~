@@ -1,0 +1,38 @@
+#include "multinest.h"
+void dumper(int &, int &, int &, double **, double **, double **, double &, double &, double &, double &, void **) {}
+
+void LogLikedN(double *Cube, int &ndim, int &npars, double &lnew, long &pointer)    
+{   
+
+	//get pointer in from MultiNest 
+    void **x = (void **)pointer;
+    parameterList pL = *(parameterList *) x[0];
+    double *binnedData[4]; binnedData[0] = (double *) x[1]; binnedData[1] = (double *) x[2]; binnedData[2] = (double *) x[3]; binnedData[3] = (double *) x[4];
+	
+    //WIMP pars for this point in the likelihood evaluation
+	scaleParams( Cube, pL.p, &Wcube);
+    
+    lnew = logLikelihood( Wcube, pL.d, pL.p, binnedData, 1);
+    
+}
+
+
+int main()
+{
+
+// set some MultiNest sampling parameters
+        int pWrap[] = {0,0,0,0};						          // which parameters to have periodic boundary conditions?
+        int seed = -1;			   					          // random no. generator seed, if < 0 then take the seed from system clock
+      
+        int ndims = SET_THIS;       // any combination of mass, sigmaSI, sigmaSIvec, sigmaSD, delta, fn/fp, bn/bp, an/bp and rho_DM, v0, vesc 
+        int npar = SET_THIS;                // npar can be greater than ndim if you want to get other values from the loglike function output to file
+        double logZero = -DBL_MAX;							  // points with loglike < logZero will be ignored by MultiNest
+        int initMPI = 0;								      // initialize MPI routines?, relevant only if compiling with MPI
+                                                              // set it to 0 if you want your main program to handle MPI initialization
+        int outfile = 1;								      // write output files?
+        int updateInt = 100000;								  // update interval (for calling dumper, which isn't used here)
+        
+    
+    nested::run((bool)par.sampling[0],(bool)par.sampling[1],(int)par.sampling[2], par.sampling[6], par.sampling[5],ndims, npar, ndims,       100, updateInt, par.sampling[7],  par.root, seed, pWrap, (bool)par.sampling[3], (bool)par.sampling[4], (bool)outfile, (bool)initMPI, logZero, LogLikedN, dumper, pointer);
+       
+}

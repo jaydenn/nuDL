@@ -1,0 +1,94 @@
+#include <iostream>
+#include <cmath>
+#include "DEIntegrator.h"
+#include "parameterStruct.h"
+#include "formFactorSI.h"
+#include "nuFlux.h"
+#ifndef GSL_INTERP_H
+    #include <gsl/gsl_interp.h>
+#endif
+#ifndef GSL_INTEGRATION_H
+    #include <gsl/gsl_integration.h>
+#endif 
+#ifndef PARAMETERSTRUCT_H
+    #include "parameterStruct.h"
+#endif  
+
+double FIRSTEVAL = 0;
+const double GFERMI = 1.1664e-5; //GeV^-2
+const double GeVtoKeV = 1e6;
+const double MN = 0.938; //mass of nucleon in GeV
+
+double SMintegrand(double EnuGeV, void *pars)
+{
+    paramList *pList = (paramList*)pars;
+    return nuFlux(EnuGeV, pList) * (1 - MN * pList->A * pList->Er / (2*EnuGeV*EnuGeV) );
+}
+
+//has units of GeV^2/s after integration
+double SMintegral(double ErGeV,  paramList *pList, int detj)
+{
+    int key = 2;
+    int limit = 1000;
+    double integral,absErr;
+    
+    pList->A = pList->detectors[detj].AM;
+    pList->Er = ErGeV;
+            
+    if(FIRSTEVAL==0)
+    {
+        pList->w = gsl_integration_workspace_alloc (1000);
+        pList->F.function = &SMintegrand;
+        FIRSTEVAL=1;
+    }
+
+    pList->F.params = pList; //yeah, that's not weird..
+    
+    double EnuMinGeV = sqrt( ErGeV * (MN*pList->detectors[detj].AM) / 2);
+
+    gsl_integration_qag(&(pList->F), EnuMinGeV, pList->EnuMax, 1e-20, 1e-4, limit, key, pList->w, &integral, &absErr); //check normalization
+
+    return integral;    
+}
+
+//returns SM rate per kg/year/keV
+double CNNSrateSM(double ErKeV, paramList *pList, int detj) 						  
+{
+    double integral = SMintegral( ErKeV/GeVtoKeV, pList, detj);
+    double secsPerYear = 365.25*24*60*60; 
+    double atomsPerKG = ( pow(2.998e8,2) / 1.602e-10 ) / ( (MN*pList->detectors[detj].AM) ); 
+
+    return pow(GFERMI,2) / GeVtoKeV / ( 4 * M_PI ) * atomsPerKG * secsPerYear * (MN*pList->detectors[detj].AM) * pow( pList->detectors[detj].AM-1.04*pList->detectors[detj].isoZ[0] ,2) * pow( ffactorSI( pList->detectors[detj].AM, ErKeV) ,2) * integral;
+}
+
+double BSMrate(double Er, paramList *pList, int detj)
+{
+    return 0.0;
+}
+
+double CNNSrate( double Er, paramList *pList, int detj)
+{   
+    double BSMrate = 0;
+    double rate = CNNSrateSM(Er, pList, detj);
+    return rate;
+}
+
+class ErIntegral
+{
+public:
+    paramList *pList;
+    int detj;
+    double operator()(double Er) const
+    {
+        return CNNSrate( Er, pList, detj);
+    }
+};
+
+double intCNNSrate(double Er_min, double Er_max, paramList *pList, int detj)
+{
+    ErIntegral erInt; 		       //create instance for recoil energy integration
+    erInt.pList = pList;
+    erInt.detj = detj;
+
+    return DEIntegrator<ErIntegral>::Integrate(erInt,Er_min,Er_max,1e-4);
+}

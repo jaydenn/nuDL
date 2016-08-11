@@ -51,9 +51,9 @@ int calcRates(paramList *pList)
     {
         //open file
         if(pList->nucScat)
-            sprintf(filename,"%s%sRateN_%s_m%dkeV.dat", pList->root, BSMname, pList->detectors[detj].name, masskeV);
+            sprintf(filename,"%s%sRateN_%s_%c%c_m%dkeV.dat", pList->root, BSMname, pList->detectors[detj].name, pList->source.name[0], pList->source.name[1],masskeV);
         else
-            sprintf(filename,"%s%sRateE_%s_m%dkeV.dat", pList->root, BSMname, pList->detectors[detj].name, masskeV);
+            sprintf(filename,"%s%sRateE_%s_%c%c_m%dkeV.dat", pList->root, BSMname, pList->detectors[detj].name, pList->source.name[0], pList->source.name[1], masskeV);
         outfile.open(filename,std::ios::out);
         
         if(outfile==NULL)
