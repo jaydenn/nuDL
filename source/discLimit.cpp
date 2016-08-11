@@ -101,10 +101,10 @@ double findMaxLS(paramList *pL)
         status = gsl_multimin_fminimizer_iterate (s);       
         //std::cout << "       " <<iter << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 2000 && gsl_multimin_fminimizer_size(s)>.0005); //s->fval>1e-2);
+    while (iter < 2000 && gsl_multimin_fminimizer_size(s)/s->fval > .005);
     
    if(iter==2000)
-        std::cout << "LS non-convergence size = " << gsl_multimin_fminimizer_size(s) << " > .0005  " << std::endl;
+        std::cout << "LS non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval << " > .005  " << std::endl;
     
     double LS =  s->fval;
     pL->signalNorm = gsl_vector_get(s->x, 1);
@@ -155,9 +155,9 @@ double findMaxL0(paramList *pL)
         status = gsl_multimin_fminimizer_iterate (s);
         //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 2000 && gsl_multimin_fminimizer_size(s)>.0005);  //s->fval > 1e-2 && !status);
+    while (iter < 2000 && gsl_multimin_fminimizer_size(s)/s->fval > 0.005 && !status);
     if(iter==2000)
-        std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)  << " > .0005  " <<  std::endl;
+        std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > .005  " <<  std::endl;
     
     double L0 = s->fval;
     
