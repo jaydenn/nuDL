@@ -19,7 +19,7 @@ const double GeVtoKeV = 1e6;
 const double GeVperKG = 5.6094e26;
 const double MN = 0.9383; //mass of nucleon in GeV
 const double ME = 0.000510998; //mass of electron in GeV
-
+const double SSW = 0.2387; //sin^2(theta_w)
 //returns simplified model light mediator rate per electron/day/keV
 double BSMrateE(double ErKeV, paramList *pList, double Mt)						  
 {
@@ -161,7 +161,7 @@ double BSMrate(double ErKeV, paramList *pList, int detj)
     	if(pList->nucScat)
     	{
     	    pList->Qa = pList->detectors[detj].isoSN[i]*(-0.427*-0.501163+0.842*0.506875) + pList->detectors[detj].isoSZ[i]*(-0.427*0.506875+0.842*-0.501163);	 
-		    pList->Qv = ( (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) - (1-4*0.2312*pList->detectors[detj].isoZ[i]) ) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
+		    pList->Qv = ( (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) - (1-4*SSW)*pList->detectors[detj].isoZ[i])  * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
 		    pList->Qs = ((pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) * pList->qNs + pList->detectors[detj].isoZ[i] * pList->qPs ) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);
 		    pList->Qvp = ((pList->detectors[detj].isoA[i]-pList->detectors[detj].isoZ[i]) * pList->qNv + pList->detectors[detj].isoZ[i] * pList->qPv) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);
 		    pList->Qap = pList->detectors[detj].isoSN[i] * pList->qNa + pList->detectors[detj].isoSZ[i] * pList->qPa;
@@ -172,12 +172,13 @@ double BSMrate(double ErKeV, paramList *pList, int detj)
 	    {
             pList->qV = 0.5+2*0.2312;
 	        pList->qA = 0.5;
-	        int Ne=pList->detectors[detj].isoZ[i];
-	        while(pList->detectors[detj].ionization[-1+Ne--] > ErKeV && Ne>0);
-		    rate += ((double) Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME);
+	        int Ne=0;
+	        while(pList->detectors[detj].ionization[Ne] > ErKeV && Ne < pList->detectors[detj].isoZ[i]) 
+	            Ne++;
+	        rate += ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME);
 		}
 	}	
-	
+
 	return rate;
 }   
 
@@ -276,5 +277,6 @@ double intBSMrate(double Er_min, double Er_max, paramList *pList, int detj, doub
         else
             rate += pList->source.nuFluxNorm[i] * signalNorm * gsl_spline_eval_integ(pList->detectors[detj].signalBSM1[i], Er_min, Er_max, pList->detectors[detj].accelBSM1[i]);
     }
+    
     return rate;
 }

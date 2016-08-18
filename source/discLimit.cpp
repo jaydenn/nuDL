@@ -196,7 +196,7 @@ double my_q0(const gsl_vector *v, void *params)
     pL->signalNorm = gsl_vector_get(v, 0);
     
     generateBinnedData( pL, pL->detj, 1, simSeed);
-
+    
     return pow( sqrt(q0(pL)) - 4.28, 2);  //arbitrary function with a minima at 3 sigma 90% of the time
 }
 
@@ -332,9 +332,9 @@ void discLimitVsMmed(paramList *pL, int detj)
     std::ofstream outfile;
     
     if(pL->elecScat)
-        sprintf(filename, "%sDLe_%c%c_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->source.name[0],pL->source.name[1],pL->BSM);
+        sprintf(filename, "%sDLe_%s_%s_BSM%d.dat",pL->root,pL->detectors[0].name,pL->source.name,pL->BSM);
     else
-        sprintf(filename, "%sDLn_%c%c_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->source.name[0],pL->source.name[1],pL->BSM);
+        sprintf(filename, "%sDLn_%s_%s_BSM%d.dat",pL->root,pL->detectors[0].name,pL->source.name,pL->BSM);
         
     std::cout << "writing output to: " << filename << std::endl;    
     outfile.open(filename,std::ios::out);

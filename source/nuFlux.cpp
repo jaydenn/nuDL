@@ -74,11 +74,11 @@ int nuFluxInit(paramList *pL, std::string sourceName)
             fluxFile.insert (0,  "source/fluxes/");
             std::cout<< "reading " << fluxFile << std::endl;
             std::ifstream flux(fluxFile.c_str());
-            pL->source.flux_E[fluxj] = new double [100];
-            pL->source.flux_N[fluxj] = new double [100];
+            pL->source.flux_E[fluxj] = new double [1000];
+            pL->source.flux_N[fluxj] = new double [1000];
             
             int i=0;
-            int maxPoints=100;
+            int maxPoints=1000;
             while( flux >> fluxE >> fluxN )
             {
                 pL->source.flux_E[fluxj][i  ] = fluxE/1000;   //convert to GeV

@@ -39,6 +39,8 @@ double detBackground(double Er, paramList *pList, int detj)
             return 100.0;
 	    case 2: 
             return 10.0;
+        case 3: 
+            return 5.0;
         default:
             printf("invalid detector background\n"); 
             return NAN; 
@@ -73,9 +75,7 @@ int newDetector(paramList *pList, char *name, double exp)
 			return 1;
 		}
 			
-		detector newDet;
-		
-		newDet.exposure = exp;
+		pList->detectors[pList->ndet].exposure = exp;
 		
 		//read in detector configuration
 	    FILE *detsINI;
@@ -104,24 +104,24 @@ int newDetector(paramList *pList, char *name, double exp)
 		    }
 	    }
 	
-	    sprintf( newDet.name, "%s", &(name[1]));
+	    sprintf( pList->detectors[pList->ndet].name, "%s", &(name[1]));
 	
 	    while(temp[0]!='-')
 	    {
 		    err = fscanf(detsINI,"%s",temp);
 					     
 		    if(strcmp(temp,"AM")==0)  
-			    err=fscanf(detsINI,"%lf",&(newDet.AM)); 
+			    err=fscanf(detsINI,"%lf",&(pList->detectors[pList->ndet].AM)); 
 		    if(strcmp(temp,"Er")==0)  
-			    err=fscanf(detsINI,"%lf-%lf",&(newDet.ErL),&(newDet.ErU)); 
+			    err=fscanf(detsINI,"%lf-%lf",&(pList->detectors[pList->ndet].ErL),&(pList->detectors[pList->ndet].ErU)); 
 		    if(strcmp(temp,"bg")==0)  
-			    err=fscanf(detsINI,"%d",&(newDet.bg));
+			    err=fscanf(detsINI,"%d",&(pList->detectors[pList->ndet].bg));
 			if(strcmp(temp,"bgUn")==0)  
-			    err=fscanf(detsINI,"%lf",&(newDet.BgUn));
+			    err=fscanf(detsINI,"%lf",&(pList->detectors[pList->ndet].BgUn));
 		    if(strcmp(temp,"eff")==0) 
-			    err=fscanf(detsINI,"%d",&(newDet.eff));			
+			    err=fscanf(detsINI,"%d",&(pList->detectors[pList->ndet].eff));			
 		    if(strcmp(temp,"res")==0) 
-			    err=fscanf(detsINI,"%d",&(newDet.res));
+			    err=fscanf(detsINI,"%d",&(pList->detectors[pList->ndet].res));
 	    }
 
 	    ret = fgets(temp,200,detsINI);
@@ -131,14 +131,14 @@ int newDetector(paramList *pList, char *name, double exp)
 	
 	    while(!feof(detsINI) && temp[0]!='-')
 	    {	
-		    if(newDet.nIso==10)
+		    if(pList->detectors[pList->ndet].nIso==10)
 		    {
 			    std::cout << "already at max number of isotopes (10)" << std::endl;
 			    break;
 		    }
-		    sscanf(temp,"%d %d %lf %lf %lf",&(newDet.isoZ[newDet.nIso]),&(newDet.isoA[newDet.nIso]),&(newDet.isoFrac[newDet.nIso]),&(newDet.isoSZ[newDet.nIso]),&(newDet.isoSN[newDet.nIso])); 
+		    sscanf(temp,"%d %d %lf %lf %lf",&(pList->detectors[pList->ndet].isoZ[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoA[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoFrac[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoSZ[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoSN[pList->detectors[pList->ndet].nIso])); 
 			
-		    newDet.nIso++;
+		    pList->detectors[pList->ndet].nIso++;
 		    ret = fgets(temp,200,detsINI);		   
 	    }
 	    ret = fgets(temp,200,detsINI);	
@@ -148,17 +148,11 @@ int newDetector(paramList *pList, char *name, double exp)
 	    std::string comma;
 	    int i = 0;
 	    //there must be a better way to do this..
-	    std::fill_n(pList->detectors[pList->ndet].ionization,100,0);
 	    while( std::getline(ionizations,comma,',') )
-	    {
 	        pList->detectors[pList->ndet].ionization[i++] = atof(comma.c_str());
-	        //std::cout << pList->detectors[pList->ndet].ionization[i-1] << std::endl;
-	    }
-	    //finished reading in det data		 
+	   
+	     //finished reading in det data		 
 		fclose(detsINI);
-		
-		//add new detector to the array
-		pList->detectors[pList->ndet] = newDet;
 		
 		//only need to calculate background and SM signal once, store in a table for interpolation, stored as events/kg/day/keV
 		//get values of bg at relevant energies

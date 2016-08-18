@@ -15,7 +15,7 @@
 const double MN = 0.9383; //mass of nucleon in GeV
 const double ME = 0.000510998; //mass of electron in GeV
 const double GeVperKG = 5.6094e26;
-
+const double SSW = 0.2387; //sin^2(theta_w)
 //returns SM rate per kg/year/keV
 double SMrate(double ErKeV, paramList *pList, int detj)							  
 {
@@ -31,16 +31,17 @@ double SMrate(double ErKeV, paramList *pList, int detj)
     	//if(pList->nucScat)
 	    {
 	        pListSM.qA = pList->detectors[detj].isoSN[i]*(-0.427*-0.501163+0.842*0.506875) + pList->detectors[detj].isoSZ[i]*(-0.427*0.506875+0.842*-0.501163);	 
-		    pListSM.qV = (- 0.512213 * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + .0304*pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
+		    pListSM.qV = (- 0.512213 * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + (1-4*SSW)*pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
 		    rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i]);
 	    }	
 	    //if(pList->elecScat)
 	    {
 		    pListSM.qA = 0.5;
 		    pListSM.qV = 0.5+2*0.2312;
-		    int Ne=pList->detectors[detj].isoZ[i];
-	        while(pList->detectors[detj].ionization[-1+Ne--] > ErKeV && Ne>0);
-		    rate += (Ne * targetsPerKG) * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME);
+		    int Ne=0;
+	        while(pList->detectors[detj].ionization[Ne] > ErKeV && Ne < pList->detectors[detj].isoZ[i]) 
+	            Ne++;
+		    rate += (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME);
 	    }
 		
     }
