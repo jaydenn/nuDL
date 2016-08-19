@@ -36,7 +36,7 @@ double my_LS(const gsl_vector *v, void *params)
     }
     
     l -= logLikelihood(pL);
-    
+
     return l;
 
 }
@@ -99,9 +99,9 @@ double findMaxLS(paramList *pL)
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);       
-        //std::cout << "       " <<iter << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
+        std::cout << "       " <<iter << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 2000 && gsl_multimin_fminimizer_size(s)/s->fval > .005);
+    while (iter < 2000 && gsl_multimin_fminimizer_size(s)/s->fval > .001);
     
    if(iter==2000)
         std::cout << "LS non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval << " > .005  " << std::endl;
@@ -155,7 +155,7 @@ double findMaxL0(paramList *pL)
         status = gsl_multimin_fminimizer_iterate (s);
         //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 2000 && gsl_multimin_fminimizer_size(s)/s->fval > 0.005 && !status);
+    while (iter < 2000 && gsl_multimin_fminimizer_size(s)/s->fval > 0.001 && !status);
     if(iter==2000)
         std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > .005  " <<  std::endl;
     

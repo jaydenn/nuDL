@@ -268,6 +268,7 @@ double diffBSMrate(double ErkeV, paramList *pList, int detj, double signalNorm)
 
 double intBSMrate(double Er_min, double Er_max, paramList *pList, int detj, double signalNorm)						  
 {   
+   
     double rate=0;
     for(int i=0; i< pList->source.numFlux; i++)
     {
@@ -277,6 +278,6 @@ double intBSMrate(double Er_min, double Er_max, paramList *pList, int detj, doub
         else
             rate += pList->source.nuFluxNorm[i] * signalNorm * gsl_spline_eval_integ(pList->detectors[detj].signalBSM1[i], Er_min, Er_max, pList->detectors[detj].accelBSM1[i]);
     }
-    
+
     return rate;
 }
