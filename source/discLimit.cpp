@@ -340,7 +340,7 @@ void discLimitVsMmed(paramList *pL, int detj)
     outfile.open(filename,std::ios::out);
     
     //determine first guess for mu, need a mu that gives BSM ~ SM
-    double mu = pL->signalNorm = 1e-3;
+    double mu = pL->signalNorm = 1e-4;
     double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
     double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
     double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
@@ -382,7 +382,7 @@ void discLimitVsMmed(paramList *pL, int detj)
         }
         else
         {
-            mu = 1e-5;
+            mu = 1e-6;
             goto starting_guess_loop;
         }
         
