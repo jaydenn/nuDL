@@ -39,20 +39,20 @@ double nuRate(double ErKeV, paramList *pList, double Mt)
 
 void rateInit( paramList *pList, int detj, double (*rateFunc)(double, paramList *, int), gsl_spline *rateSpline)	
 {
-    double ErkeV[1000];
-    double rate[1000];
-    for(int i=0; i<1000; i++)
+    double ErkeV[2000];
+    double rate[2000];
+    for(int i=0; i<2000; i++)
     {
         //always over and undershoot range so that interpolation is well behaved
         if(pList->logBins == 1)
-                ErkeV[i] = pow(10, log10(0.95*pList->detectors[detj].ErL) + (double)i*(log10(pList->detectors[detj].ErU)-log10(pList->detectors[detj].ErL))/980);
+                ErkeV[i] = pow(10, log10(0.95*pList->detectors[detj].ErL) + (double)i*(log10(pList->detectors[detj].ErU)-log10(pList->detectors[detj].ErL))/1980);
             else
-                ErkeV[i] = 0.95*pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/980;
+                ErkeV[i] = 0.95*pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/1980;
         
         rate[i] = rateFunc( (double)ErkeV[i], pList, detj);	
     }
     //create gsl interpolation object
-    gsl_spline_init(rateSpline,ErkeV,rate,1000);
+    gsl_spline_init(rateSpline,ErkeV,rate,2000);
 }
 
 

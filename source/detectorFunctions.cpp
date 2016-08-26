@@ -123,6 +123,12 @@ int newDetector(paramList *pList, char *name, double exp)
 		    if(strcmp(temp,"res")==0) 
 			    err=fscanf(detsINI,"%d",&(pList->detectors[pList->ndet].res));
 	    }
+	    
+        if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 1)
+        {
+            std::cout << "decreasing ROI to increase SNR\n";
+            pList->detectors[pList->ndet].ErU = 1;
+        }
 
 	    ret = fgets(temp,200,detsINI);
 	    ret = fgets(temp,200,detsINI);

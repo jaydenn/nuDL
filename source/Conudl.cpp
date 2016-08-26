@@ -58,7 +58,6 @@ int main(int argc, char *argv[])
     } 
     
 	//pList.printPars();
-	
     
 	if ( mode < 1 ) 
     {
@@ -66,7 +65,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 	
-	//print rate mode
+	//print-out rate mode
 	if(mode == 1)
     {
         err = calcRates(&pList);
@@ -94,11 +93,15 @@ int main(int argc, char *argv[])
         return 0;
     }
     
-    if ( mode > 4 ) 
+    //print-out total rate above threshold mode
+	if(mode == 5)
     {
-        std::cout << "Choose a valid mode" << std::endl;
+        err = calcRatesThreshold(&pList);
         return 0;
-    }
+    }  
     
+    
+    std::cout << "Choose a valid mode" << std::endl;
     return 0;
+
 }

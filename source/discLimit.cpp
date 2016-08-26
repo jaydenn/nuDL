@@ -101,9 +101,9 @@ double findMaxLS(paramList *pL)
         status = gsl_multimin_fminimizer_iterate (s);       
         //std::cout << "       " <<iter << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 2000 && gsl_multimin_fminimizer_size(s)/s->fval > .005);
+    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > .001);
     
-   if(iter==2000)
+   if(iter==1000)
         std::cout << "LS non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval << " > .005  " << std::endl;
     
     double LS =  s->fval;
@@ -155,8 +155,8 @@ double findMaxL0(paramList *pL)
         status = gsl_multimin_fminimizer_iterate (s);
         //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 2000 && gsl_multimin_fminimizer_size(s)/s->fval > 0.005 && !status);
-    if(iter==2000)
+    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 0.001 && !status);
+    if(iter==1000)
         std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > .005  " <<  std::endl;
     
     double L0 = s->fval;
@@ -235,7 +235,7 @@ double findCoeff3sig(paramList *pL)
         iter++;
         //std::cout <<  pL->detectors[0].exposure << "  " << iter << " " << gsl_vector_get(s->x,0) << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
     }
-    while (iter < 2000 && s->fval > .0015 && !status); //under 1% error in 4.28 sigma value
+    while (iter < 200 && s->fval > .0015 && !status); //under 1% error in 4.28 sigma value
         
     double mu = gsl_vector_get(s->x, 0);
     
@@ -243,10 +243,10 @@ double findCoeff3sig(paramList *pL)
     gsl_vector_free (x);
     gsl_vector_free (dx);
 
-    if(iter==2000)
+    if(iter==200)
     {
-        std::cout << "non-convergence f = " << s->fval << " > .0015" << std::endl;
-        return NAN;
+        std::cout << "WARNING: non-convergence f = " << s->fval << " > .0015" << std::endl;
+        return mu;
     }
     else
         return mu;
