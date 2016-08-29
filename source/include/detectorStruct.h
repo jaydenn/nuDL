@@ -66,15 +66,15 @@ struct detector {
         
         ionization = new double [100]();
 
-        background = gsl_spline_alloc(gsl_interp_linear,2000);
+        background = gsl_spline_alloc(gsl_interp_linear,5000);
         accelBg = gsl_interp_accel_alloc();
         for(int i=0; i<10; i++)
         {
-            signalSM[i] = gsl_spline_alloc(gsl_interp_linear,2000);
+            signalSM[i] = gsl_spline_alloc(gsl_interp_linear,5000);
             accelSM[i] = gsl_interp_accel_alloc();
-            signalBSM1[i] = gsl_spline_alloc(gsl_interp_linear,2000);
+            signalBSM1[i] = gsl_spline_alloc(gsl_interp_linear,5000);
             accelBSM1[i] = gsl_interp_accel_alloc();
-            signalBSM2[i] = gsl_spline_alloc(gsl_interp_linear,2000);
+            signalBSM2[i] = gsl_spline_alloc(gsl_interp_linear,5000);
             accelBSM2[i] = gsl_interp_accel_alloc();
         }
     }

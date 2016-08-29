@@ -156,30 +156,29 @@ double EnuIntegrand2(double EnuGeV, void *pars)
 
 double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow)
 {
-	int key = 2;
-	int limit = 2000;
+	int limit = 3000;
 	double integral,absErr,tol;
 	
 	if(FIRSTEVALCNS==0)
 	{
-		W = gsl_integration_workspace_alloc (2000);
+		W = gsl_integration_workspace_alloc (3000);
 		FIRSTEVALCNS=1;
 	}
 	
 	if(EnuPow==0)
 	{
 		pList->F.function = &EnuIntegrand0;
-		tol=1e-22;
+		tol=1e-23;
 	}
 	else if(EnuPow==-1)
 	{
 		pList->F.function = &EnuIntegrand1;
-		tol=1e-20;
+		tol=1e-21;
 	}
 	else if(EnuPow==-2)
 	{
 		pList->F.function = &EnuIntegrand2;
-		tol=1e-18;
+		tol=1e-19;
 	}
 			 
 	pList->F.params = pList; //yeah, that's not weird..
@@ -190,6 +189,7 @@ double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow)
     for(int i=0; i<pList->source.numFlux; i++)
     {
         pList->fluxj = i;
+        
         if(pList->source.isLine[i]==1)
         {
             if(EnuMinGeV < pList->source.lineE[i] )
@@ -199,7 +199,7 @@ double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow)
         }
         else
 	        gsl_integration_qag(&(pList->F), EnuMinGeV, pList->source.EnuMax[i], tol, 1e-3, limit, 2, W, &integral, &absErr); 
-        
+
 	    total+=pList->source.nuFluxNorm[i]*integral;
 	}
 	
