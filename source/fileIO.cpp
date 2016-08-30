@@ -175,6 +175,10 @@ int readConfigFile(paramList *pL, char *filename)
     ret = fgets(temp,200,input);
     sscanf(temp,"%lf",&(pL->mMed));
     
+    //log or linear spaced bins?
+    ret = fgets(temp,200,input);
+    sscanf(temp,"%d",&(pL->logBins));
+    
     //initialize source
     ret = fgets(temp,200,input);
     ret = fgets(temp,200,input);
@@ -203,11 +207,6 @@ int readConfigFile(paramList *pL, char *filename)
     ret = fgets(temp,200,input);
     ret = fgets(temp,200,input);
     sscanf(temp,"%d",&(pL->asimov));
-    
-    //log or linear spaced bins?
-    ret = fgets(temp,200,input);
-    ret = fgets(temp,200,input);
-    sscanf(temp,"%d",&(pL->logBins));
     
     fclose(input); 
 

@@ -75,6 +75,7 @@ struct paramList {
     	std::cout << "  root: " << root << std::endl;
     	std::cout << "  BSM: " << BSM << std::endl;
     	std::cout << "  asimov: " << asimov << std::endl;
+    	std::cout << "  logBins: " << logBins << std::endl;
     	//std::cout << "  flux: " << nuFlux << " +/- " << nuFluxUn*100 << "%" << std::endl;
 		std::cout << ndet << " detectors:" << std::endl;
 		for(int i=0;i<ndet;i++)

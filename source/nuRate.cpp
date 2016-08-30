@@ -41,13 +41,15 @@ void rateInit( paramList *pList, int detj, double (*rateFunc)(double, paramList 
 {
     double ErkeV[5000];
     double rate[5000];
+
     for(int i=0; i<5000; i++)
     {
         //always over and undershoot range so that interpolation is well behaved
         if(pList->logBins == 1)
-                ErkeV[i] = pow(10, log10(0.95*pList->detectors[detj].ErL) + (double)i*(log10(pList->detectors[detj].ErU)-log10(pList->detectors[detj].ErL))/4800);
-            else
-                ErkeV[i] = 0.95*pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/4800;
+            ErkeV[i] = pow(10, log10(0.95*pList->detectors[detj].ErL) + (double)i*(log10(pList->detectors[detj].ErU)-log10(pList->detectors[detj].ErL))/4800);
+        else
+            ErkeV[i] = 0.95*pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/4800;
+            
         rate[i] = rateFunc( (double)ErkeV[i], pList, detj);	
     }
     //create gsl interpolation object

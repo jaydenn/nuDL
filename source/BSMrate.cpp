@@ -51,8 +51,8 @@ double BSMrateE(double ErKeV, paramList *pList, double Mt)
         //scalar
         case 1:
         {
-            return convFactor * pow(gEs*gNuS,2) / ( 4 * M_PI ) * pow(ME,2)
-                * intInvEnuSq * ErGeV / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2);
+            return convFactor * pow(gEs*gNuS,2) * ErGeV * pow(ME,2) / ( 4*M_PI )              
+                * intInvEnuSq / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2);
         }
         //pseudoscalar
         case 2:

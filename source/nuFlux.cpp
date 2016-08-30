@@ -144,7 +144,7 @@ double EnuIntegrand0(double EnuGeV, void *pars)
 double EnuIntegrand1(double EnuGeV, void *pars)
 {
 	paramList *pList = (paramList*)pars;
-	return nuFlux(EnuGeV, pList, pList->fluxj) /	EnuGeV ;
+	return nuFlux(EnuGeV, pList, pList->fluxj) / EnuGeV ;
 }
 
 //units 1/GeV/s
@@ -183,7 +183,7 @@ double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow)
 			 
 	pList->F.params = pList; //yeah, that's not weird..
 	
-	double EnuMinGeV = sqrt( ErGeV * Mt / 2);
+	double EnuMinGeV = 0.5 * (ErGeV + sqrt( pow(ErGeV,2) + 2*ErGeV*Mt ) );
     double total = 0;
     
     for(int i=0; i<pList->source.numFlux; i++)

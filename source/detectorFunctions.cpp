@@ -74,9 +74,9 @@ int newDetector(paramList *pList, char *name, double exp)
 			std::cout << "already at max number of detectors (10)" << std::endl;
 			return 1;
 		}
-			
+
 		pList->detectors[pList->ndet].exposure = exp;
-		
+
 		//read in detector configuration
 	    FILE *detsINI;
 	    detsINI = fopen("detectors.ini","r");
@@ -89,9 +89,9 @@ int newDetector(paramList *pList, char *name, double exp)
 	    char temp[200];
 	    char *ret;
 	    int err;
-	
+
 	    ret = fgets(temp,200,detsINI);
-	
+
 	    while(strcmp(temp,name)!=0)
 	    {
 		    err = fscanf(detsINI,"%s",temp);
@@ -109,7 +109,7 @@ int newDetector(paramList *pList, char *name, double exp)
 	    while(temp[0]!='-')
 	    {
 		    err = fscanf(detsINI,"%s",temp);
-					     
+ 
 		    if(strcmp(temp,"AM")==0)  
 			    err=fscanf(detsINI,"%lf",&(pList->detectors[pList->ndet].AM)); 
 		    if(strcmp(temp,"Er")==0)  
@@ -123,12 +123,12 @@ int newDetector(paramList *pList, char *name, double exp)
 		    if(strcmp(temp,"res")==0) 
 			    err=fscanf(detsINI,"%d",&(pList->detectors[pList->ndet].res));
 	    }
-	    
-        if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 1)
+
+        /*if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 1)
         {
             std::cout << "decreasing ROI to increase SNR\n";
             pList->detectors[pList->ndet].ErU = 1;
-        }
+        }*/
 
 	    ret = fgets(temp,200,detsINI);
 	    ret = fgets(temp,200,detsINI);
