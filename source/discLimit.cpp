@@ -139,11 +139,13 @@ double findMaxL0(paramList *pL)
     
     x = gsl_vector_alloc (my_func.n);
     dx = gsl_vector_alloc (my_func.n);
+    
     for(int i=0; i < my_func.n; i++)
     {
         gsl_vector_set (x, i, 1.0);
         gsl_vector_set(dx, i, .05);
     }
+    
     T = gsl_multimin_fminimizer_nmsimplex2;
     s = gsl_multimin_fminimizer_alloc (T, my_func.n);
 
@@ -385,21 +387,18 @@ void discLimitVsMmed(paramList *pL, int detj)
             mu = 1e-6;
             goto starting_guess_loop;
         }
-        
-        for(int i=0; i < pL->source.numFlux; i++)
-            pL->source.nuFluxNorm[i] = 1;
-        
+               
         pL->mMed*=1.2; //increment mass
         
         //reinitialize BSM rates
-        for(int i=0; i< pL->source.numFlux; i++)
+        for(int fluxj=0; fluxj< pL->source.numFlux; fluxj++)
         {
             pL->SMinterference1=1;  pL->SMinterference2=0;
-            rateInit( pL, detj, &BSMrate,  pL->detectors[detj].signalBSM1[i]);
+            rateInit( pL, detj, fluxj, &BSMrate, pL->detectors[detj].signalBSM1[fluxj]);
 	        if(pL->BSM==3 || pL->BSM==4)
 	        {
 	                pL->SMinterference2=1; pL->SMinterference1=0;
-	                rateInit( pL, detj, &BSMrate,  pL->detectors[detj].signalBSM2[i]);
+	                rateInit( pL, detj, fluxj, &BSMrate, pL->detectors[detj].signalBSM2[fluxj]);
 	        }
 	        pL->SMinterference1=pL->SMinterference2=1;
         }

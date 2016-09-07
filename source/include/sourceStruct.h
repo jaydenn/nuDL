@@ -10,11 +10,14 @@ struct sourceStruct {
     
     int isLine[10];
     double lineE[10];
+    int isSolar[10];
+    double survProb[10];
+    double survProbUn[10];
     
     double nuFlux[10];
     double nuFluxUn[10];
     double nuFluxNorm[10];
-        
+    
     double *flux_E[10];
     double *flux_N[10];
     int flux_points[10];
@@ -30,6 +33,9 @@ struct sourceStruct {
 	        nuFlux[i]=0;
 	        nuFluxUn[i]=1e-99;
 	        nuFluxNorm[i]=0;
+	        isSolar[i]=0;
+	        survProb[i]=1;
+	        survProbUn[i]=1e-99;
 	    }
         numFlux=0;
 	}
