@@ -2,7 +2,7 @@
     #include "parameterStruct.h"
 #endif
 
-double SMrate(double ErKeV, paramList *pList, int detj);
+double SMrate(double ErKeV, paramList *pList, int detj, int fluxj);
 
 //rates computed with interpolation
 double intSMrate(double Er_min, double Er_max, paramList *pList, int detj);

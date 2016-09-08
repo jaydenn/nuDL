@@ -19,14 +19,14 @@ const double MN = 0.9383; //mass of nucleon in GeV
 const double ME = 0.000510998; //mass of electron in GeV
 
 //returns nu scattering rate per target/day/keV
-double nuRate(double ErKeV, paramList *pList, double Mt)						  
+double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj)						  
 {
 
 	double ErGeV = ErKeV/GeVtoKeV;
 
-    double intConst	   = fluxIntegral( ErGeV, pList, Mt, 0);
-	double intInvEnu   = fluxIntegral( ErGeV, pList, Mt, -1);
-	double intInvEnuSq = fluxIntegral( ErGeV, pList, Mt, -2);
+    double intConst    = fluxIntegral( ErGeV, pList, Mt,  0, fluxj);
+	double intInvEnu   = fluxIntegral( ErGeV, pList, Mt, -1, fluxj);
+	double intInvEnuSq = fluxIntegral( ErGeV, pList, Mt, -2, fluxj);
     
     return pow(GFERMI,2) / ( 2 * M_PI ) * Mt / GeVtoKeV * secsPerDay
 	        * ( 
@@ -37,7 +37,7 @@ double nuRate(double ErKeV, paramList *pList, double Mt)
     
 }
 
-void rateInit( paramList *pList, int detj, double (*rateFunc)(double, paramList *, int), gsl_spline *rateSpline)	
+void rateInit( paramList *pList, int detj, int fluxj, double (*rateFunc)(double, paramList *, int, int), gsl_spline *rateSpline)
 {
     double ErkeV[5000];
     double rate[5000];
@@ -50,7 +50,7 @@ void rateInit( paramList *pList, int detj, double (*rateFunc)(double, paramList 
         else
             ErkeV[i] = 0.95*pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/4800;
             
-        rate[i] = rateFunc( (double)ErkeV[i], pList, detj);	
+        rate[i] = rateFunc( (double)ErkeV[i], pList, detj, fluxj);	
     }
     //create gsl interpolation object
     gsl_spline_init(rateSpline,ErkeV,rate,5000);

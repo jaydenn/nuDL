@@ -316,14 +316,14 @@ void exclusionLimit(paramList *pL, int detj)
         pL->mMed*=1.2; //increment mass
         
         //reinitialize BSM rates
-        for(int i=0; i< pL->source.numFlux; i++)
+        for(int fluxj=0; fluxj< pL->source.numFlux; fluxj++)
         {
             pL->SMinterference1=1;  pL->SMinterference2=0;
-            rateInit( pL, detj, &BSMrate,  pL->detectors[detj].signalBSM1[i]);
+            rateInit( pL, detj, fluxj, &BSMrate,  pL->detectors[detj].signalBSM1[fluxj]);
 	        if(pL->BSM==3 || pL->BSM==4)
 	        {
 	                pL->SMinterference2=1; pL->SMinterference1=0;
-	                rateInit( pL, detj, &BSMrate,  pL->detectors[detj].signalBSM2[i]);
+	                rateInit( pL, detj, fluxj, &BSMrate,  pL->detectors[detj].signalBSM2[fluxj]);
 	        }
 	        pL->SMinterference1=pL->SMinterference2=1;
         }    

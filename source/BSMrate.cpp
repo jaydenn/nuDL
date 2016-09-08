@@ -21,7 +21,7 @@ const double MN = 0.9383; //mass of nucleon in GeV
 const double ME = 0.000510998; //mass of electron in GeV
 const double SSW = 0.2387; //sin^2(theta_w)
 //returns simplified model light mediator rate per electron/day/keV
-double BSMrateE(double ErKeV, paramList *pList, double Mt)						  
+double BSMrateE(double ErKeV, paramList *pList, double Mt, int fluxj)						  
 {
 
 	double ErGeV = ErKeV/GeVtoKeV;
@@ -43,8 +43,8 @@ double BSMrateE(double ErKeV, paramList *pList, double Mt)
     
     double intConst, intInvEnuSq;
         
-    intConst	= fluxIntegral( ErGeV, pList, ME, 0);  //units GeV^2/s
-    intInvEnuSq = fluxIntegral( ErGeV, pList, ME, -2); //units 1/s
+    intConst	= fluxIntegral( ErGeV, pList, ME,  0, fluxj);  //units GeV^2/s
+    intInvEnuSq = fluxIntegral( ErGeV, pList, ME, -2, fluxj); //units 1/s
 
     switch( pList->BSM )
     {
@@ -84,7 +84,7 @@ double BSMrateE(double ErKeV, paramList *pList, double Mt)
 }
 
 //returns simplified model light mediator rate per nuclei/day/keV
-double BSMrateN(double ErKeV, paramList *pList, double Mt)						  
+double BSMrateN(double ErKeV, paramList *pList, double Mt, int fluxj)						  
 {
 
 	double ErGeV = ErKeV/GeVtoKeV;
@@ -103,9 +103,9 @@ double BSMrateN(double ErKeV, paramList *pList, double Mt)
 
     double intConst, intInvEnu, intInvEnuSq;
     
-    intConst	= fluxIntegral( ErGeV, pList, Mt,  0); //units GeV^2/s
-    intInvEnu   = fluxIntegral( ErGeV, pList, Mt, -1); //units GeV/s
-    intInvEnuSq = fluxIntegral( ErGeV, pList, Mt, -2); //units 1/s
+    intConst	= fluxIntegral( ErGeV, pList, Mt,  0, fluxj); //units GeV^2/s
+    intInvEnu   = fluxIntegral( ErGeV, pList, Mt, -1, fluxj); //units GeV/s
+    intInvEnuSq = fluxIntegral( ErGeV, pList, Mt, -2, fluxj); //units 1/s
 
     switch( pList->BSM ) 
     {
@@ -149,7 +149,7 @@ double BSMrateN(double ErKeV, paramList *pList, double Mt)
 }
 
 //full rate for a detector in events/kg/day/keV
-double BSMrate(double ErKeV, paramList *pList, int detj)
+double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 {
 
     double rate = 0;
@@ -166,22 +166,38 @@ double BSMrate(double ErKeV, paramList *pList, int detj)
 		    pList->Qvp = ((pList->detectors[detj].isoA[i]-pList->detectors[detj].isoZ[i]) * pList->qNv + pList->detectors[detj].isoZ[i] * pList->qPv) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);
 		    pList->Qap = pList->detectors[detj].isoSN[i] * pList->qNa + pList->detectors[detj].isoSZ[i] * pList->qPa;
             
-		    rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateN( ErKeV, pList, MN*pList->detectors[detj].isoA[i]);
+		    rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateN( ErKeV, pList, MN*pList->detectors[detj].isoA[i], fluxj);
 	    }
 	    if(pList->elecScat)
 	    {
-            pList->qV = 0.5+2*0.2312;
-	        pList->qA = 0.5;
 	        int Ne=0;
 	        while(pList->detectors[detj].ionization[Ne] > ErKeV && Ne < pList->detectors[detj].isoZ[i]) 
 	            Ne++;
-	        rate += ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME);
+            if(pList->source.isSolar[fluxj] == 1)
+	        {
+		        pList->qA = 0.5;
+		        pList->qV = 2*SSW+0.5;
+		        rate += pList->source.survProb[fluxj] * ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME, fluxj);
+		        
+		        pList->qA = -0.5;
+		        pList->qV = 2*SSW-0.5;
+                rate += (1-pList->source.survProb[fluxj]) * ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME, fluxj);		     
+	        }
+		    else
+		    {
+		        pList->qA = -0.5;
+		        pList->qV = 0.5+2*0.2312;
+                rate += ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME, fluxj);
+		    }
+	        
+	        
 		}
 	}	
 
 	return rate;
 }   
 
+/*
 //template BSM rate
 double aBSMrate(double ErKeV, paramList *pList, int detj)
 {
@@ -250,6 +266,7 @@ double E6rate(double ErKeV, paramList *pList, int detj)
 	return rate; 
 	
 }
+*/
 
 double diffBSMrate(double ErkeV, paramList *pList, int detj, double signalNorm)						  
 {   

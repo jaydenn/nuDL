@@ -66,10 +66,21 @@ int nuFluxInit(paramList *pL, std::string sourceName)
                 std::cout << " error parsing source data\n";
                 return -1;
             }
-
+            
             pL->source.nuFluxUn[fluxj] /= pL->source.nuFlux[fluxj];  //want fractional uncertainty
             pL->source.nuFlux[fluxj] /= pow(pL->source.distance,2);   
             pL->source.nuFlux[fluxj] *= pow(HBARC,2);           //convert units from /cm^2
+            
+            if( !( lineStream >> pL->source.survProb[fluxj] >> plusMinus >> pL->source.survProbUn[fluxj] ) )
+            {
+                pL->source.survProb[fluxj]=1;
+                pL->source.isSolar[fluxj]=0;
+            }
+            else
+            {
+                pL->source.isSolar[fluxj]=1;
+                pL->source.nuFluxUn[fluxj] = sqrt( pow(pL->source.nuFluxUn[fluxj],2) + pow(pL->source.survProbUn[fluxj]/pL->source.survProb[fluxj],2) );
+            }   
             
             fluxFile.insert (0,  "source/fluxes/");
             std::cout<< "reading " << fluxFile << std::endl;
@@ -154,7 +165,7 @@ double EnuIntegrand2(double EnuGeV, void *pars)
 	return nuFlux(EnuGeV, pList, pList->fluxj) / ( EnuGeV*EnuGeV ) ;
 }
 
-double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow)
+double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow, int fluxj)
 {
 	int limit = 3000;
 	double integral,absErr,tol;
@@ -184,25 +195,20 @@ double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow)
 	pList->F.params = pList; //yeah, that's not weird..
 	
 	double EnuMinGeV = 0.5 * (ErGeV + sqrt( pow(ErGeV,2) + 2*ErGeV*Mt ) );
-    double total = 0;
     
-    for(int i=0; i<pList->source.numFlux; i++)
-    {
-        pList->fluxj = i;
+    pList->fluxj = fluxj;
         
-        if(pList->source.isLine[i]==1)
-        {
-            if(EnuMinGeV < pList->source.lineE[i] )
-                integral = pList->source.nuFlux[i] * pow( pList->source.lineE[i], EnuPow);
-            else
-                integral = 1e-199;
-        }
+    if(pList->source.isLine[fluxj]==1)
+    {
+        if(EnuMinGeV < pList->source.lineE[fluxj] )
+            integral = pList->source.nuFlux[fluxj] * pow( pList->source.lineE[fluxj], EnuPow);
         else
-	        gsl_integration_qag(&(pList->F), EnuMinGeV, pList->source.EnuMax[i], tol, 1e-3, limit, 2, W, &integral, &absErr); 
+            integral = 1e-199;
+    }
+    else
+        gsl_integration_qag(&(pList->F), EnuMinGeV, pList->source.EnuMax[fluxj], tol, 1e-3, limit, 2, W, &integral, &absErr); 
 
-	    total+=pList->source.nuFluxNorm[i]*integral;
-	}
-	
-	return total;	
+	return pList->source.nuFluxNorm[fluxj]*integral;
+		
 }
 
