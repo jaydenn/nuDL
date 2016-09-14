@@ -127,7 +127,10 @@ int newDetector(paramList *pList, char *name, double exp)
         if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 1)
         {
             std::cout << "decreasing ROI to increase SNR\n";
-            pList->detectors[pList->ndet].ErU = 2;
+            if ( pList->source.isSolar[0] == 1 )
+                pList->detectors[pList->ndet].ErU = 5;
+            else
+                pList->detectors[pList->ndet].ErU = 1;
         }
 
 	    ret = fgets(temp,200,detsINI);

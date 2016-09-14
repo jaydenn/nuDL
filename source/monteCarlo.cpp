@@ -44,8 +44,8 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
     else
         pList->detectors[detj].nbins = 1;
         
-    if (pList->detectors[detj].nbins > 80)
-        pList->detectors[detj].nbins = 80;
+    if (pList->detectors[detj].nbins > pList->maxBins)
+        pList->detectors[detj].nbins = pList->maxBins;
     
     try
     {
@@ -70,15 +70,16 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
             
         Er_max = Er_min + pList->detectors[detj].binW[i];
         
-        BSM = intBSMrate( Er_min, Er_max, pList, detj, pList->signalNorm);
         SM  = intSMrate( Er_min, Er_max, pList, detj); 
         BG  = pList->detectors[detj].BgNorm * b * intBgRate(pList->detectors[detj], Er_min, Er_max) ;
-        
+        BSM = intBSMrate( Er_min, Er_max, pList, detj, pList->signalNorm);
+     
         if( pList->asimov == 1) 
-            pList->detectors[detj].binnedData[i] = pList->detectors[detj].exposure *( SM + BSM + BG );
+            pList->detectors[detj].binnedData[i] = pList->detectors[detj].exposure * ( SM + BSM + BG );
         else
             pList->detectors[detj].binnedData[i] = gsl_ran_poisson(r, pList->detectors[detj].exposure *( SM + BSM + BG ));                       
-        
+     
+        //std::cout << " MC" << i << " " << Er_min << ": bg " << BG <<  " sm " << SM << " bsm " << BSM << " obs " << pList->detectors[detj].binnedData[i]<< std::endl;           
         pList->detectors[detj].nEvents += pList->detectors[detj].binnedData[i];
         
         Er_min = Er_max; //update lower bin limit

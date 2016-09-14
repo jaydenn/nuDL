@@ -98,10 +98,10 @@ double findMaxLS(paramList *pL)
     do
     {
         iter++;
-        status = gsl_multimin_fminimizer_iterate (s);       
+        status = gsl_multimin_fminimizer_iterate (s);
         //std::cout << "       " <<iter << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > .004);
+    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > .0001);
     
    if(iter==1000)
         std::cout << "LS non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval << " > .0005  " << std::endl;
@@ -157,7 +157,7 @@ double findMaxL0(paramList *pL)
         status = gsl_multimin_fminimizer_iterate (s);
         //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 0.004 && !status);
+    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 0.0001 && !status);
     if(iter==1000)
         std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > .005  " <<  std::endl;
     
@@ -235,9 +235,9 @@ double findCoeff3sig(paramList *pL)
     {
         status = gsl_multimin_fminimizer_iterate (s);
         iter++;
-        //std::cout <<  pL->detectors[0].exposure << "  " << iter << " " << gsl_vector_get(s->x,0) << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
+        //std::cout << iter << " " << gsl_vector_get(s->x,0) << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
     }
-    while (iter < 200 && s->fval > .0015 && !status); //under 1% error in 4.28 sigma value
+    while (iter < 100 && s->fval > .0015 && !status); //under 1% error in 4.28 sigma value
         
     double mu = gsl_vector_get(s->x, 0);
     
@@ -245,7 +245,7 @@ double findCoeff3sig(paramList *pL)
     gsl_vector_free (x);
     gsl_vector_free (dx);
 
-    if(iter==200)
+    if(iter==100)
     {
         std::cout << "WARNING: non-convergence f = " << s->fval << " > .0015" << std::endl;
         return mu;
@@ -278,7 +278,7 @@ void discLimitEvolution(paramList *pL, int detj)
         double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
         double mu;
    
-    while(fabs(BSM) < SM/10 )
+    while(fabs(BSM) < (SM+BG)/10 )
     {
         pL->signalNorm*=1.05;
         BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, pL->signalNorm);
@@ -342,13 +342,13 @@ void discLimitVsMmed(paramList *pL, int detj)
     outfile.open(filename,std::ios::out);
     
     //determine first guess for mu, need a mu that gives BSM ~ SM
-    double mu = pL->signalNorm = 1e-4;
+    double mu = pL->signalNorm = 1e-5;
     double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
     double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
     double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
     
     starting_guess_loop:
-        while(fabs(BSM) < SM/10 )
+        while(fabs(BSM) < (SM+BG)/100 )
         {
             mu*=1.02;
             BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);

@@ -6,6 +6,7 @@
     #include <gsl/gsl_spline.h>
 #endif
 #define DETECTORSTRUCT_H
+#define MAXBINS 50
 
 struct detector {
     char name[20];
@@ -27,7 +28,7 @@ struct detector {
     
     double *binnedData;     //array of i bins with binnedData[i] number of events per bin
     int nbins;
-    double binW[80];
+    double binW[MAXBINS];
     double *unbinnedData;   //array of i events which occured at energy unbinnedData[i]
     double nEvents;
     

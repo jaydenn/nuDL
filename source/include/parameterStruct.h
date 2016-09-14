@@ -65,6 +65,7 @@ struct paramList {
     double maxL; 
     int asimov;
     int logBins;
+    int maxBins;
     
 	int ndet, detj, fluxj;
 	detector detectors[10];
@@ -110,6 +111,7 @@ struct paramList {
         elecScat=0;
         nucScat=0;
         mediator=0;
+        maxBins = MAXBINS;
 	}
 	
 };
