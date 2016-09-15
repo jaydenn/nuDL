@@ -35,7 +35,7 @@ double my_LS(const gsl_vector *v, void *params)
         l += 0.5/pow(pL->source.nuFluxUn[i],2) * pow(pL->source.nuFluxNorm[i] - 1,2);
     }
     l -= logLikelihood(pL);
-    std::cout << " like "  << l << " " << pL->signalNorm << " " << pL->source.nuFluxNorm[0]  << "\n";
+    //std::cout << " like "  << l << " " << pL->signalNorm << " " << pL->source.nuFluxNorm[0]  << "\n";
     return l;
 
 }
@@ -99,7 +99,7 @@ double findMaxLS(paramList *pL)
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);
         
-        std::cout << "       " <<iter << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << gsl_vector_get (s->x, 2) << " L " << s->fval << std::endl; 
+        //std::cout << "       " <<iter << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << gsl_vector_get (s->x, 2) << " L " << s->fval << std::endl; 
     }
     while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > .0001);
     
@@ -155,7 +155,7 @@ double findMaxL0(paramList *pL)
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);
-        std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
+        //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
     while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 0.0001 && !status);
     if(iter==1000)
