@@ -56,7 +56,7 @@ double logLikelihood(paramList *pList)
         
     }
     
-    if( isinf(loglike) )
+    if( std::isinf(loglike) )
         return -1e200;
     else
         return loglike;

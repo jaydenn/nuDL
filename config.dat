@@ -3,13 +3,13 @@
 ./results/CN_      // root of output file names, can include directories
 0                  // do nuclear scattering? 1=yes, 0=no
 1                  // do electron scattering? 1=yes, 0=no
-3                  // which BSM to consider? (0=SM, 1=scalar, 2=pseudoscalar, 3=vector, 4=axialvector)
+4                  // which BSM to consider? (0=SM, 1=scalar, 2=pseudoscalar, 3=vector, 4=axialvector)
 5e-7              // initial coupling
-5e-7               // mediator mass in GeV
+5e-5               // mediator mass in GeV
 0                  //Use log/linear spaced bins (1/0)
 // Source
-Sun   1 
+TAMU   1 
 // Detector  |  Exposure (kg*days) (or starting exposure in evolution mode)
-#GEopNoBG 20000 
+#GE 20000 
 //Asimov data set/random Monte-Carlo (1/0)
 1
