@@ -123,16 +123,33 @@ int newDetector(paramList *pList, char *name, double exp)
 		    if(strcmp(temp,"res")==0) 
 			    err=fscanf(detsINI,"%d",&(pList->detectors[pList->ndet].res));
 	    }
-
-        if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 1)
+        
+        //optimize ROI
+        if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 2)
         {
             std::cout << "decreasing ROI to increase SNR\n";
-            if ( pList->source.isSolar[0] == 1 )
-                pList->detectors[pList->ndet].ErU = 5;
-            else
-                pList->detectors[pList->ndet].ErU = 1;
+            pList->detectors[pList->ndet].ErU = 5;
         }
+       /* else if(pList->elecScat == 1 && pList->detectors[pList->ndet].ErU < 20)
+        {
+            std::cout << "increasing ROI to increase SNR\n";
 
+            if( pList->BSM == 1 || pList->BSM == 2)
+            {
+                if ( pList->source.isSolar[0] == 1 )
+                    pList->detectors[pList->ndet].ErU = 500;
+                else
+                    pList->detectors[pList->ndet].ErU = 400;
+            }
+            else
+            {
+                if ( pList->source.isSolar[0] == 1 )
+                    pList->detectors[pList->ndet].ErU = 500;
+                else
+                    pList->detectors[pList->ndet].ErU = 400;
+            }
+        }*/
+        
 	    ret = fgets(temp,200,detsINI);
 	    ret = fgets(temp,200,detsINI);
 	    ret = fgets(temp,200,detsINI);
