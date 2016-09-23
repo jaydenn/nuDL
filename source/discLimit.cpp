@@ -175,13 +175,10 @@ double findMaxL0(paramList *pL)
 //statistic for discovery
 double q0(paramList *pL)
 {	 
-    double mu = pL->signalNorm;
 
     double maxL0 = -findMaxL0( pL );
     double maxL  = -findMaxLS( pL ); //-ve because functions return -loglike for minimization
 
-    pL->signalNorm = mu;
-    
     if( pL->signalNorm >= 0 )
         return - 2 * ( maxL0 - maxL );  
     else
