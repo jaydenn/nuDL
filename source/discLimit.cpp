@@ -175,11 +175,14 @@ double findMaxL0(paramList *pL)
 //statistic for discovery
 double q0(paramList *pL)
 {	 
+    double mu = pL->signalNorm;
 
     double maxL0 = -findMaxL0( pL );
     double maxL  = -findMaxLS( pL ); //-ve because functions return -loglike for minimization
+
+    pL->signalNorm = mu;
     
-    if( pL->signalNorm > 0 )
+    if( pL->signalNorm >= 0 )
         return - 2 * ( maxL0 - maxL );  
     else
         return 0;
@@ -196,7 +199,7 @@ double my_q0(const gsl_vector *v, void *params)
         
     pL->detectors[pL->detj].BgNorm = 1;
     pL->signalNorm = gsl_vector_get(v, 0);
-    
+
     generateBinnedData( pL, pL->detj, 1, simSeed);
     
     return pow( sqrt(q0(pL)) - 4.28, 2);  //arbitrary function with a minima at 3 sigma 90% of the time
@@ -252,6 +255,89 @@ double findCoeff3sig(paramList *pL)
     }
     else
         return mu;
+}
+
+void discLimitVsMmed(paramList *pL, int detj)
+{
+
+    std::cout << "Starting disc. limit calculations..." << std::endl;
+    pL->detj = detj;
+        
+    char filename[100];
+    std::ofstream outfile;
+    
+    if(pL->elecScat)
+        sprintf(filename, "%sDLe_%s_%s_BSM%d.dat",pL->root,pL->detectors[0].name,pL->source.name,pL->BSM);
+    else
+        sprintf(filename, "%sDLn_%s_%s_BSM%d.dat",pL->root,pL->detectors[0].name,pL->source.name,pL->BSM);
+        
+    std::cout << "writing output to: " << filename << std::endl;    
+    outfile.open(filename,std::ios::out);
+    
+    //determine first guess for mu, need a mu that gives BSM ~ SM
+    double mu = pL->signalNorm = 1e-5;
+    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
+    double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
+    double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
+    
+    starting_guess_loop:
+        while(fabs(BSM) < (SM+BG)/100 )
+        {
+            mu*=1.02;
+            BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
+            //std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
+        }
+        pL->signalNorm = mu;
+        
+    double coup;
+    if(pL->BSM==3 || pL->BSM==4)
+        coup=mu*pL->C;
+    else
+        coup=sqrt(mu)*pL->C;
+
+    std::cout << "starting guess = " << coup << ", mu = " << coup/pL->C << std::endl;           
+    
+    while (pL->mMed < 1)
+    {
+
+        mu = findCoeff3sig(pL);
+
+        if (mu==mu) //check for NAN
+        {
+            if(pL->BSM==3 || pL->BSM==4)
+                coup=mu*pL->C;
+            else
+                coup=sqrt(mu)*pL->C;
+                
+            //print out result
+            std::cout << pL->mMed << "  " << coup << std::endl;
+            outfile   << pL->mMed << "  " << coup << std::endl;
+            
+            pL->signalNorm = mu;      //update guess
+        }
+        else
+        {
+            mu = 1e-6;
+            goto starting_guess_loop;
+        }
+               
+        pL->mMed*=1.2; //increment mass
+        
+        //reinitialize BSM rates for different mass
+        for(int fluxj=0; fluxj< pL->source.numFlux; fluxj++)
+        {
+            pL->SMinterference1=1;  pL->SMinterference2=0;
+            rateInit( pL, detj, fluxj, &BSMrate, pL->detectors[detj].signalBSM1[fluxj]);
+	        if(pL->BSM==3 || pL->BSM==4)
+	        {
+	                pL->SMinterference2=1; pL->SMinterference1=0;
+	                rateInit( pL, detj, fluxj, &BSMrate, pL->detectors[detj].signalBSM2[fluxj]);
+	        }
+	        pL->SMinterference1=pL->SMinterference2=1;
+        }
+    }
+    outfile.close();
+
 }
 
 void discLimitEvolution(paramList *pL, int detj)
@@ -323,88 +409,4 @@ void discLimitEvolution(paramList *pL, int detj)
     outfile.close();
 
 }
-
-void discLimitVsMmed(paramList *pL, int detj)
-{
-
-    std::cout << "Starting disc. limit calculations..." << std::endl;
-    pL->detj = detj;
-        
-    char filename[100];
-    std::ofstream outfile;
-    
-    if(pL->elecScat)
-        sprintf(filename, "%sDLe_%s_%s_BSM%d.dat",pL->root,pL->detectors[0].name,pL->source.name,pL->BSM);
-    else
-        sprintf(filename, "%sDLn_%s_%s_BSM%d.dat",pL->root,pL->detectors[0].name,pL->source.name,pL->BSM);
-        
-    std::cout << "writing output to: " << filename << std::endl;    
-    outfile.open(filename,std::ios::out);
-    
-    //determine first guess for mu, need a mu that gives BSM ~ SM
-    double mu = pL->signalNorm = 1e-5;
-    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
-    double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
-    double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
-    
-    starting_guess_loop:
-        while(fabs(BSM) < (SM+BG)/100 )
-        {
-            mu*=1.02;
-            BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
-            //std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
-        }
-        pL->signalNorm = mu;
-        
-    double coup;
-    if(pL->BSM==3 || pL->BSM==4)
-        coup=mu*pL->C;
-    else
-        coup=sqrt(mu)*pL->C;
-
-    std::cout << "starting guess = " << coup << ", mu = " << coup/pL->C << std::endl;           
-    
-    while (pL->mMed < 1)
-    {
-
-        mu = findCoeff3sig(pL);
-
-        if (mu==mu) //check for NAN
-        {
-            if(pL->BSM==3 || pL->BSM==4)
-                coup=mu*pL->C;
-            else
-                coup=sqrt(mu)*pL->C;
-                
-            //print out result
-            std::cout << pL->mMed << "  " << coup << std::endl;
-            outfile   << pL->mMed << "  " << coup << std::endl;
-            
-            pL->signalNorm = mu;      //update guess
-        }
-        else
-        {
-            mu = 1e-6;
-            goto starting_guess_loop;
-        }
-               
-        pL->mMed*=1.2; //increment mass
-        
-        //reinitialize BSM rates
-        for(int fluxj=0; fluxj< pL->source.numFlux; fluxj++)
-        {
-            pL->SMinterference1=1;  pL->SMinterference2=0;
-            rateInit( pL, detj, fluxj, &BSMrate, pL->detectors[detj].signalBSM1[fluxj]);
-	        if(pL->BSM==3 || pL->BSM==4)
-	        {
-	                pL->SMinterference2=1; pL->SMinterference1=0;
-	                rateInit( pL, detj, fluxj, &BSMrate, pL->detectors[detj].signalBSM2[fluxj]);
-	        }
-	        pL->SMinterference1=pL->SMinterference2=1;
-        }
-    }
-    outfile.close();
-
-}
-
 
