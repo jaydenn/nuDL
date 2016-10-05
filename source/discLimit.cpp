@@ -101,7 +101,7 @@ double findMaxLS(paramList *pL)
         
         //std::cout << "       " <<iter << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << gsl_vector_get (s->x, 2) << " L " << s->fval << std::endl; 
     }
-    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > .0001);
+    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > .00001);
     
    if(iter==1000)
         std::cout << "LS non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval << " > .0005  " << std::endl;
@@ -157,7 +157,7 @@ double findMaxL0(paramList *pL)
         status = gsl_multimin_fminimizer_iterate (s);
         //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 0.0001 && !status);
+    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 0.00001 && !status);
     if(iter==1000)
         std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > .005  " <<  std::endl;
     
@@ -301,16 +301,23 @@ void discLimitVsMmed(paramList *pL, int detj)
 
         if (mu==mu) //check for NAN
         {
-            if(pL->BSM==3 || pL->BSM==4)
-                coup=mu*pL->C;
-            else
-                coup=sqrt(mu)*pL->C;
+            if ( mu > 0 )
+            {
+                if(pL->BSM==3 || pL->BSM==4)
+                    coup=mu*pL->C;
+                else
+                    coup=sqrt(mu)*pL->C;
+                    
+                //print out result
+                std::cout << pL->mMed << "  " << coup << std::endl;
+                outfile   << pL->mMed << "  " << coup << std::endl;
                 
-            //print out result
-            std::cout << pL->mMed << "  " << coup << std::endl;
-            outfile   << pL->mMed << "  " << coup << std::endl;
-            
-            pL->signalNorm = mu;      //update guess
+                pL->signalNorm = mu;      //update guess
+            }
+            else
+            {
+                pL->signalNorm = -mu; 
+            }
         }
         else
         {
@@ -318,7 +325,7 @@ void discLimitVsMmed(paramList *pL, int detj)
             goto starting_guess_loop;
         }
                
-        pL->mMed*=1.2; //increment mass
+        pL->mMed*=1.1; //increment mass
         
         //reinitialize BSM rates for different mass
         for(int fluxj=0; fluxj< pL->source.numFlux; fluxj++)
@@ -406,4 +413,6 @@ void discLimitEvolution(paramList *pL, int detj)
     outfile.close();
 
 }
+
+
 
