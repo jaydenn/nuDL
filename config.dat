@@ -1,5 +1,5 @@
 //Conudl configuration options
-3                  // running mode: 1=rate calculation, 2=disc. limit evolution, 3=disc. limit vs. mass, 4=excl. limits, 5=total rate above thresh.
+6                  // running mode: 1=rate calculation, 2=disc. limit evolution, 3=disc. limit vs. mass, 4=excl. limits, 5=total rate above thresh.
 ./results/CN_      // root of output file names, can include directories
 1                  // do nuclear scattering? 1=yes, 0=no
 0                  // do electron scattering? 1=yes, 0=no
@@ -8,8 +8,8 @@
 1e-6               // mediator mass in GeV
 1                  //Use log/linear spaced bins (1/0)
 // Source
-Sun   1 
+TAMU   1 
 // Detector  |  Exposure (kg*days) (or starting exposure in evolution mode)
-#GEop 20000 
+#GE 1000 
 //Asimov data set/random Monte-Carlo (1/0)
 1

@@ -10,7 +10,7 @@
 #include "discLimit.h"
 #include "exclusionLimit.h"
 #include "calcRates.h"
-
+#include "confInterval.h"
 
 int main(int argc, char *argv[])
 {
@@ -100,6 +100,12 @@ int main(int argc, char *argv[])
         return 0;
     }  
     
+    //find confidence interval
+    if ( mode == 6 )
+    {
+        confIntervalSM(&pList);
+        return 0;
+    }
     
     std::cout << "Choose a valid mode" << std::endl;
     return 0;
