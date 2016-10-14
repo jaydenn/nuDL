@@ -1,0 +1,1 @@
+void confIntervalSM(paramList *pL);
