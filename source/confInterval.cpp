@@ -42,15 +42,16 @@ double L(const gsl_vector *v, void *params)
 double Lmu(const gsl_vector *v, void *params)
 {
 
- 
     paramList *pL = (paramList *)params;
     double l = 0;
-    
+
     pL->detectors[pL->detj].BgNorm  = gsl_vector_get(v, 0);
     l += 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2);
-    
+
+    std::cout <<  "\n 98t \n" ;
     for(int i=0; i < pL->source.numFlux; i++)
     {
+        std::cout <<  "\n y " << i;
         pL->source.nuFluxNorm[i] = fabs(gsl_vector_get(v, i+1));
         l += 0.5/pow(pL->source.nuFluxUn[i],2) * pow(pL->source.nuFluxNorm[i] - 1,2);
     }
@@ -146,7 +147,7 @@ double findMaxLMu(paramList *pL)
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);
-       std::cout << "       " << iter << "  c " << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " <<  gsl_vector_get (s->x, 2) << " " << s->fval << " " << gsl_multimin_fminimizer_size(s) << std::endl; 
+       //std::cout << "       " << iter << "  c " << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " <<  gsl_vector_get (s->x, 2) << " " << s->fval << " " << gsl_multimin_fminimizer_size(s) << std::endl; 
     }
     while (iter < 900 && gsl_multimin_fminimizer_size(s)>.0001);///s->fval > 1e-2 && !status);
     if(iter==900)

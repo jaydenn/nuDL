@@ -1,5 +1,5 @@
 CC = g++
-FLAGS = -Ofast
+FLAGS = -Ofast -g
 
 LIBS = -L/usr/local/lib -lgsl -lgslcblas -lstdc++ -lm
 INCLUDE = -I./source/include
