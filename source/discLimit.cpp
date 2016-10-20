@@ -177,6 +177,7 @@ double q0(paramList *pL)
 {	 
 
     double maxL0 = -findMaxL0( pL );
+    double maxL;
     //if using asimov just set parameters to MLE
     if(pL->asimov)
     {
