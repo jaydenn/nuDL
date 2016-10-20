@@ -69,6 +69,7 @@ struct detector {
 
         background = gsl_spline_alloc(gsl_interp_linear,5000);
         accelBg = gsl_interp_accel_alloc();
+        
         for(int i=0; i<10; i++)
         {
             signalSM[i] = gsl_spline_alloc(gsl_interp_linear,5000);

@@ -82,7 +82,7 @@ double intSMrate(double Er_min, double Er_max, paramList *pList, int detj)
 {   
     double rate = 0;
     for(int i=0; i< pList->source.numFlux; i++)
-        rate += gsl_spline_eval_integ(pList->detectors[detj].signalSM[i], Er_min, Er_max, pList->detectors[detj].accelSM[i]);
+        rate += pList->source.nuFluxNorm[i] * gsl_spline_eval_integ(pList->detectors[detj].signalSM[i], Er_min, Er_max, pList->detectors[detj].accelSM[i]);
     
     return rate;
 }

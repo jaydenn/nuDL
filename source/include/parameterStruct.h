@@ -103,14 +103,12 @@ struct paramList {
 	
 	paramList()
 	{
-	    Qv=Qa=Qs=Qvp=Qap=qNs=qPs=qNv=qPv=qNa=qPa=gNuS=gNuV=gEs=gEp=gEv=gEa=C=0;
-	    SMinterference1=SMinterference2=1;
-		ndet=0;
-        signalNorm=1;
-        asimov=1;
-        elecScat=0;
-        nucScat=0;
-        mediator=0;
+	    Qv=Qa=Qs=Qvp=Qap=qNs=qPs=qNv=qPv=qNa=qPa=gNuS=gNuV=gEs=gEp=gEv=gEa=0;
+	    C=Er=mMed=maxL=A=0;
+	    BSM=elecScat=nucScat=mediator=0;
+	    signalNorm=SMinterference1=SMinterference2=1;
+		ndet=detj=fluxj=0;
+        asimov=logBins=1;
         maxBins = MAXBINS;
 	}
 	

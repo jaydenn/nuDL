@@ -25,9 +25,10 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
     T=gsl_rng_default;
     r=gsl_rng_alloc(T);
     gsl_rng_set(r, simSeed + SEED++);
+    pList->detectors[detj].nEvents = 0;
     
     //total standard model, beyond SM and background rates
-    double SM, BSM, BG;
+    double total, SM, BSM, BG;
     if(pList->BSM)
         BSM = intBSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj, pList->signalNorm);
     else
@@ -35,12 +36,12 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
         
     SM = intSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj);
     BG = pList->detectors[detj].BgNorm * b * intBgRate(pList->detectors[detj], pList->detectors[detj].ErL, pList->detectors[detj].ErU) ;     
-
-    //std::cout << SM << " " << BG << " " << BSM << std::endl;
+    total = SM+BSM+BG;
+    //std::cout << "MC: " << SM << " " << BG << " " << BSM << std::endl;
 
     //setup bins ~somewhat arbitrary choice of number of bins.. seems to work for exponential data
-    if(SM + BSM + BG > 0)
-        pList->detectors[detj].nbins = floor( sqrt(  pList->detectors[detj].exposure * ( SM + BSM + BG ) ) ) + 1;
+    if(total > 0)
+        pList->detectors[detj].nbins = floor( sqrt(  pList->detectors[detj].exposure * total ) ) + 1;
     else
         pList->detectors[detj].nbins = 1;
         
@@ -84,8 +85,8 @@ int generateBinnedData(paramList *pList, int detj, int b, int simSeed)
         
         Er_min = Er_max; //update lower bin limit
     }
-   
-    return 0;
+
+    return total*pList->detectors[detj].exposure;
      
 }
 

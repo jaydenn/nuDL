@@ -69,6 +69,11 @@ int readConfigFile(paramList *pL, char *filename)
     
     switch(pL->BSM)
     {
+    
+        case 0:
+        {
+            break;
+        }
         case 1:
         {
             pL->gNuS=1;

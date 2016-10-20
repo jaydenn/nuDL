@@ -80,16 +80,14 @@ double logLikelihoodSM(paramList *pList)
         {
             //set bin limits
             Er_max = Er_min + pList->detectors[detj].binW[i];
-            
-            SM  = pList->signalNorm = intSMrate( Er_min, Er_max, pList, detj);
+            SM  = pList->signalNorm * intSMrate( Er_min, Er_max, pList, detj);
             BG  = pList->detectors[detj].BgNorm * intBgRate( pList->detectors[detj], Er_min, Er_max);
 
-            l = logPoisson( pList->detectors[detj].binnedData[i], pList->detectors[detj].exposure*(SM+BG)+1e-200);
+            l = logPoisson( pList->detectors[detj].binnedData[i], pList->detectors[detj].exposure*(SM+BG));
             loglike += l;
-            //std::cout << " " << i << ": bg " << BG <<  " sm " << SM << " bsm " << BSM << " obs " << pList->detectors[detj].binnedData[i] << " l " << l << " tot " << loglike << std::endl;
+            //std::cout << " " << i << ": bg " << BG <<  " sm " << SM << " obs " << pList->detectors[detj].binnedData[i] << " l " << l << " tot " << loglike << std::endl;
             Er_min = Er_max; //update lower bin limit
         } 
-        
     }
     
     if( std::isinf(loglike) )

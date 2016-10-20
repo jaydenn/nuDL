@@ -28,16 +28,20 @@ struct sourceStruct {
 	
 	sourceStruct()
 	{
+	    distance=1;
+	    numFlux=0;
+	    
 	    for(int i=0;i<10;i++)
 	    {
 	        nuFlux[i]=0;
 	        nuFluxUn[i]=1e-99;
 	        nuFluxNorm[i]=0;
 	        isSolar[i]=0;
+	        isLine[i]=0;
 	        survProb[i]=1;
 	        survProbUn[i]=1e-99;
+	        flux_points[i]=0;
 	    }
-        numFlux=0;
 	}
 	
 };

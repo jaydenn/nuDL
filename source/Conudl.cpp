@@ -103,7 +103,9 @@ int main(int argc, char *argv[])
     //find confidence interval
     if ( mode == 6 )
     {
-        confIntervalSM(&pList);
+        //MCtestConfInterval(&pList);
+        //confIntervalSM(&pList);
+        confIntVsExposure(&pList);
         return 0;
     }
     

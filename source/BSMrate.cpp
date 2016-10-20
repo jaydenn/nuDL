@@ -154,7 +154,8 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 
     double rate = 0;
     double targetsPerKG;
-   
+    if(pList->BSM==0)
+        return 0;
     for(int i=0;i<pList->detectors[detj].nIso;i++)
 	{   
         targetsPerKG = GeVperKG/(MN*pList->detectors[detj].isoA[i]); //how many targets per kg of detector

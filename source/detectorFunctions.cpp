@@ -207,6 +207,11 @@ int newDetector(paramList *pList, char *name, double exp)
 		        }
 		        pList->SMinterference1=pList->SMinterference2=1;
             }
+            else
+            {
+                pList->SMinterference1=0;  pList->SMinterference2=0;
+		        rateInit( pList, pList->ndet, fluxj, &BSMrate, pList->detectors[pList->ndet].signalBSM1[fluxj]);
+            }
             std::cout << ".";
         }
         
