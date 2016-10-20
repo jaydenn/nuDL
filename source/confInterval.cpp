@@ -214,6 +214,28 @@ double my_tMu(const gsl_vector *v, void *params)
     
 }
 
+double q0SM(paramList *pL)
+{
+    pL->signalNorm = 0;
+    double maxL0 = findMaxLMu( pL );
+    double maxL;
+    //if using asimov just set parameters to MLE
+    if(pL->asimov)
+    {
+        pL->signalNorm = 1;
+        pL->detectors[pL->detj].BgNorm = 1;
+        for(int fluxj=0; fluxj < pL->source.numFlux; fluxj++)
+            pL->source.nuFluxNorm[fluxj] = 1.0;
+        maxL = logLikelihoodSM(pL);
+    }
+    else
+        maxL = findMaxL( pL );
+        
+    if( pL->signalNorm >= 0 )
+        return - 2 * ( maxL0 - maxL );  
+    else
+        return 0;
+}
 
 double findtMu90(paramList *pL)
 {
@@ -358,10 +380,13 @@ void confIntVsExposure(paramList *pL)
         
     std::cout << "writing output to: " << filename << std::endl;    
     outfile.open(filename,std::ios::out);
-    
+    outfile   << "exposure   lower   upper    sigma\n";
+        
     double exp = pL->detectors[detj].exposure;
     pL->detectors[detj].exposure = 10 + 90*pL->source.isSolar[0];
     double increment = pow( exp/10, .05);
+    double sigma;
+    
     while (pL->detectors[detj].exposure <= exp*increment)
     {
         pL->signalNorm = 1.0;
@@ -370,10 +395,11 @@ void confIntVsExposure(paramList *pL)
             pL->source.nuFluxNorm[fluxj] = 1.0;
         
         CI = confIntervalSM(pL);    
+        sigma = sqrt(q0SM(pL));
         
         //print out result
-        std::cout << pL->detectors[detj].exposure << "  " << CI[0] << " - " << CI[1] << std::endl;
-        outfile   << pL->detectors[detj].exposure << "  " << CI[0] << " - " << CI[1] << std::endl;
+        std::cout << pL->detectors[detj].exposure << "  " << CI[0] << " - " << CI[1] << ", sigma = " << sigma << std::endl;
+        outfile   << pL->detectors[detj].exposure << "  " << CI[0] << "  " << CI[1] << "  " << sigma  << std::endl;
         
         pL->detectors[detj].exposure *= increment;
     }
@@ -381,4 +407,10 @@ void confIntVsExposure(paramList *pL)
 
     
 }
+
+double discoverySM()
+{
+    
+}
+
 

@@ -185,7 +185,7 @@ double q0(paramList *pL)
         pL->detectors[pL->detj].BgNorm = 1;
         for(int fluxj=0; fluxj < pL->source.numFlux; fluxj++)
             pL->source.nuFluxNorm[fluxj] = 1.0;
-        maxL = -logLikelihoodSM(pL);
+        maxL = -logLikelihood(pL);
     }
     else
         maxL = -findMaxLS( pL );
@@ -424,6 +424,5 @@ void discLimitEvolution(paramList *pL, int detj)
     outfile.close();
 
 }
-
 
 
