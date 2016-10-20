@@ -171,7 +171,18 @@ double tMu(paramList *pL)
 {	 
 
     double maxLmu = findMaxLMu( pL );
-    double maxL = findMaxL( pL );
+    double maxL;
+    //if using asimov just set parameters to MLE
+    if(pL->asimov)
+    {
+        pL->signalNorm = 1;
+        pL->detectors[pL->detj].BgNorm = 1;
+        for(int fluxj=0; fluxj < pL->source.numFlux; fluxj++)
+            pL->source.nuFluxNorm[fluxj] = 1.0;
+        maxL = logLikelihoodSM(pL);
+    }
+    else
+        maxL = findMaxL( pL );
     
     //use below for modified test statistic, p-val gets more complicated
     /*if( pL->signalNorm < 0)
@@ -279,7 +290,7 @@ double *confIntervalSM(paramList *pL)
         guess*=.95;
         pL->signalNorm = guess;
         pVal = pValue( tMu(pL) );
-        std::cout << guess << " - " << pVal << std::endl;
+        //std::cout << guess << " - " << pVal << std::endl;
     }
         
     pL->signalNorm = guess;      //update guess to find other solution

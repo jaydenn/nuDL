@@ -177,8 +177,18 @@ double q0(paramList *pL)
 {	 
 
     double maxL0 = -findMaxL0( pL );
-    double maxL  = -findMaxLS( pL ); //-ve because functions return -loglike for minimization
-
+    //if using asimov just set parameters to MLE
+    if(pL->asimov)
+    {
+        pL->signalNorm = 1;
+        pL->detectors[pL->detj].BgNorm = 1;
+        for(int fluxj=0; fluxj < pL->source.numFlux; fluxj++)
+            pL->source.nuFluxNorm[fluxj] = 1.0;
+        maxL = -logLikelihoodSM(pL);
+    }
+    else
+        maxL = -findMaxLS( pL );
+        
     if( pL->signalNorm >= 0 )
         return - 2 * ( maxL0 - maxL );  
     else
