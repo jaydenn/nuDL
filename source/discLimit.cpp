@@ -56,7 +56,6 @@ double my_L0(const gsl_vector *v, void *params)
     }
 
     l -= logLikelihood(pL);
-    
     return l;
 
 }
@@ -157,9 +156,9 @@ double findMaxL0(paramList *pL)
         status = gsl_multimin_fminimizer_iterate (s);
         //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 0.00001 && !status);
+    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 1e-5 && !status);
     if(iter==1000)
-        std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > .005  " <<  std::endl;
+        std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > 1e-5 " <<  std::endl;
     
     double L0 = s->fval;
     
@@ -181,7 +180,6 @@ double q0(paramList *pL)
     //if using asimov just set parameters to MLE
     if(pL->asimov==1)
     {
-        pL->signalNorm = 1;
         pL->detectors[pL->detj].BgNorm = 1;
         for(int fluxj=0; fluxj < pL->source.numFlux; fluxj++)
             pL->source.nuFluxNorm[fluxj] = 1.0;
@@ -189,7 +187,9 @@ double q0(paramList *pL)
     }
     else
         maxL = findMaxLS( pL );
-        
+    
+    if ( - 2 * ( maxL0 - maxL ) < 0 ) //this is to catch roundoff error, but it could hide bugs
+        return 0;// << " " << maxL0 << " " << maxL << std::endl;  
     if( pL->signalNorm >= 0 )
         return - 2 * ( maxL0 - maxL );  
     else
@@ -259,7 +259,7 @@ double findCoeff3sig(paramList *pL)
 
     if(iter==100)
     {
-        std::cout << "WARNING: non-convergence f = " << s->fval << " > .0015" << std::endl;
+        std::cout << "WARNING: non-convergence, sigma - 4.28 = " << s->fval << " > .04" << std::endl;
         return mu;
     }
     else
@@ -296,15 +296,24 @@ void discLimitVsMmed(paramList *pL, int detj)
             BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
             //std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
         }
-        pL->signalNorm = mu;
+    
+        double q = 30;
+        while(mu > 1e-3 && sqrt(q) > 5)
+        {
+            mu*=.95;
+            pL->signalNorm = mu;
+            generateBinnedData( pL, pL->detj, 1, 0);
+            q = q0( pL );
+            //std::cout << mu << " " << q << std::endl;
+        }
         
-    double coup;
-    if(pL->BSM==3 || pL->BSM==4)
-        coup=mu*pL->C;
-    else
-        coup=sqrt(mu)*pL->C;
+        double coup;
+        if(pL->BSM==3 || pL->BSM==4)
+            coup=mu*pL->C;
+        else
+            coup=sqrt(mu)*pL->C;
 
-    std::cout << "starting guess = " << coup << ", mu = " << coup/pL->C << std::endl;           
+        std::cout << "starting guess = " << coup << ", mu = " << coup/pL->C << std::endl;           
     
     while (pL->mMed < 1)
     {

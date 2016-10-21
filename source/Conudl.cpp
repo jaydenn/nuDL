@@ -11,10 +11,11 @@
 #include "exclusionLimit.h"
 #include "calcRates.h"
 #include "confInterval.h"
+double logPoisson(double obs, double expect);
 
 int main(int argc, char *argv[])
 {
-
+    
     //argument validation and file input
     char filename[100];
     int err=0;
@@ -45,13 +46,13 @@ int main(int argc, char *argv[])
             }
             else
             {
-                std::cout << "Invalid input" << std::endl << std::endl;
-                std::cout << "Usage: ./Conudl " << std::endl;
-                std::cout << "       default (no flags):" << std::endl; 
-                std::cout << "               (Conudl runs with the default \"config.dat\" parameter file)" << std::endl;
-                std::cout << "       optional flags: " << std::endl; 
-                std::cout << "               -i          (Conudl starts in interactive mode)" << std::endl;
-                std::cout << "               -c file.dat (Conudl runs with the specified parameter file)" << std::endl << std::endl;
+                std::cerr << "Conudl: Invalid input" << std::endl << std::endl;
+                std::cerr << "Usage: ./Conudl " << std::endl;
+                std::cerr << "       default (no flags):" << std::endl; 
+                std::cerr << "               (Conudl runs with the default \"config.dat\" parameter file)" << std::endl;
+                std::cerr << "       optional flags: " << std::endl; 
+                std::cerr << "               -i          (Conudl starts in interactive mode)" << std::endl;
+                std::cerr << "               -c file.dat (Conudl runs with the specified parameter file)" << std::endl << std::endl;
                 break;
             }
         }
@@ -61,7 +62,7 @@ int main(int argc, char *argv[])
     
 	if ( mode < 1 ) 
     {
-        std::cout << "Problem with configuration, aborting" << std::endl;
+        std::cerr << "Conudl: Problem with configuration, aborting" << std::endl;
         return 0;
     }
 	
@@ -109,7 +110,7 @@ int main(int argc, char *argv[])
         return 0;
     }
     
-    std::cout << "Choose a valid mode" << std::endl;
+    std::cerr << "Conudl: choose a valid mode" << std::endl;
     return 0;
 
 }

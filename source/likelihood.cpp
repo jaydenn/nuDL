@@ -15,12 +15,7 @@
 double logPoisson(double obs, double expect)
 {
     if ( expect > 0. && obs > 0. )
-    {
-        if(obs>200)
-            return -expect + (double) obs * log( expect ) - ( obs * log( obs ) - obs );  // Sterling's approx.
-        else           
-            return -expect + (double) obs * log( expect ) - gsl_sf_lngamma( obs+1 );     // or return gsl_ran_poisson_pdf (obs,expect); 
-     }
+        return -expect + (double) obs * log( expect ) - gsl_sf_lngamma( obs+1 );     // or return gsl_ran_poisson_pdf (obs,expect); 
     else
         return -1E299;
 }
@@ -50,12 +45,11 @@ double logLikelihood(paramList *pList)
 
             l = logPoisson( pList->detectors[detj].binnedData[i], pList->detectors[detj].exposure*(SM+BG+BSM)+1e-200);
             loglike += l;
-            //std::cout << " " << i << ": bg " << BG <<  " sm " << SM << " bsm " << BSM << " obs " << pList->detectors[detj].binnedData[i] << " l " << l << " tot " << loglike << std::endl;
+            //std::cout << " " << i << ": bg " << BG <<  " sm " << SM << " bsm " << BSM << " exp " <<  pList->detectors[detj].exposure*(SM+BG+BSM) << " obs " << pList->detectors[detj].binnedData[i] << " l " << l << " tot " << loglike << std::endl;
             Er_min = Er_max; //update lower bin limit
         } 
         
     }
-    
     if( std::isinf(loglike) )
         return -1e200;
     else
