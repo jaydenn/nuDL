@@ -113,7 +113,7 @@ double findMaxLS(paramList *pL)
     gsl_vector_free (x);
     gsl_vector_free (dx);
     
-    return LS;
+    return -LS;
 }
 
 
@@ -169,26 +169,26 @@ double findMaxL0(paramList *pL)
     
     pL->signalNorm = mu;
     
-    return L0;
+    return -L0;
 }
 
 //statistic for discovery
 double q0(paramList *pL)
 {	 
 
-    double maxL0 = -findMaxL0( pL );
+    double maxL0 = findMaxL0( pL );
     double maxL;
     //if using asimov just set parameters to MLE
-    if(pL->asimov)
+    if(pL->asimov==1)
     {
         pL->signalNorm = 1;
         pL->detectors[pL->detj].BgNorm = 1;
         for(int fluxj=0; fluxj < pL->source.numFlux; fluxj++)
             pL->source.nuFluxNorm[fluxj] = 1.0;
-        maxL = -logLikelihood(pL);
+        maxL = logLikelihood(pL);
     }
     else
-        maxL = -findMaxLS( pL );
+        maxL = findMaxLS( pL );
         
     if( pL->signalNorm >= 0 )
         return - 2 * ( maxL0 - maxL );  
@@ -196,6 +196,7 @@ double q0(paramList *pL)
         return 0;
 }
 
+//searching for the mu with gives a median significance of 4.38sigma
 double my_q0(const gsl_vector *v, void *params)
 {
 
