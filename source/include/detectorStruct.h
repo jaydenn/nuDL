@@ -6,7 +6,7 @@
     #include <gsl/gsl_spline.h>
 #endif
 #define DETECTORSTRUCT_H
-#define MAXBINS 80
+#define MAXBINS 40
 
 struct detector {
     char name[20];

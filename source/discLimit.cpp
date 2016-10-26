@@ -85,7 +85,7 @@ double findMaxLS(paramList *pL)
     for(int i=1; i < my_func.n; i++)
     {
         gsl_vector_set (x, i, 1.0);
-        gsl_vector_set(dx, i, .05);
+        gsl_vector_set(dx, i, .01);
     }
     
     T = gsl_multimin_fminimizer_nmsimplex2;
@@ -142,7 +142,7 @@ double findMaxL0(paramList *pL)
     for(int i=0; i < my_func.n; i++)
     {
         gsl_vector_set (x, i, 1.0);
-        gsl_vector_set(dx, i, .05);
+        gsl_vector_set(dx, i, .01);
     }
     
     T = gsl_multimin_fminimizer_nmsimplex2;
@@ -156,10 +156,10 @@ double findMaxL0(paramList *pL)
         status = gsl_multimin_fminimizer_iterate (s);
         //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 1e-5 && !status);
+    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 1e-6 && !status);
     if(iter==1000)
         std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > 1e-5 " <<  std::endl;
-    
+
     double L0 = s->fval;
     
     gsl_multimin_fminimizer_free (s);
@@ -188,15 +188,20 @@ double q0(paramList *pL)
     else
         maxL = findMaxLS( pL );
     
-    if ( - 2 * ( maxL0 - maxL ) < 0 ) //this is to catch roundoff error, but it could hide bugs
-        return 0;// << " " << maxL0 << " " << maxL << std::endl;  
-    if( pL->signalNorm >= 0 )
+    double q = - 2 * ( maxL0 - maxL ); 
+    //std::cout << "returning q= " << q << " = -2 *( L0(" << maxL0 << ") - maxL(" << maxL <<") )"<< std::endl;
+    if ( pL->signalNorm >= 0 && q > 0 ) //this is to catch roundoff error, but it could hide bugs
+    {
         return - 2 * ( maxL0 - maxL );  
+    }
     else
+    {
+        std::cout << "returning q=0 " << pL->signalNorm << " " << maxL0 << " " << maxL << std::endl;
         return 0;
+    }
 }
 
-//searching for the mu with gives a median significance of 4.38sigma
+//searching for the mu which gives a median significance of 4.38sigma
 double my_q0(const gsl_vector *v, void *params)
 {
 
@@ -236,7 +241,7 @@ double findCoeff3sig(paramList *pL)
     dx = gsl_vector_alloc (1);
 
     gsl_vector_set (x, 0, pL->signalNorm);
-    gsl_vector_set(dx, 0, pL->signalNorm/10);
+    gsl_vector_set(dx, 0, pL->signalNorm/20);
 
     T = gsl_multimin_fminimizer_nmsimplex2;
     s = gsl_multimin_fminimizer_alloc (T, 1);
@@ -247,7 +252,7 @@ double findCoeff3sig(paramList *pL)
     {
         status = gsl_multimin_fminimizer_iterate (s);
         iter++;
-        //std::cout << iter << " " << gsl_vector_get(s->x,0) << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
+        //std::cout << iter << " " << gsl_vector_get(s->x,0)*pL->C << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
     }
     while (iter < 100 && s->fval > .0015 && !status); //under 1% error in 4.28 sigma value
         
@@ -259,8 +264,12 @@ double findCoeff3sig(paramList *pL)
 
     if(iter==100)
     {
-        std::cout << "WARNING: non-convergence, sigma - 4.28 = " << s->fval << " > .04" << std::endl;
-        return mu;
+        double approxError = sqrt(s->fval)/4.28*100;
+        std::cout << "WARNING: non-convergence, sigma - 4.28 = " << s->fval << " " << approxError << "% error" << std::endl;
+        if (approxError > 2)
+            return 0;
+        else
+            return mu;
     }
     else
         return mu;
@@ -284,23 +293,24 @@ void discLimitVsMmed(paramList *pL, int detj)
     outfile.open(filename,std::ios::out);
     
     //determine first guess for mu, need a mu that gives BSM ~ SM
-    double mu = pL->signalNorm = 1e-5;
-    double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
-    double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
-    double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
     
-    starting_guess_loop:
-        while(fabs(BSM) < (SM+BG)/100 )
+    first_guess_loop:
+        double mu = pL->signalNorm = 1e-5;
+        double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
+        double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
+        double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
+        
+        while(fabs(BSM) < (SM+BG)/200 )
         {
             mu*=1.02;
             BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
             //std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
         }
-    
+
         double q = 30;
-        while(mu > 1e-3 && sqrt(q) > 5)
+        while(mu > 1e-5 && sqrt(q) > 4.28)
         {
-            mu*=.95;
+            mu*=.99;
             pL->signalNorm = mu;
             generateBinnedData( pL, pL->detj, 1, 0);
             q = q0( pL );
@@ -313,14 +323,14 @@ void discLimitVsMmed(paramList *pL, int detj)
         else
             coup=sqrt(mu)*pL->C;
 
-        std::cout << "starting guess = " << coup << ", mu = " << coup/pL->C << std::endl;           
-    
+        //std::cout << "starting guess = " << coup << ", mu = " << coup/pL->C << std::endl;           
+
     while (pL->mMed < 1)
     {
 
         mu = findCoeff3sig(pL);
 
-        if (mu==mu) //check for NAN
+        if (mu!=0) 
         {
             if ( mu > 0 )
             {
@@ -341,10 +351,7 @@ void discLimitVsMmed(paramList *pL, int detj)
             }
         }
         else
-        {
-            mu = 1e-6;
-            goto starting_guess_loop;
-        }
+            goto first_guess_loop;
                
         pL->mMed*=1.1; //increment mass
         

@@ -190,8 +190,11 @@ double tMu(paramList *pL)
         pL->signalNorm = 0;
         maxL = findMaxLMu( pL );
     }*/
-    
-    return -2*( maxLmu - maxL);  //no -ve because functions return -loglike
+    double t = -2*( maxLmu - maxL);
+    if (t > 0)
+        return t;
+    else 
+        return 0;
 
 }
 
