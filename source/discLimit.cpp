@@ -54,8 +54,9 @@ double my_L0(const gsl_vector *v, void *params)
         pL->source.nuFluxNorm[i] = fabs(gsl_vector_get(v, i+1));
         l += 0.5/pow(pL->source.nuFluxUn[i],2) * pow(pL->source.nuFluxNorm[i] - 1,2);
     }
-
+ 
     l -= logLikelihood(pL);
+
     return l;
 
 }
@@ -142,7 +143,7 @@ double findMaxL0(paramList *pL)
     for(int i=0; i < my_func.n; i++)
     {
         gsl_vector_set (x, i, 1.0);
-        gsl_vector_set(dx, i, .01);
+        gsl_vector_set(dx, i, .005);
     }
     
     T = gsl_multimin_fminimizer_nmsimplex2;
@@ -154,9 +155,9 @@ double findMaxL0(paramList *pL)
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);
-        //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
+       //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 1e-6 && !status);
+    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 1e-7 && !status);
     if(iter==1000)
         std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > 1e-5 " <<  std::endl;
 

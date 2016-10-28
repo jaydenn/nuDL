@@ -45,7 +45,7 @@ double BSMrateE(double ErKeV, paramList *pList, double Mt, int fluxj)
         
     intConst	= fluxIntegral( ErGeV, pList, ME,  0, fluxj);  //units GeV^2/s
     intInvEnuSq = fluxIntegral( ErGeV, pList, ME, -2, fluxj); //units 1/s
-
+    	            
     switch( pList->BSM )
     {
         //scalar
@@ -71,10 +71,18 @@ double BSMrateE(double ErKeV, paramList *pList, double Mt, int fluxj)
         //axialvector
         case 4:
         {
-            return convFactor * ( pList->SMinterference1 * sqrt(2)*GFERMI*ME*ga*gNuV*gEa /  M_PI 
+            double rate=convFactor * ( pList->SMinterference1 * sqrt(2)*GFERMI*ME*ga*gNuV*gEa /  M_PI 
                 * intConst / ( 2*ErGeV*ME + pow(pList->mMed,2) )
                 + pList->SMinterference2 * pow(gEa*gNuV,2)* ME / ( 2 * M_PI ) 
                 * intConst / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2) );   
+            
+           // if(rate <0)
+           // std::cout << convFactor * pList->SMinterference1 << "  " << sqrt(2)*GFERMI*ME*ga*gNuV*gEa << std::endl; 
+            
+            return rate;//convFactor * ( pList->SMinterference1 * sqrt(2)*GFERMI*ME*ga*gNuV*gEa /  M_PI 
+                //* intConst / ( 2*ErGeV*ME + pow(pList->mMed,2) )
+                //+ pList->SMinterference2 * pow(gEa*gNuV,2)* ME / ( 2 * M_PI ) 
+                //* intConst / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2) );   
         }
         default:
         {
@@ -186,12 +194,15 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 	        }
 		    else
 		    {
-		        pList->qA = -0.5;
-		        pList->qV = 0.5+2*0.2312;
-                rate += ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME, fluxj);
+		        //only include if doing reactor neutrinos
+		        if(pList->source.isSolar[0] == 0)
+		        {
+		            pList->qA = -0.5;
+		            pList->qV = 0.5+2*0.2312;
+                    rate += ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME, fluxj);
+                }
 		    }
-	        
-	        
+	
 		}
 	}	
 

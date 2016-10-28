@@ -140,7 +140,7 @@ double nuFlux(double EnuGeV, paramList *pL, int fluxj)
     if(EnuGeV < pL->source.EnuMax[fluxj] && EnuGeV > pL->source.flux_E[fluxj][0])
         return pL->source.nuFlux[fluxj] * gsl_interp_eval(pL->source.nuFluxInterp[fluxj], pL->source.flux_E[fluxj], pL->source.flux_N[fluxj], EnuGeV, pL->source.nuFluxAccel[fluxj]);
     else
-        return 1e-199;
+        return 1e-299;
 }
 
 
@@ -208,7 +208,10 @@ double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow, int 
     else
         gsl_integration_qag(&(pList->F), EnuMinGeV, pList->source.EnuMax[fluxj], tol, 1e-3, limit, 2, W, &integral, &absErr); 
 
-	return pList->source.nuFluxNorm[fluxj]*integral;
+    if (integral < 0)        
+        return 1e-299;
+    else    
+    	return pList->source.nuFluxNorm[fluxj]*integral;
 		
 }
 

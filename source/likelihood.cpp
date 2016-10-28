@@ -45,7 +45,6 @@ double logLikelihood(paramList *pList)
 
             l = logPoisson( pList->detectors[detj].binnedData[i], pList->detectors[detj].exposure*(SM+BG+BSM)+1e-200);
             loglike += l;
-            //std::cout << " " << i << "(" << Er_min <<"-"<< Er_max <<"): bg " << BG <<  " sm " << SM << " bsm " << BSM << " exp " <<  pList->detectors[detj].exposure*(SM+BG+BSM) << " obs " << pList->detectors[detj].binnedData[i] << " l " << l << " tot " << loglike << std::endl;
             Er_min = Er_max; //update lower bin limit
         } 
         
