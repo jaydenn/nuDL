@@ -47,11 +47,13 @@ void rateInit( paramList *pList, int detj, int fluxj, double (*rateFunc)(double,
     if(pList->logBins == 0)
     {
         logStep = pow(pList->detectors[detj].ErU/pList->detectors[detj].ErL,1/4800.0);
-        linStep = (pList->detectors[detj].ErU-5)/(4800 - log(5/pList->detectors[detj].ErL)/log(logStep) );
+        linStep = (pList->detectors[detj].ErU-pList->detectors[detj].ErL)/4800;
     }
     else
+    {
         logStep = pow(pList->detectors[detj].ErU/pList->detectors[detj].ErL,1/4800.0);
         linStep = (pList->detectors[detj].ErU-5)/(4800 - log(5/pList->detectors[detj].ErL)/log(logStep) );
+    }
     
     ErkeV[0] = 0.95*pList->detectors[detj].ErL; 
     rate[0] = rateFunc( (double)ErkeV[0], pList, detj, fluxj);
@@ -59,13 +61,13 @@ void rateInit( paramList *pList, int detj, int fluxj, double (*rateFunc)(double,
     for( int i=1; i < 5000; i++ )
     {
         //always over and undershoot range so that interpolation is well behaved
-        if(pList->logBins == 0 && ErkeV[i-1] > 5)
+        if(pList->logBins == 0 )//&& ErkeV[i-1] > 5)
             ErkeV[i] = ErkeV[i-1] + linStep;
         else
             ErkeV[i] = ErkeV[i-1] * logStep;
             
         rate[i] = rateFunc( (double)ErkeV[i], pList, detj, fluxj);	
-      // std::cout << i << " " << ErkeV[i] << std::endl;
+       //std::cout << i << " " << ErkeV[i] << std::endl;
     }
     //create gsl interpolation object
     gsl_spline_init(rateSpline,ErkeV,rate,5000);

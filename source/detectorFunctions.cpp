@@ -128,7 +128,7 @@ int newDetector(paramList *pList, char *name, double exp)
         if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 5)
         {
             std::cout << "decreasing ROI to increase SNR\n";
-            pList->detectors[pList->ndet].ErU = 10;
+            pList->detectors[pList->ndet].ErU = 2;
         }
        /* else if(pList->elecScat == 1 && pList->detectors[pList->ndet].ErU < 20)
         {
@@ -182,7 +182,7 @@ int newDetector(paramList *pList, char *name, double exp)
 		
 		//only need to calculate background and SM signal once, store in a table for interpolation, stored as events/kg/day/keV
 		//get values of bg at relevant energies
-		std::cout << "Initializing rates"; 		
+		std::cout << "Initializing rates\n"; 		
 		rateInit( pList, pList->ndet, -1, &detBackground, pList->detectors[pList->ndet].background);
         std::cout << ".";
     

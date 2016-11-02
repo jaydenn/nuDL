@@ -77,10 +77,10 @@ int calcRates(paramList *pList)
         int skip=0;            
         for (int i=0; i<501; i+=1)
         {
-           // if(pList->logBins == 1)
+            if(pList->logBins == 1)
                 ErkeV = pow(10, log10(pList->detectors[detj].ErL) + (double)i*(log10(pList->detectors[detj].ErU)-log10(pList->detectors[detj].ErL))/500)+1e-4;
-           // else
-           //     ErkeV = pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/500;
+            else
+                ErkeV = pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/500;
 
             if( skip++ % 5 == 0 ) //only print out every fifth value to terminal    
                 std::cout << "    " << ErkeV << "      " << diffSMrate( ErkeV, pList, detj) << "      " << diffBgRate( pList->detectors[detj], ErkeV) << "      " << diffBSMrate( ErkeV, pList, detj, 1) << std::endl;
