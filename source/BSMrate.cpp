@@ -65,24 +65,20 @@ double BSMrateE(double ErKeV, paramList *pList, double Mt, int fluxj)
         {
             return convFactor * ( pList->SMinterference1 * sqrt(2)*GFERMI*gv*gNuV*gEv*ME /  M_PI 
                 * intConst / ( 2*ErGeV*ME + pow(pList->mMed,2) )
-                + pList->SMinterference2 * pow(gEv*gNuV,2) * ME / ( 2 * M_PI ) 
-                * intConst / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2) );   
+                + pList->SMinterference2 * ( pow(gEv*gNuV,2) * ME / ( 2 * M_PI ) 
+                * intConst / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2) 
+                + pow(gNuV*gNuV,2) * ME  * pow(ErGeV,2) / ( 4 * M_PI ) 
+                * intInvEnuSq / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2)) );   
         }
         //axialvector
         case 4:
         {
-            double rate=convFactor * ( pList->SMinterference1 * sqrt(2)*GFERMI*ME*ga*gNuV*gEa /  M_PI 
+            return convFactor * ( pList->SMinterference1 * sqrt(2)*GFERMI*ME*ga*gNuV*gEa /  M_PI 
                 * intConst / ( 2*ErGeV*ME + pow(pList->mMed,2) )
-                + pList->SMinterference2 * pow(gEa*gNuV,2)* ME / ( 2 * M_PI ) 
-                * intConst / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2) );   
-            
-           // if(rate <0)
-           // std::cout << convFactor * pList->SMinterference1 << "  " << sqrt(2)*GFERMI*ME*ga*gNuV*gEa << std::endl; 
-            
-            return rate;//convFactor * ( pList->SMinterference1 * sqrt(2)*GFERMI*ME*ga*gNuV*gEa /  M_PI 
-                //* intConst / ( 2*ErGeV*ME + pow(pList->mMed,2) )
-                //+ pList->SMinterference2 * pow(gEa*gNuV,2)* ME / ( 2 * M_PI ) 
-                //* intConst / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2) );   
+                + pList->SMinterference2 * ( pow(gEa*gNuV,2)* ME / ( 2 * M_PI ) 
+                * intConst / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2)
+                + pow(gNuV*gNuV,2)* ME * pow(ErGeV,2) / ( 4 * M_PI ) 
+                * intInvEnuSq / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2) ) );   
         }
         default:
         {
@@ -205,7 +201,8 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 	
 		}
 	}	
-
+   // if (rate < 0)
+   //     std::cout << "neg rate\n";
 	return rate;
 }   
 
