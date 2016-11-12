@@ -110,8 +110,6 @@ int newDetector(paramList *pList, char *name, double exp)
 	    {
 		    err = fscanf(detsINI,"%s",temp);
  
-		    if(strcmp(temp,"AM")==0)  
-			    err=fscanf(detsINI,"%lf",&(pList->detectors[pList->ndet].AM)); 
 		    if(strcmp(temp,"Er")==0)  
 			    err=fscanf(detsINI,"%lf-%lf",&(pList->detectors[pList->ndet].ErL),&(pList->detectors[pList->ndet].ErU)); 
 		    if(strcmp(temp,"bg")==0)  
@@ -128,27 +126,8 @@ int newDetector(paramList *pList, char *name, double exp)
         if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 5)
         {
             std::cout << "decreasing ROI to increase SNR\n";
-            pList->detectors[pList->ndet].ErU = 2;
+            pList->detectors[pList->ndet].ErU = 4;
         }
-       /* else if(pList->elecScat == 1 && pList->detectors[pList->ndet].ErU < 20)
-        {
-            std::cout << "increasing ROI to increase SNR\n";
-
-            if( pList->BSM == 1 || pList->BSM == 2)
-            {
-                if ( pList->source.isSolar[0] == 1 )
-                    pList->detectors[pList->ndet].ErU = 500;
-                else
-                    pList->detectors[pList->ndet].ErU = 400;
-            }
-            else
-            {
-                if ( pList->source.isSolar[0] == 1 )
-                    pList->detectors[pList->ndet].ErU = 500;
-                else
-                    pList->detectors[pList->ndet].ErU = 400;
-            }
-        }*/
         
 	    ret = fgets(temp,200,detsINI);
 	    ret = fgets(temp,200,detsINI);
@@ -168,16 +147,35 @@ int newDetector(paramList *pList, char *name, double exp)
 		    ret = fgets(temp,200,detsINI);		   
 	    }
 	    ret = fgets(temp,200,detsINI);	
-	    ret = fgets(temp,200,detsINI);	
+	    ret = fgets(temp,200,detsINI);		    
 	    
-	    std::istringstream ionizations(temp);
 	    std::string comma;
-	    int i = 0;
-	    //there must be a better way to do this..
-	    while( std::getline(ionizations,comma,',') )
-	        pList->detectors[pList->ndet].ionization[i++] = atof(comma.c_str());
-	   
-	     //finished reading in det data		 
+        int isoj=0;
+        while( temp[0]!='_' && isoj < pList->detectors[pList->ndet].nIso)
+        {
+            int i = 0;
+	        std::istringstream ionizations(temp);
+
+	        while( std::getline(ionizations,comma,',') )
+	            pList->detectors[pList->ndet].ionization[isoj][i++] = atof(comma.c_str());
+
+	        isoj++;
+   	        ret = fgets(temp,200,detsINI);	
+        }   
+        if(isoj > 1 && isoj != pList->detectors[pList->ndet].nIso)
+        {
+	        std::cout << isoj << "Ionizations not listed for each isotope, aborting\n";
+	        return 1;
+        }
+        else if(isoj==1)
+        {
+            std::cout << "Ionizations will be duplicated for each isotope\n";
+            
+            for(int j=1; j<pList->detectors[pList->ndet].nIso; j++)
+                 pList->detectors[pList->ndet].ionization[j] = pList->detectors[pList->ndet].ionization[0];
+        }
+        
+	    //finished reading in det data		 
 		fclose(detsINI);
 		
 		//only need to calculate background and SM signal once, store in a table for interpolation, stored as events/kg/day/keV

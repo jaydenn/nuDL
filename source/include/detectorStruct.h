@@ -15,7 +15,7 @@ struct detector {
     int nIso;
     int isoZ[10];
     int isoA[10];
-    double *ionization;
+    double **ionization;
     double isoFrac[10];
     double isoSZ[10];
     double isoSN[10];
@@ -65,7 +65,9 @@ struct detector {
         nIso=0; AM=-1; isoA[0]=-1; isoFrac[0]=-1; ErL=0; ErU=-1; bg=-1; eff=-1; res=-1, nEvents=0;
         BgNorm = 1; BgUn = 1e-99;
         
-        ionization = new double [100]();
+        ionization = new double*[10]();
+        for(int i=0;i<10;i++)
+            ionization[i] = new double [100]();
 
         background = gsl_spline_alloc(gsl_interp_linear,5000);
         accelBg = gsl_interp_accel_alloc();

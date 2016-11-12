@@ -20,6 +20,7 @@ const double GeVperKG = 5.6094e26;
 const double MN = 0.9383; //mass of nucleon in GeV
 const double ME = 0.000510998; //mass of electron in GeV
 const double SSW = 0.2387; //sin^2(theta_w)
+
 //returns simplified model light mediator rate per electron/day/keV
 double BSMrateE(double ErKeV, paramList *pList, double Mt, int fluxj)						  
 {
@@ -176,7 +177,7 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 	    if(pList->elecScat)
 	    {
 	        int Ne=0;
-	        while(pList->detectors[detj].ionization[Ne] > ErKeV && Ne < pList->detectors[detj].isoZ[i]) 
+	        while(pList->detectors[detj].ionization[i][Ne] > ErKeV && Ne < pList->detectors[detj].isoZ[i]) 
 	            Ne++;
             if(pList->source.isSolar[fluxj] == 1)
 	        {
@@ -194,7 +195,7 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 		        if(pList->source.isSolar[0] == 0)
 		        {
 		            pList->qA = -0.5;
-		            pList->qV = 0.5+2*0.2312;
+		            pList->qV = 2*SSW+0.5;
                     rate += ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME, fluxj);
                 }
 		    }

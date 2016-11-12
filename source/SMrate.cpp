@@ -38,7 +38,7 @@ double SMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 	    //if(pList->elecScat)
 	    {
 	        int Ne=0;
-	        while(pList->detectors[detj].ionization[Ne] > ErKeV && Ne < pList->detectors[detj].isoZ[i]) 
+	        while(pList->detectors[detj].ionization[i][Ne] > ErKeV && Ne < pList->detectors[detj].isoZ[i]) 
 	            Ne++;
 	    
 	        if(pList->source.isSolar[fluxj] == 1)
@@ -54,7 +54,7 @@ double SMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 		    else
 		    {
 		        pListSM.qA = -0.5;
-		        pListSM.qV = 0.5+2*0.2312;
+		        pListSM.qV = 0.5+2*SSW;
 		        rate += (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME, fluxj);
 		    }
 		    
