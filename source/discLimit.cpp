@@ -56,7 +56,7 @@ double my_L0(const gsl_vector *v, void *params)
     }
  
     l -= logLikelihood(pL);
-
+    //std::cout << l << std::endl;
     return l;
 
 }
@@ -155,7 +155,7 @@ double findMaxL0(paramList *pL)
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);
-       //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
+        //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
     while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 1e-7 && !status);
     if(iter==1000)
@@ -214,7 +214,8 @@ double my_q0(const gsl_vector *v, void *params)
         
     pL->detectors[pL->detj].BgNorm = 1;
     pL->signalNorm = gsl_vector_get(v, 0);
-
+    if( pL->signalNorm < 0 )
+        return 1e99;
     generateBinnedData( pL, pL->detj, 1, simSeed);
     
     return pow( sqrt(q0(pL)) - 4.28, 2);  //arbitrary function with a minima at 3 sigma 90% of the time
@@ -240,7 +241,7 @@ double findCoeff3sig(paramList *pL)
     //start point
     x = gsl_vector_alloc (1);
     dx = gsl_vector_alloc (1);
-
+    
     gsl_vector_set (x, 0, pL->signalNorm);
     gsl_vector_set(dx, 0, pL->signalNorm/20);
 
@@ -253,7 +254,7 @@ double findCoeff3sig(paramList *pL)
     {
         status = gsl_multimin_fminimizer_iterate (s);
         iter++;
-        //std::cout << iter << " " << gsl_vector_get(s->x,0)*pL->C << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
+        std::cout << iter << " " << gsl_vector_get(s->x,0)*pL->C << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
     }
     while (iter < 100 && s->fval > .0015 && !status); //under 1% error in 4.28 sigma value
         
@@ -324,13 +325,13 @@ void discLimitVsMmed(paramList *pL, int detj)
         else
             coup=sqrt(mu)*pL->C;
 
-        //std::cout << "starting guess = " << coup << ", mu = " << coup/pL->C << std::endl;           
+        std::cout << "starting guess = " << coup << ", mu = " << coup/pL->C << std::endl;           
 
     while (pL->mMed < 1)
     {
 
         mu = findCoeff3sig(pL);
-
+std::cout << pL->mMed << " - " << mu     << std::endl;
         if (mu!=0) 
         {
             if ( mu > 0 )
@@ -443,4 +444,88 @@ void discLimitEvolution(paramList *pL, int detj)
 
 }
 
+
+void discLimitVsThresh(paramList *pL, int detj)
+{
+
+    std::cout << "Starting disc. limit calculations..." << std::endl;
+    pL->detj = detj;
+        
+    char filename[100];
+    std::ofstream outfile;
+    
+    if(pL->elecScat)
+        sprintf(filename, "%sDLTe_%s_%s_BSM%d.dat",pL->root,pL->detectors[detj].name,pL->source.name,pL->BSM);
+    else
+        sprintf(filename, "%sDLTn_%s_%s_BSM%d.dat",pL->root,pL->detectors[detj].name,pL->source.name,pL->BSM);
+        
+    std::cout << "writing output to: " << filename << std::endl;    
+    outfile.open(filename,std::ios::out);
+    
+    //determine first guess for mu, need a mu that gives BSM ~ SM
+    first_guess_loop:
+        double mu = pL->signalNorm = 1e-6;
+        double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
+        double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
+        double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
+        
+        while(fabs(BSM) < (SM+BG)/200 )
+        {
+            mu*=1.02;
+            BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
+            //std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
+        }
+        
+        double q = 30;
+        while(mu > 1e-5 && sqrt(q) > 4.28)
+        {
+            mu*=.95;
+            pL->signalNorm = mu;
+            generateBinnedData( pL, pL->detj, 1, 0);
+            q = q0( pL );
+            //std::cout << mu << " " << q << std::endl;
+        }
+        
+        double coup;
+        if(pL->BSM==3 || pL->BSM==4)
+            coup=mu*pL->C;
+        else
+            coup=sqrt(mu)*pL->C;
+
+        std::cout << "starting guess = " << coup << ", mu = " << coup/pL->C << std::endl;           
+    
+    while (pL->detectors[detj].ErL < 1)
+    {
+
+        mu = findCoeff3sig(pL);
+
+        if (mu!=0) 
+        {
+            if ( mu > 0 )
+            {
+                if(pL->BSM==3 || pL->BSM==4)
+                    coup=mu*pL->C;
+                else
+                    coup=sqrt(mu)*pL->C;
+                    
+                //print out result
+                std::cout << pL->detectors[detj].ErL << "  " << coup << std::endl;
+                outfile   << pL->detectors[detj].ErL << "  " << coup << std::endl;
+                
+                pL->signalNorm = mu;      //update guess
+            }
+            else
+            {
+                pL->signalNorm = -mu; 
+            }
+        }
+        else
+            goto first_guess_loop;  
+        
+        pL->detectors[detj].ErL*=1.1; //increment threshold
+        
+    }
+    outfile.close();
+
+}
 

@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
     if ( mode == 3 )
     {
         discLimitVsMmed(&pList, 0);
+        //discLimitVsThresh(&pList, 0);
         return 0;
     }
     
