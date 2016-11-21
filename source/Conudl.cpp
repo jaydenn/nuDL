@@ -84,7 +84,6 @@ int main(int argc, char *argv[])
     if ( mode == 3 )
     {
         discLimitVsMmed(&pList, 0);
-        //discLimitVsThresh(&pList, 0);
         return 0;
     }
     
@@ -108,6 +107,13 @@ int main(int argc, char *argv[])
         //MCtestConfInterval(&pList);
         //confIntervalSM(&pList);
         confIntVsExposure(&pList);
+        return 0;
+    }
+    
+    //discovery limit as a function of mediator mass
+    if ( mode == 7 )
+    {
+        discLimitVsThresh(&pList, 0);
         return 0;
     }
     

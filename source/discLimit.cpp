@@ -197,7 +197,7 @@ double q0(paramList *pL)
     }
     else
     {
-        std::cout << "returning q=0 " << pL->signalNorm << " " << maxL0 << " " << maxL << std::endl;
+        //std::cout << "returning q=0 " << pL->signalNorm << " " << maxL0 << " " << maxL << std::endl;
         return 0;
     }
 }
@@ -254,7 +254,7 @@ double findCoeff3sig(paramList *pL)
     {
         status = gsl_multimin_fminimizer_iterate (s);
         iter++;
-        std::cout << iter << " " << gsl_vector_get(s->x,0)*pL->C << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
+        //std::cout << iter << " " << gsl_vector_get(s->x,0)*pL->C << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
     }
     while (iter < 100 && s->fval > .0015 && !status); //under 1% error in 4.28 sigma value
         
@@ -331,7 +331,6 @@ void discLimitVsMmed(paramList *pL, int detj)
     {
 
         mu = findCoeff3sig(pL);
-std::cout << pL->mMed << " - " << mu     << std::endl;
         if (mu!=0) 
         {
             if ( mu > 0 )

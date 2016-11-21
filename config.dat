@@ -1,9 +1,9 @@
 //Conudl configuration options
-3                  // running mode: 1=rate calculation, 2=disc. limit evolution, 3=disc. limit vs. mass, 4=excl. limits, 5=total rate above thresh.
+3                  // running mode: 1=rate calc, 2=disc. limit evo., 3=disc. limit vs. mass, 4=excl. limits, 5=rate above thresh, 6=SM conf. int, 7=disc. limit vs. thresh
 ./results/CN_      // root of output file names, can include directories
 0                  // do nuclear scattering? 1=yes, 0=no
 1                  // do electron scattering? 1=yes, 0=no
-4                  // which BSM to consider? (0=SM, 1=scalar, 2=pseudoscalar, 3=vector, 4=axialvector)
+3                  // which BSM to consider? (0=SM, 1=scalar, 2=pseudoscalar, 3=vector, 4=axialvector)
 1e-6               // initial coupling
 1e-6               // mediator mass in GeV
 1                  //Use log/linear spaced bins (1/0)
