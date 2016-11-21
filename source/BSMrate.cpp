@@ -68,7 +68,7 @@ double BSMrateE(double ErKeV, paramList *pList, double Mt, int fluxj)
                 * intConst / ( 2*ErGeV*ME + pow(pList->mMed,2) )
                 + pList->SMinterference2 * ( pow(gEv*gNuV,2) * ME / ( 2 * M_PI ) 
                 * intConst / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2) 
-                + pow(gNuV*gNuV,2) * ME  * pow(ErGeV,2) / ( 4 * M_PI ) 
+                + 0*pow(gNuV*gNuV,2) * ME  * pow(ErGeV,2) / ( 4 * M_PI ) 
                 * intInvEnuSq / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2)) );   
         }
         //axialvector
@@ -78,7 +78,7 @@ double BSMrateE(double ErKeV, paramList *pList, double Mt, int fluxj)
                 * intConst / ( 2*ErGeV*ME + pow(pList->mMed,2) )
                 + pList->SMinterference2 * ( pow(gEa*gNuV,2)* ME / ( 2 * M_PI ) 
                 * intConst / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2)
-                + pow(gNuV*gNuV,2)* ME * pow(ErGeV,2) / ( 4 * M_PI ) 
+                + 0*pow(gNuV*gNuV,2)* ME * pow(ErGeV,2) / ( 4 * M_PI ) 
                 * intInvEnuSq / pow( 2*ErGeV*ME + pow(pList->mMed,2) ,2) ) );   
         }
         default:
