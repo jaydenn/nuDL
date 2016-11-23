@@ -40,7 +40,7 @@ double detBackground(double Er, paramList *pList, int detj, int fluxj)
 	    case 2: 
             return 10.0;
         case 3: 
-            return 1e-4 ;
+            return 1.0;
         default:
             printf("invalid detector background\n"); 
             return NAN; 
@@ -123,11 +123,11 @@ int newDetector(paramList *pList, char *name, double exp)
 	    }
         
         //optimize ROI
-        //if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 5)
-       // {
-       //     std::cout << "decreasing ROI to increase SNR\n";
-       //     pList->detectors[pList->ndet].ErU = 4;
-       //    }
+        if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 5)
+        {
+            std::cout << "decreasing ROI to increase SNR\n";
+            pList->detectors[pList->ndet].ErU = 4;
+        }
         
 	    ret = fgets(temp,200,detsINI);
 	    ret = fgets(temp,200,detsINI);

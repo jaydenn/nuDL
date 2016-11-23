@@ -143,7 +143,7 @@ double findMaxL0(paramList *pL)
     for(int i=0; i < my_func.n; i++)
     {
         gsl_vector_set (x, i, 1.0);
-        gsl_vector_set(dx, i, .005);
+        gsl_vector_set(dx, i, .002);
     }
     
     T = gsl_multimin_fminimizer_nmsimplex2;
@@ -157,7 +157,7 @@ double findMaxL0(paramList *pL)
         status = gsl_multimin_fminimizer_iterate (s);
         //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 1e-7 && !status);
+    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 3e-8 && !status);
     if(iter==1000)
         std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > 1e-5 " <<  std::endl;
 
