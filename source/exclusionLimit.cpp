@@ -133,7 +133,7 @@ double findMaxLmu(paramList *pL)
     for(int i=0; i < my_func.n; i++)
     {
         gsl_vector_set (x, i, 1.0);
-        gsl_vector_set(dx, i, .05);
+        gsl_vector_set(dx, i, .01);
     }
     T = gsl_multimin_fminimizer_nmsimplex2;
     s = gsl_multimin_fminimizer_alloc (T, my_func.n);
@@ -146,9 +146,9 @@ double findMaxLmu(paramList *pL)
         status = gsl_multimin_fminimizer_iterate (s);
   //      cout << "       " << iter << "  c " << pL->w.coeff << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " <<  gsl_vector_get (s->x, 2) << " " << s->fval << " " << gsl_multimin_fminimizer_size(s) << endl; 
     }
-    while (iter < 900 && gsl_multimin_fminimizer_size(s)>.0001);///s->fval > 1e-2 && !status);
+    while (iter < 900 && gsl_multimin_fminimizer_size(s)>.00005);///s->fval > 1e-2 && !status);
     if(iter==900)
-        std::cout << "non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > .0001  " <<  std::endl;
+        std::cout << "non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > .00005  " <<  std::endl;
     
     double Lmu = s->fval;
     
