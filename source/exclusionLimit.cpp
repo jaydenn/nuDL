@@ -252,9 +252,9 @@ void exclusionLimit(paramList *pL, int detj)
     std::ofstream outfile;
     
     if(pL->elecScat)
-        sprintf(filename, "%sexclusionE_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
+        sprintf(filename, "%sexclusionE_%s_%s_BSM%d.dat",pL->root,pL->detectors[0].name,pL->source.name,pL->BSM);
     else
-        sprintf(filename, "%sexclusionN_%c%c_BSM%d.dat",pL->root,pL->detectors[0].name[0],pL->detectors[0].name[1],pL->BSM);
+        sprintf(filename, "%sexclusionN_%s_%s_BSM%d.dat",pL->root,pL->detectors[0].name,pL->source.name,pL->BSM);
     
     outfile.open(filename,std::ios::out);
     std::cout << "writing output to: " << filename << std::endl;
