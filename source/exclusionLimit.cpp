@@ -107,7 +107,7 @@ double findMaxLmuM(paramList *pL)
     gsl_vector_free (x);
     gsl_vector_free (dx);
     
-    return LS;
+    return -LS;
 }
 
 
@@ -156,7 +156,7 @@ double findMaxLmu(paramList *pL)
     gsl_vector_free (x);
     gsl_vector_free (dx);
             
-    return Lmu;
+    return -Lmu;
 }
 
 //statistic for discovery
@@ -168,10 +168,10 @@ double qMu(paramList *pL)
     if( pL->signalNorm < 0)
         q = 0.0;
     else
-        q = 2 * ( maxLmu - pL->maxL );  //no -ve because functions return -loglike
+        q = - 2 * ( maxLmu - pL->maxL );  //no -ve because functions return -loglike
 
     if (q < 0 )
-    {
+    {   
         if (q < -1e-5)
             std::cout << "warning maximum in likelihood not reached max L = " << pL->maxL << " < " << maxLmu << std::endl;
         return 0;
@@ -270,16 +270,21 @@ void exclusionLimit(paramList *pL, int detj)
         {
             mu*=1.02;
             BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
-            //std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
+           // std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
         }
-        pL->signalNorm = mu;
     
-    //produce a null result
-    pL->signalNorm = 0;
-    
-    generateBinnedData( pL, pL->detj, 1, 0);
-      
-    pL->maxL = logLikelihood(pL);
+        //produce a null result
+        pL->signalNorm = 0;
+        generateBinnedData( pL, pL->detj, 1, 0);
+        pL->maxL = logLikelihood(pL);
+        double q=10;
+        while(mu > 1e-8 && sqrt(q) > 1.28)
+        {
+            mu*=.9;
+            pL->signalNorm = mu;    
+            q = qMu( pL );
+            //std::cout << mu << " " << q << std::endl;
+        }
   
 //    std::cout << mu << "  " << pL->maxL << std::endl;      
     
