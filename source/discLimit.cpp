@@ -157,9 +157,9 @@ double findMaxL0(paramList *pL)
         status = gsl_multimin_fminimizer_iterate (s);
         //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
-    while (iter < 1000 && gsl_multimin_fminimizer_size(s)/s->fval > 3e-8 && !status);
-    if(iter==1000)
-        std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > 1e-5 " <<  std::endl;
+    while (iter < 800 && gsl_multimin_fminimizer_size(s)/s->fval > 1e-9 && !status);
+    if(iter==800)
+        std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > 1e-9 " <<  std::endl;
 
     double L0 = s->fval;
     
@@ -354,7 +354,7 @@ void discLimitVsMmed(paramList *pL, int detj)
         else
             goto first_guess_loop;
                
-        pL->mMed*=1.1; //increment mass
+        pL->mMed*=1.15; //increment mass
         
         //reinitialize BSM rates for different mass
         for(int fluxj=0; fluxj< pL->source.numFlux; fluxj++)
