@@ -6,7 +6,8 @@
     #include <gsl/gsl_spline.h>
 #endif
 #define DETECTORSTRUCT_H
-#define MAXBINS 80
+#define MAXBINS 100
+#define INTERP_POINTS 10000
 
 struct detector {
     char name[20];
@@ -69,16 +70,16 @@ struct detector {
         for(int i=0;i<10;i++)
             ionization[i] = new double [100]();
 
-        background = gsl_spline_alloc(gsl_interp_linear,5000);
+        background = gsl_spline_alloc(gsl_interp_linear,INTERP_POINTS);
         accelBg = gsl_interp_accel_alloc();
         
         for(int i=0; i<10; i++)
         {
-            signalSM[i] = gsl_spline_alloc(gsl_interp_linear,5000);
+            signalSM[i] = gsl_spline_alloc(gsl_interp_linear,INTERP_POINTS);
             accelSM[i] = gsl_interp_accel_alloc();
-            signalBSM1[i] = gsl_spline_alloc(gsl_interp_linear,5000);
+            signalBSM1[i] = gsl_spline_alloc(gsl_interp_linear,INTERP_POINTS);
             accelBSM1[i] = gsl_interp_accel_alloc();
-            signalBSM2[i] = gsl_spline_alloc(gsl_interp_linear,5000);
+            signalBSM2[i] = gsl_spline_alloc(gsl_interp_linear,INTERP_POINTS);
             accelBSM2[i] = gsl_interp_accel_alloc();
         }
     }
