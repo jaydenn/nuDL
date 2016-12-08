@@ -140,7 +140,7 @@ double findMaxLMu(paramList *pL)
     for(int i=0; i < my_func.n; i++)
     {
         gsl_vector_set (x, i, 1.0);
-        gsl_vector_set(dx, i, .05);
+        gsl_vector_set(dx, i, .01);
     }
     
     T = gsl_multimin_fminimizer_nmsimplex2;
@@ -151,11 +151,11 @@ double findMaxLMu(paramList *pL)
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);
-      //  std::cout << "   Lmu    " << iter << "  c " << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << s->fval << " " << gsl_multimin_fminimizer_size(s) << std::endl; 
+        //std::cout << "   Lmu    " << iter << "  c " << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << s->fval << " " << gsl_multimin_fminimizer_size(s) << std::endl; 
     }
-    while (iter < 900 && gsl_multimin_fminimizer_size(s)>.0001);///s->fval > 1e-2 && !status);
+    while (iter < 900 && gsl_multimin_fminimizer_size(s)>.00001);///s->fval > 1e-2 && !status);
     if(iter==900)
-        std::cout << "non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > .0001  " <<  std::endl;
+        std::cout << "non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > .00001  " <<  std::endl;
     
     double Lmu = s->fval;
 
@@ -233,7 +233,7 @@ double q0SM(paramList *pL)
     }
     else
         maxL = findMaxL( pL );
-        
+    
     if( pL->signalNorm >= 0 )
         return - 2 * ( maxL0 - maxL );  
     else
@@ -261,7 +261,7 @@ double findtMu90(paramList *pL)
     dx = gsl_vector_alloc (1);
     
     gsl_vector_set (x, 0, pL->signalNorm);
-    gsl_vector_set(dx, 0, pL->signalNorm/100);
+    gsl_vector_set(dx, 0, pL->signalNorm/20);
 
     T = gsl_multimin_fminimizer_nmsimplex2;
     s = gsl_multimin_fminimizer_alloc (T, 1);
@@ -272,7 +272,7 @@ double findtMu90(paramList *pL)
     {
         status = gsl_multimin_fminimizer_iterate (s);
         iter++;
-        //std::cout << iter << " mu = " << gsl_vector_get(s->x,0) << ",  f = " << s->fval << "  size = " << gsl_multimin_fminimizer_size(s) << std::endl;
+       // std::cout << iter << " mu = " << gsl_vector_get(s->x,0) << ",  f = " << s->fval << "  size = " << gsl_multimin_fminimizer_size(s) << std::endl;
     }
     while (iter < 100 && s->fval > 1e-6 && !status); //gives ~1% accuracy in confidence
     if(iter==100)
@@ -301,31 +301,37 @@ double *confIntervalSM(paramList *pL)
     double guess = 2 + 10*pL->source.isSolar[0];
     while(guess > 1e-3 &&  pVal < .1)
     {
-        guess*=.95;
+        guess*=.97;
         pL->signalNorm = guess;
         pVal = pValue( tMu(pL) );
-        //std::cout << guess << " " << pVal << std::endl;
+      //  std::cout << "up " << guess << " " << pVal << std::endl;
     }
    
     pL->signalNorm = guess;
     muUp = findtMu90(pL);
 
-    while(guess > 1e-3 &&  pVal > .1)
+    while(guess > 1e-6 &&  pVal > .1)
     {
-        guess*=.95;
+        guess*=.97;
         pL->signalNorm = guess;
         pVal = pValue( tMu(pL) );
-        //std::cout << guess << " - " << pVal << std::endl;
+       // std::cout << "down " << guess << " - " << pVal << std::endl;
     }
-        
-    pL->signalNorm = guess;      //update guess to find other solution
-        
-    muDown = muUp;
-    //if converge to same solution, try again
-    while ( fabs(muDown - muUp)/muUp < 1e-4)
+    if(guess < 1e-6)
     {
-        muDown = findtMu90(pL);
-        pL->signalNorm*=0.8;
+        muDown = 0;
+    } 
+    else
+    {    
+        pL->signalNorm = guess;      //update guess to find other solution
+            
+        muDown = muUp;
+        //if converge to same solution, try again
+        while ( fabs(muDown - muUp)/muUp < 1e-4)
+        {
+            muDown = findtMu90(pL);
+            pL->signalNorm*=0.8;
+        }
     }
         
     //print out result
@@ -408,11 +414,6 @@ void confIntVsExposure(paramList *pL)
     }
     outfile.close();
 
-    
-}
-
-double discoverySM()
-{
     
 }
 

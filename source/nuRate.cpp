@@ -47,7 +47,7 @@ void rateInit( paramList *pList, int detj, int fluxj, double (*rateFunc)(double,
     logStep = pow(pList->detectors[detj].ErU/pList->detectors[detj].ErL/0.98,1/(INTERP_POINTS-10.0));
     linStep = (pList->detectors[detj].ErU-pList->detectors[detj].ErL*0.98)/(INTERP_POINTS-10.0);
 
-    ErkeV[0] = 0.98*pList->detectors[detj].ErL; 
+    ErkeV[0] = 0.99*pList->detectors[detj].ErL; 
     rate[0] = rateFunc( (double)ErkeV[0], pList, detj, fluxj);
     
     for( int i=1; i < INTERP_POINTS; i++ )
@@ -59,7 +59,7 @@ void rateInit( paramList *pList, int detj, int fluxj, double (*rateFunc)(double,
             ErkeV[i] = ErkeV[i-1] * logStep;
             
         rate[i] = rateFunc( (double)ErkeV[i], pList, detj, fluxj);	
-       //std::cout << i << " " << ErkeV[i] << std::endl;
+       //std::cout << i << " " << ErkeV[i] << " " << logStep << std::endl;
     }
     if(ErkeV[INTERP_POINTS-1] < pList->detectors[detj].ErU)
     {

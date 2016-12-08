@@ -123,10 +123,10 @@ int newDetector(paramList *pList, char *name, double exp)
 	    }
         
         //optimize ROI
-        if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 5)
+        if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 8)
         {
             std::cout << "decreasing ROI to increase SNR\n";
-            pList->detectors[pList->ndet].ErU = 4;
+            pList->detectors[pList->ndet].ErU = 12;
         }
         
 	    ret = fgets(temp,200,detsINI);
