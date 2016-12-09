@@ -392,7 +392,7 @@ void confIntVsExposure(paramList *pL)
     outfile   << "exposure   lower   upper    sigma\n";
         
     double exp = pL->detectors[detj].exposure;
-    pL->detectors[detj].exposure = 10 + 90*pL->source.isSolar[0];
+    pL->detectors[detj].exposure = 1 + 99*pL->source.isSolar[0];
     double increment = pow( exp/10, .05);
     double sigma;
     

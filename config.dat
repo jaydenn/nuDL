@@ -8,8 +8,8 @@
 5e-6               // mediator mass in GeV
 1                  //Use log/linear spaced bins (1/0)
 // Source
-SNS   1 
+TAMU  2 
 // Detector  |  Exposure (kg*days) (or starting exposure in evolution mode)
-#CsI 100000
+#GE 200000
 //Asimov data set/random Monte-Carlo (1/0)
 1
