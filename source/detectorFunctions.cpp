@@ -34,7 +34,7 @@ double detBackground(double Er, paramList *pList, int detj, int fluxj)
     switch( pList->detectors[detj].bg ) 
     {
         case 0: 
-            return 1e-99;
+            return 1e-6;
         case 1: 
             return 100.0;
 	    case 2: 
