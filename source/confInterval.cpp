@@ -153,9 +153,9 @@ double findMaxLMu(paramList *pL)
         status = gsl_multimin_fminimizer_iterate (s);
         //std::cout << "   Lmu    " << iter << "  c " << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << s->fval << " " << gsl_multimin_fminimizer_size(s) << std::endl; 
     }
-    while (iter < 900 && gsl_multimin_fminimizer_size(s)>.00001);///s->fval > 1e-2 && !status);
+    while (iter < 900 && gsl_multimin_fminimizer_size(s)>1e-6);///s->fval > 1e-2 && !status);
     if(iter==900)
-        std::cout << "non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > .00001  " <<  std::endl;
+        std::cout << "non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > 1e-6 " <<  std::endl;
     
     double Lmu = s->fval;
 
@@ -393,7 +393,7 @@ void confIntVsExposure(paramList *pL)
         
     double exp = pL->detectors[detj].exposure;
     pL->detectors[detj].exposure = 1; //+ 99*pL->source.isSolar[0];
-    double increment = pow( exp/10, .05);
+    double increment = pow( exp/10, .02);
     double sigma;
     
     while (pL->detectors[detj].exposure <= exp*increment)

@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
         return 0;
     }
     
-    //discovery limit as a function of mediator mass
+    //discovery limit as a function of threshold
     if ( mode == 7 )
     {
         discLimitVsThresh(&pList, 0);
