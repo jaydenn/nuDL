@@ -143,7 +143,7 @@ double findMaxL0(paramList *pL)
     for(int i=0; i < my_func.n; i++)
     {
         gsl_vector_set (x, i, 1.0);
-        gsl_vector_set(dx, i, .002);
+        gsl_vector_set(dx, i, .00001);
     }
     
     T = gsl_multimin_fminimizer_nmsimplex2;
@@ -155,7 +155,7 @@ double findMaxL0(paramList *pL)
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);
-        //std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
+        std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << s->fval << std::endl; 
     }
     while (iter < 800 && gsl_multimin_fminimizer_size(s)/s->fval > 1e-9 && !status);
     if(iter==800)

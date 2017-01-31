@@ -34,7 +34,7 @@ double detBackground(double Er, paramList *pList, int detj, int fluxj)
     switch( pList->detectors[detj].bg ) 
     {
         case 0: 
-            return 1e-6;
+            return 1e-4;
         case 1: 
             return 100.0;
 	    case 2: 
@@ -77,7 +77,7 @@ int newDetector(paramList *pList, char *name, double exp)
 
 		pList->detectors[pList->ndet].exposure = exp;
 
-		//read in detector configuration
+            //read in detector configuration
 	    FILE *detsINI;
 	    detsINI = fopen("detectors.ini","r");
 	    if(detsINI==NULL)
@@ -95,7 +95,7 @@ int newDetector(paramList *pList, char *name, double exp)
 	    while(strcmp(temp,name)!=0)
 	    {
 		    err = fscanf(detsINI,"%s",temp);
-		
+
 		    if(feof(detsINI))
 		    {
 			    printf("detector '%s' not found\n",name); 
@@ -103,9 +103,9 @@ int newDetector(paramList *pList, char *name, double exp)
 			    return 1;
 		    }
 	    }
-	
+
 	    sprintf( pList->detectors[pList->ndet].name, "%s", &(name[1]));
-	
+
 	    while(temp[0]!='-')
 	    {
 		    err = fscanf(detsINI,"%s",temp);
@@ -121,19 +121,19 @@ int newDetector(paramList *pList, char *name, double exp)
 		    if(strcmp(temp,"res")==0) 
 			    err=fscanf(detsINI,"%d",&(pList->detectors[pList->ndet].res));
 	    }
-        
+
         //optimize ROI
-        if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 8)
+        if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 12)
         {
             std::cout << "decreasing ROI to increase SNR\n";
             pList->detectors[pList->ndet].ErU = 12;
         }
-        
+
 	    ret = fgets(temp,200,detsINI);
 	    ret = fgets(temp,200,detsINI);
 	    ret = fgets(temp,200,detsINI);
 	    ret = fgets(temp,200,detsINI);
-	
+
 	    while(!feof(detsINI) && temp[0]!='-')
 	    {	
 		    if(pList->detectors[pList->ndet].nIso==10)
@@ -142,13 +142,13 @@ int newDetector(paramList *pList, char *name, double exp)
 			    break;
 		    }
 		    sscanf(temp,"%d %d %lf %lf %lf",&(pList->detectors[pList->ndet].isoZ[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoA[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoFrac[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoSZ[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoSN[pList->detectors[pList->ndet].nIso])); 
-			
+
 		    pList->detectors[pList->ndet].nIso++;
 		    ret = fgets(temp,200,detsINI);		   
 	    }
 	    ret = fgets(temp,200,detsINI);	
 	    ret = fgets(temp,200,detsINI);		    
-	    
+
 	    std::string comma;
         int isoj=0;
         while( temp[0]!='_' && isoj < pList->detectors[pList->ndet].nIso)
