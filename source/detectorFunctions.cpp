@@ -126,7 +126,7 @@ int newDetector(paramList *pList, char *name, double exp)
         if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 12)
         {
             std::cout << "decreasing ROI to increase SNR\n";
-            pList->detectors[pList->ndet].ErU = 12;
+            pList->detectors[pList->ndet].ErU = 10;
         }
 
 	    ret = fgets(temp,200,detsINI);

@@ -243,7 +243,7 @@ double findCoeff3sig(paramList *pL)
     dx = gsl_vector_alloc (1);
     
     gsl_vector_set (x, 0, pL->signalNorm);
-    gsl_vector_set(dx, 0, pL->signalNorm/20);
+    gsl_vector_set(dx, 0, pL->signalNorm/10);
 
     T = gsl_multimin_fminimizer_nmsimplex2;
     s = gsl_multimin_fminimizer_alloc (T, 1);
@@ -254,9 +254,9 @@ double findCoeff3sig(paramList *pL)
     {
         status = gsl_multimin_fminimizer_iterate (s);
         iter++;
-        //std::cout << iter << " " << gsl_vector_get(s->x,0)*pL->C << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
+        std::cout << iter << " " << gsl_vector_get(s->x,0)*pL->C << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
     }
-    while (iter < 100 && s->fval > .0015 && !status); //under 1% error in 4.28 sigma value
+    while (iter < 30 && s->fval > .0014 && !status); //under 1% error in 4.28 sigma value
         
     double mu = gsl_vector_get(s->x, 0);
     
@@ -264,7 +264,7 @@ double findCoeff3sig(paramList *pL)
     gsl_vector_free (x);
     gsl_vector_free (dx);
 
-    if(iter==100)
+    if(iter==30)
     {
         double approxError = sqrt(s->fval)/4.28*100;
         std::cout << "WARNING: non-convergence, sigma - 4.28 = " << s->fval << " " << approxError << "% error" << std::endl;
@@ -297,7 +297,7 @@ void discLimitVsMmed(paramList *pL, int detj)
     //determine first guess for mu, need a mu that gives BSM ~ SM
     
     first_guess_loop:
-        double mu = pL->signalNorm = 1e-5;
+        double mu = pL->signalNorm = 1e-2;
         double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
         double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
         double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
@@ -462,23 +462,25 @@ void discLimitVsThresh(paramList *pL, int detj)
     outfile.open(filename,std::ios::out);
     
     //determine first guess for mu, need a mu that gives BSM ~ SM
+    double firstGuess=0;
     first_guess_loop:
-        double mu = pL->signalNorm = 1e-6;
+        firstGuess+=1;
+        double mu = pL->signalNorm = 1e-3;
         double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
         double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
         double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
-        
-        while(fabs(BSM) < (SM+BG)/200 )
+       // std::cout << SM << " " << BSM+BG << " " << mu << std::endl;
+        /*   while(fabs(BSM) < (SM+BG)/50 )
         {
             mu*=1.02;
             BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
-            //std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
-        }
+           // std::cout << SM << " " << BG << " " << BSM << " " << mu << std::endl;
+        }*/
         
         double q = 30;
-        while(mu > 1e-5 && sqrt(q) > 4.28)
+        while(mu > 1e-15 && sqrt(q) > 4.28)
         {
-            mu*=.95;
+            mu*=.9;
             pL->signalNorm = mu;
             generateBinnedData( pL, pL->detj, 1, 0);
             q = q0( pL );
@@ -519,9 +521,17 @@ void discLimitVsThresh(paramList *pL, int detj)
             }
         }
         else
+        {
+            if(firstGuess==2)
+            {
+                pL->detectors[detj].ErL*=1.1;
+                firstGuess=0;
+            }
+            
             goto first_guess_loop;  
+        }
         
-        pL->detectors[detj].ErL*=1.1; //increment threshold
+        pL->detectors[detj].ErL*=1.05; //increment threshold
         
     }
     outfile.close();
