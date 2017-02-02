@@ -37,7 +37,7 @@ double detBackground(double Er, paramList *pList, int detj, int fluxj)
             return 1e-4;
         case 1: 
             return 100.0;
-	    case 2: 
+        case 2: 
             return 10.0;
         case 3: 
             return 1.0;
@@ -126,7 +126,7 @@ int newDetector(paramList *pList, char *name, double exp)
         if (pList->nucScat == 1 && pList->detectors[pList->ndet].ErU > 12)
         {
             std::cout << "decreasing ROI to increase SNR\n";
-            pList->detectors[pList->ndet].ErU = 10;
+            pList->detectors[pList->ndet].ErU = 2;
         }
 
 	    ret = fgets(temp,200,detsINI);

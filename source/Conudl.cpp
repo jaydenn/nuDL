@@ -12,6 +12,7 @@
 #include "calcRates.h"
 #include "confInterval.h"
 double logPoisson(double obs, double expect);
+void MCtestDisc(paramList *pList);
 
 int main(int argc, char *argv[])
 {
@@ -104,9 +105,9 @@ int main(int argc, char *argv[])
     //find confidence interval
     if ( mode == 6 )
     {
-        //MCtestConfInterval(&pList);
-        //confIntervalSM(&pList);
-        confIntVsExposure(&pList);
+        //MCtestDisc(&pList);
+        confIntervalSM(&pList);
+        //confIntVsExposure(&pList);
         return 0;
     }
     
@@ -117,6 +118,12 @@ int main(int argc, char *argv[])
         return 0;
     }
     
+    //standard model significance 
+    if ( mode == 8 )
+    {
+        SMsignificanceExp(&pList);
+        return 0;
+    }
     std::cerr << "Conudl: choose a valid mode" << std::endl;
     return 0;
 
