@@ -4,6 +4,7 @@
 #include <gsl/gsl_multimin.h>
 #include <string.h>
 #include <gsl/gsl_cdf.h>
+#include <gsl/gsl_sort_vector.h>
 #ifndef DETECTORSTRUCT_H
 	#include "detectorStruct.h"
 #endif
@@ -19,6 +20,8 @@
 #include "SMrate.h"
 #include "BSMrate.h"
 
+double TEMPBG;
+
 //global likelihood
 double Lg(const gsl_vector *v, void *params)
 {
@@ -27,7 +30,6 @@ double Lg(const gsl_vector *v, void *params)
     double l = 0;
     
     pL->signalNorm = gsl_vector_get(v, 0);
-    
     pL->detectors[pL->detj].BgNorm = fabs(gsl_vector_get(v, 1));
     l += -0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2);
     
@@ -99,7 +101,7 @@ double findMaxL(paramList *pL)
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);       
-        //std::cout << " Ll  " << iter << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << gsl_vector_get (s->x, 2) << " " <<  s->fval << " " << gsl_multimin_fminimizer_size(s) << std::endl; 
+        //std::cout << " Ll  " << iter << " s " <<  gsl_vector_get (s->x, 0) << " bg " <<  gsl_vector_get (s->x, 1) << " fx " << gsl_vector_get (s->x, 2) << " l " <<  s->fval << " size " << gsl_multimin_fminimizer_size(s) << std::endl; 
     }
     while (iter < 900 && gsl_multimin_fminimizer_size(s)>.0001); //s->fval>1e-2);
 
@@ -140,7 +142,7 @@ double findMaxLMu(paramList *pL)
     for(int i=0; i < my_func.n; i++)
     {
         gsl_vector_set (x, i, 1.0);
-        gsl_vector_set(dx, i, .01);
+        gsl_vector_set(dx, i, .05);
     }
     
     T = gsl_multimin_fminimizer_nmsimplex2;
@@ -151,7 +153,7 @@ double findMaxLMu(paramList *pL)
     {
         iter++;
         status = gsl_multimin_fminimizer_iterate (s);
-        //std::cout << "   Lmu    " << iter << "  c " << " " <<  gsl_vector_get (s->x, 0) << " " <<  gsl_vector_get (s->x, 1) << " " << s->fval << " " << gsl_multimin_fminimizer_size(s) << std::endl; 
+        //std::cout << "   Lmu    " << iter << " bg " <<  gsl_vector_get (s->x, 0) << " fx " <<  gsl_vector_get (s->x, 1) << " l  " << s->fval << " size  " << gsl_multimin_fminimizer_size(s) << std::endl; 
     }
     while (iter < 900 && gsl_multimin_fminimizer_size(s)>1e-6);///s->fval > 1e-2 && !status);
     if(iter==900)
@@ -222,10 +224,10 @@ double q0SM(paramList *pL)
     pL->signalNorm = 0;
     double maxL0 = findMaxLMu( pL );
     double maxL;
+    pL->signalNorm = 1;
     //if using asimov just set parameters to MLE
     if(pL->asimov)
     {
-        pL->signalNorm = 1;
         pL->detectors[pL->detj].BgNorm = 1;
         for(int fluxj=0; fluxj < pL->source.numFlux; fluxj++)
             pL->source.nuFluxNorm[fluxj] = 1.0;
@@ -233,9 +235,11 @@ double q0SM(paramList *pL)
     }
     else
         maxL = findMaxL( pL );
-    
+
+   //std::cout << "max " << maxL << " " << maxL0 << "\n";
+
     if( pL->signalNorm >= 0 )
-        return - 2 * ( maxL0 - maxL );  
+        return - 2 * ( maxL0 - maxL );
     else
         return 0;
 }
@@ -294,7 +298,7 @@ double *confIntervalSM(paramList *pL)
 {
     pL->detj = 0;    
     double *CI = new double[2];
-    int nEvents = generateBinnedData( pL, pL->detj, 1, 0);
+    int nEvents = generateBinnedDataSM( pL, pL->detj, 1, 0);
     
     double muUp,muDown;
     double pVal = 0;
@@ -413,8 +417,74 @@ void confIntVsExposure(paramList *pL)
         pL->detectors[detj].exposure *= increment;
     }
     outfile.close();
-
-    
 }
 
+double tempBG(double Er, paramList *pList, int detj, int fluxj)
+{
+    return TEMPBG;
+}
 
+double MCsignificance(paramList *pL, double percentile)
+{
+
+    int detj = 0;
+    double sigma = 0;
+    pL->asimov = 0;
+    int i;
+    int length = 2000;
+    
+    gsl_vector *sigmas;    
+    sigmas = gsl_vector_alloc ( length );
+    
+    
+    for (i=0; i<length; i++ )
+    {
+        pL->signalNorm = 1.0;
+        pL->detectors[detj].BgNorm = 1.0;
+        for(int fluxj=0; fluxj < pL->source.numFlux; fluxj++)
+            pL->source.nuFluxNorm[fluxj] = 1.0;
+
+        generateBinnedDataSM( pL, 0, 1, 0);
+
+        gsl_vector_set (sigmas, i, sqrt(q0SM(pL)));
+    }
+
+    //sort
+    gsl_sort_vector(sigmas);
+    
+    return gsl_vector_get(sigmas, (int) percentile*length);
+}
+
+void SMsignificanceExp(paramList *pList)
+{
+    std::ofstream outfile;
+    outfile.open("results/gridScan.dat",std::ios::out);
+
+    double sigma;
+    double stepi = exp(log(1000)/200);
+    double stepj = exp(log(100)/200);
+    double stepk = exp(log(10)/200);
+
+    for (int i=0; i<201; i++)
+    {
+        TEMPBG = 1 * pow(stepi,i);
+        rateInit( pList, 0, -1, &tempBG, pList->detectors[0].background);
+        pList->signalNorm=1;
+        generateBinnedDataSM( pList, 0, 1, 0);
+
+        for (int j=0; j<201; j++)
+        {
+            pList->source.nuFluxUn[0] = .01 * pow(stepk,j);
+            pList->detectors[0].BgUn =  .01 * pow(stepj,j);
+
+            //sigma = sqrt(q0SM(pList));
+            sigma = MCsignificance(pList, 0.1);
+            
+            std::cout << TEMPBG << " " << pList->source.nuFluxUn[0] << " " << pList->detectors[0].BgUn << " " << sigma << std::endl;
+            outfile   << sigma  << "    ";
+
+        }
+        outfile   << "\n";
+    }
+    outfile.close();
+}

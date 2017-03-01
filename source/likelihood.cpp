@@ -83,7 +83,7 @@ double logLikelihoodSM(paramList *pList)
             Er_min = Er_max; //update lower bin limit
         } 
     }
-    
+
     if( std::isinf(loglike) )
         return -1e200;
     else

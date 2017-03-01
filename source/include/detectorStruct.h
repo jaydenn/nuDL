@@ -6,7 +6,7 @@
     #include <gsl/gsl_spline.h>
 #endif
 #define DETECTORSTRUCT_H
-#define MAXBINS 100
+#define MAXBINS 20
 #define INTERP_POINTS 10000
 
 struct detector {
