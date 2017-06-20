@@ -397,10 +397,10 @@ void confIntVsExposure(paramList *pL)
         
     double exp = pL->detectors[detj].exposure;
     pL->detectors[detj].exposure = 1; //+ 99*pL->source.isSolar[0];
-    double increment = pow( exp/10, .02);
+    double increment = pow( exp/10, .04);
     double sigma;
-    
-    while (pL->detectors[detj].exposure <= exp*increment)
+
+    while (pL->detectors[detj].exposure <= exp)
     {
         pL->signalNorm = 1.0;
         pL->detectors[detj].BgNorm = 1.0;

@@ -106,8 +106,7 @@ int main(int argc, char *argv[])
     if ( mode == 6 )
     {
         //MCtestDisc(&pList);
-        confIntervalSM(&pList);
-        //confIntVsExposure(&pList);
+        confIntVsExposure(&pList);
         return 0;
     }
     
