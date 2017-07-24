@@ -37,6 +37,11 @@ int calcRates(paramList *pList)
             sprintf(BSMname,"axial");
             break;
         }
+        case 5:
+        {
+            sprintf(BSMname,"sterile");
+            break;
+        }
     }
     
     //format output streams

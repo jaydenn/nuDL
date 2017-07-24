@@ -37,6 +37,25 @@ double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj)
     
 }
 
+//returns nu scattering rate per target/day/keV with oscillations
+double nuRateOsc(double ErKeV, paramList *pList, double Mt, int fluxj)						  
+{
+
+	double ErGeV = ErKeV/GeVtoKeV;
+
+    double intConst    = fluxIntegralOsc( ErGeV, pList, Mt,  0, fluxj);
+	double intInvEnu   = fluxIntegralOsc( ErGeV, pList, Mt, -1, fluxj);
+	double intInvEnuSq = fluxIntegralOsc( ErGeV, pList, Mt, -2, fluxj);
+
+    return pow(GFERMI,2) / ( 2 * M_PI ) * Mt / GeVtoKeV * secsPerDay
+	        * ( 
+		          intConst	  * 2*( pow(pList->qA,2) + pow(pList->qV,2) )
+		        - intInvEnu	  * 2*ErGeV*pow(pList->qA-pList->qV,2) 
+		        + intInvEnuSq * ( ErGeV*ErGeV*pow(pList->qA - pList->qV,2) + ErGeV*Mt*(pow(pList->qA,2) - pow(pList->qV,2)) )
+	          ); 
+    
+}
+
 void rateInit( paramList *pList, int detj, int fluxj, double (*rateFunc)(double, paramList *, int, int), gsl_spline *rateSpline)
 {
     double ErkeV[INTERP_POINTS];

@@ -11,6 +11,7 @@
 #include "exclusionLimit.h"
 #include "calcRates.h"
 #include "confInterval.h"
+#include "sterileOscillation.h"
 double logPoisson(double obs, double expect);
 void MCtestDisc(paramList *pList);
 
@@ -123,7 +124,13 @@ int main(int argc, char *argv[])
         SMsignificanceExp(&pList);
         return 0;
     }
+
+    //sterile sensitivity mode
+    if ( mode == 9 )
+    {
+        sterileOscillation(&pList);
+        return 0;
+    }
     std::cerr << "Conudl: choose a valid mode" << std::endl;
     return 0;
-
 }
