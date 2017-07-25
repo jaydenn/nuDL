@@ -31,8 +31,8 @@ double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj)
     return pow(GFERMI,2) / ( 2 * M_PI ) * Mt / GeVtoKeV * secsPerDay
 	        * ( 
 		          intConst	  * 2*( pow(pList->qA,2) + pow(pList->qV,2) )
-		        - intInvEnu	  * 2*ErGeV*pow(pList->qA-pList->qV,2) 
-		        + intInvEnuSq * ( ErGeV*ErGeV*pow(pList->qA - pList->qV,2) + ErGeV*Mt*(pow(pList->qA,2) - pow(pList->qV,2)) )
+		        - intInvEnu	  * 2*ErGeV*( pow(pList->qA,2)-2*elecScat*pList->qA*pList->qV + pow(pList->qV,2) ) 
+		        + intInvEnuSq * ( ErGeV*ErGeV*( pow(pList->qA,2)-2*elecScat*pList->qA*pList->qV + pow(pList->qV,2) ) + ErGeV*Mt*(pow(pList->qA,2) - pow(pList->qV,2)) )
 	          ); 
     
 }
