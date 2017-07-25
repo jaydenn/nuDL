@@ -7,3 +7,5 @@ int nuFluxInit(paramList *pList, std::string sourceName);
 double nuFlux(double Enu, paramList *pList, int fluxj);
 
 double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow, int fluxj);
+
+double fluxIntegralOsc(double ErGeV,  paramList *pList, double Mt, int EnuPow, int fluxj);

@@ -61,6 +61,8 @@ struct paramList {
 	int elecScat;
     int mediator;
     double mMed;
+    double delMsqGeV;
+    double ss2Theta14;
     
     double maxL; 
     int asimov;

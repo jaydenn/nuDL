@@ -6,6 +6,7 @@
 #include <iomanip>
 #include "SMrate.h"
 #include "BSMrate.h"
+#include "sterileRate.h"
 #ifndef PARAMETERSTRUCT_H
     #include "parameterStruct.h"
 #endif
@@ -164,6 +165,83 @@ int generateBinnedDataSM(paramList *pList, int detj, int b, int simSeed)
             pList->detectors[detj].binnedData[i] = gsl_ran_poisson(r, pList->detectors[detj].exposure *( ranFlux*SM + ranBG*BG ));                       
 
        // std::cout << " MC" << i << " " << Er_min << ": bg " << BG <<  " sm " << SM << " obs " << pList->detectors[detj].binnedData[i]<< std::endl;           
+        pList->detectors[detj].nEvents += pList->detectors[detj].binnedData[i];
+
+        Er_min = Er_max; //update lower bin limit
+    }
+
+    return total*pList->detectors[detj].exposure;
+     
+}
+
+
+int generateBinnedDataSterile(paramList *pList, int detj, int b, int simSeed)
+{
+
+    double Er_min, Er_max;
+    const gsl_rng_type * T;
+    gsl_rng * r;
+    gsl_rng_env_setup();
+    T=gsl_rng_default;
+    r=gsl_rng_alloc(T);
+    gsl_rng_set(r, simSeed + SEED++);
+    pList->detectors[detj].nEvents = 0;
+
+    //total standard model and background rates
+    double total, SM, BG;
+
+    SM = intSterileRate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj);
+    BG = pList->detectors[detj].BgNorm * b * intBgRate(pList->detectors[detj], pList->detectors[detj].ErL, pList->detectors[detj].ErU);     
+    total = SM+BG;
+    //std::cout << "MC: " << SM << " " << BG << " " << BSM << std::endl;
+
+    //setup bins ~somewhat arbitrary choice of number of bins.. seems to work for exponential data
+    if(total > 0)
+        pList->detectors[detj].nbins = floor( sqrt(  pList->detectors[detj].exposure * total ) ) + 2;
+    else
+        pList->detectors[detj].nbins = 1;
+
+    if (pList->detectors[detj].nbins > pList->maxBins)
+        pList->detectors[detj].nbins = pList->maxBins;
+
+    try
+    {
+        pList->detectors[detj].binnedData = new double[pList->detectors[detj].nbins];
+    }
+    catch (std::bad_alloc& ba)
+    {
+      std::cerr << "bad_alloc caught: " << ba.what() << std::endl << "you requested: " << pList->detectors[detj].nbins << " doubles" <<std::endl;
+      return 1;
+    }
+
+    Er_min = pList->detectors[detj].ErL;    
+    double logBinW = ( log10( pList->detectors[detj].ErU ) - log10 (pList->detectors[detj].ErL ) ) / ( (double) pList->detectors[detj].nbins);
+    
+    double ranBG,ranFlux;
+    if( pList->asimov == 0) 
+    {
+        ranFlux= 1+gsl_ran_gaussian(r, pList->source.nuFluxUn[0]);
+        ranBG  = 1+gsl_ran_gaussian(r, pList->detectors[detj].BgUn);
+    }
+    for(int i=0; i<pList->detectors[detj].nbins; i++)
+    {
+        
+        if(pList->logBins==1)
+            pList->detectors[detj].binW[i] = pow(10, log10(Er_min) + logBinW) - Er_min;
+        else
+            pList->detectors[detj].binW[i] = ( pList->detectors[detj].ErU - pList->detectors[detj].ErL ) / ( (double) pList->detectors[detj].nbins);
+
+        Er_max = Er_min + pList->detectors[detj].binW[i];
+
+        SM  = intSterileRate( Er_min, Er_max, pList, detj); 
+        BG  = pList->detectors[detj].BgNorm * b * intBgRate(pList->detectors[detj], Er_min, Er_max) ;
+
+        if( pList->asimov == 1) 
+            pList->detectors[detj].binnedData[i] = pList->detectors[detj].exposure * ( SM + BG );
+        else
+            pList->detectors[detj].binnedData[i] = gsl_ran_poisson(r, pList->detectors[detj].exposure *( ranFlux*SM + ranBG*BG ));                       
+
+        //std::cout << " MC" << i << " " << Er_min << ": bg " << BG <<  " sm " << SM << " obs " << pList->detectors[detj].binnedData[i]<< std::endl;           
         pList->detectors[detj].nEvents += pList->detectors[detj].binnedData[i];
 
         Er_min = Er_max; //update lower bin limit

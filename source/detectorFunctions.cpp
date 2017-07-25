@@ -42,7 +42,7 @@ double detBackground(double Er, paramList *pList, int detj, int fluxj)
         case 3: 
             return 1.0;
         case 4: 
-            return 0.01;
+            return 0.001;
         default:
             printf("invalid detector background\n"); 
             return NAN; 
