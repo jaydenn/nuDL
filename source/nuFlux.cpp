@@ -11,7 +11,7 @@
 #endif  
 
 const double HBARC = 1.975e-14; //GeV*cm
-const double GEVMETER = HBARC/100; //GeVcm
+const double GEVMETER = HBARC/100.0; //GeVcm
 double FIRSTEVALCNS = 0;
 
 gsl_integration_workspace * W;

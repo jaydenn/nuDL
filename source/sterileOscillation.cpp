@@ -19,6 +19,7 @@
 #include "nuRate.h"
 #include "sterileRate.h"
 #include "SMrate.h"
+#include <gsl/gsl_errno.h>
 
 double my_LS_sterile(const gsl_vector *v, void *params)
 {
@@ -281,14 +282,17 @@ void sterileOscillation(paramList *pList)
     outfile.open("results/sterile.dat",std::ios::out);
     outfile   << "delMsq (GeV)  ss2Theta14  significance \n";
     
-    pList->delMsqGeV = 1e-19;
+    //dont do this
+    gsl_set_error_handler_off();
+    
+    pList->delMsqGeV = 9e-20;
     double q0;    
     //scan mass diff and find theta14 that gives 3sigma
-    while (pList->delMsqGeV<1e-17)
+    while (pList->delMsqGeV<1.3e-17)
     {
         //findCoeff3sig_sterile(pList);
-        pList->ss2Theta14 = 0.01;
-        while (pList->ss2Theta14<1)
+        pList->ss2Theta14 = 0.1;
+        while (pList->ss2Theta14<1.28)
         {
             rateInit( pList, 0, 0, &sterileRate, pList->detectors[0].signalBSM1[0]);
             generateBinnedDataSterile( pList, 0, 1, 1);

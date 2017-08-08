@@ -21,6 +21,11 @@ const double MN = 0.9383; //mass of nucleon in GeV
 const double ME = 0.000510998; //mass of electron in GeV
 const double SSW = 0.2387; //sin^2(theta_w)
 
+const double GVP = 0.0142444;//SM vector proton coupling
+const double GVN = -0.512213;//SM vector neutron coupling
+const double GAP = 0.61689;  //SM axial proton coupling
+const double GAN = -0.598426;//SM axial neutron coupling
+
 //returns simplified model light mediator rate per electron/day/keV
 double BSMrateE(double ErKeV, paramList *pList, double Mt, int fluxj)						  
 {
@@ -166,8 +171,8 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
         targetsPerKG = GeVperKG/(MN*pList->detectors[detj].isoA[i]); //how many targets per kg of detector
     	if(pList->nucScat)
     	{
-    	    pList->Qa = pList->detectors[detj].isoSN[i]*(-0.427*-0.501163+0.842*0.506875) + pList->detectors[detj].isoSZ[i]*(-0.427*0.506875+0.842*-0.501163);	 
-		    pList->Qv = ( (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) - (1-4*SSW)*pList->detectors[detj].isoZ[i])  * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
+    	    pList->Qa = pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP;	 
+		    pList->Qv = ( GVN * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + GVP * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
 		    pList->Qs = ((pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) * pList->qNs + pList->detectors[detj].isoZ[i] * pList->qPs ) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);
 		    pList->Qvp = ((pList->detectors[detj].isoA[i]-pList->detectors[detj].isoZ[i]) * pList->qNv + pList->detectors[detj].isoZ[i] * pList->qPv) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);
 		    pList->Qap = pList->detectors[detj].isoSN[i] * pList->qNa + pList->detectors[detj].isoSZ[i] * pList->qPa;
@@ -233,48 +238,6 @@ double aBSMrate(double ErKeV, paramList *pList, int detj)
 	}
 	   
 	return rate; 
-}
-
-double E6rate(double ErKeV, paramList *pList, int detj)
-{
-	double rate = 0;
-	paramList pListBSM = *pList;
-   
-    double Mzp = 1e3; //GeV)
-    if(pList->BSM == 1)
-    {
-        pListBSM.qVu=0.191004;
-        pListBSM.qVd=-0.351608-1939.0/pow(Mzp,2);
-        pListBSM.qAu=-0.501163+969.5/pow(Mzp,2);
-        pListBSM.qAd=0.506875-969.5/pow(Mzp,2);
-    }
-    else
-    {
-        pListBSM.qVu=0;
-        pListBSM.qVd=0;
-        pListBSM.qAu=0;
-        pListBSM.qAd=0;
-    }
-	//nucleon axial charges
-	pListBSM.qAp =  0.842*pListBSM.qAu-0.427*pListBSM.qAd;
-	pListBSM.qAn = -0.427*pListBSM.qAu+0.842*pListBSM.qAd;
-	
-	//nucleon vector charges
-	pListBSM.qVp = 2*pListBSM.qVu + pListBSM.qVd;
-	pListBSM.qVn = pListBSM.qVu + 2*pListBSM.qVd;
-
-	//weighted sum over different isotopes
-	for(int i=0;i<pList->detectors[detj].nIso;i++)
-	{
-		//nuclei charges
-		pListBSM.qA = pListBSM.qAn * pList->detectors[detj].isoSN[i] + pListBSM.qAp * pList->detectors[detj].isoSZ[i];	
-		pListBSM.qV = ( pListBSM.qVn * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + pListBSM.qVp * pList->detectors[detj].isoZ[i] ) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	   
-	   
-		rate += pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListBSM, MN*pList->detectors[detj].isoA[i]);
-	}
-
-	return rate; 
-	
 }
 */
 

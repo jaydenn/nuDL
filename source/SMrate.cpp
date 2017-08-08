@@ -12,13 +12,18 @@
 	#include "parameterStruct.h"
 #endif	
 
-const double MN = 0.9383; //mass of nucleon in GeV
-const double ME = 0.000510998; //mass of electron in GeV
-const double GeVperKG = 5.6094e26;
-const double SSW = 0.2387; //sin^2(theta_w)
+const double MN = 0.9383;          //mass of nucleon in GeV
+const double ME = 0.000510998;     //mass of electron in GeV
+const double GeVperKG = 5.6094e26; //conversion of GeV to kg
+const double SSW = 0.2387;         //sin^2(theta_w)
+
+const double GVP = 0.0142444;//SM vector proton coupling
+const double GVN = -0.512213;//SM vector neutron coupling
+const double GAP = 0.61689;  //SM axial proton coupling
+const double GAN = -0.598426;//SM axial neutron coupling
 
 //returns SM rate per kg/year/keV for the jth flux
-double SMrate(double ErKeV, paramList *pList, int detj, int fluxj)							  
+double SMrate(double ErKeV, paramList *pList, int detj, int fluxj)				  
 {
     
 	double rate = 0;
@@ -31,8 +36,8 @@ double SMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 		
     	//if(pList->nucScat)
 	    {
-	        pListSM.qA = pList->detectors[detj].isoSN[i]*(-0.427*-0.501163+0.842*0.506875) + pList->detectors[detj].isoSZ[i]*(-0.427*0.506875+0.842*-0.501163);	 
-		    pListSM.qV = (- 0.512213 * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + (1-4*SSW)*pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
+	        pListSM.qA = pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP;	 
+		    pListSM.qV = ( GVN * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + GVP * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
 		    rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i], fluxj);
 	    }	
 	    //if(pList->elecScat)
