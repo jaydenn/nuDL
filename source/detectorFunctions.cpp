@@ -19,8 +19,8 @@ double detEff(double Er, int type)
     {
         case 0: 
             return 1;
-        case 1: 
-            return .5;
+        case 1:
+            return 0.331*(1+erf(0.248*(Er-9.22))); //SNS
         default:
             printf("invalid detector efficiency\n"); 
             return NAN;
