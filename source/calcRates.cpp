@@ -61,7 +61,7 @@ int calcRates(paramList *pList)
             sprintf(filename,"%s%sRateE_%s_%c%c_m%dkeV.dat", pList->root, BSMname, pList->detectors[detj].name, pList->source.name[0], pList->source.name[1], masskeV);
         outfile.open(filename,std::ios::out);
         
-        if(outfile==NULL)
+        if( !outfile )
         {
             std::cout << "output file could not be created (try creating the directory \'results\'" << std::endl;
             return 1;
@@ -146,7 +146,7 @@ int calcRatesThreshold(paramList *pList)
             sprintf(filename,"%s%sRateThE_%s_%c%c_m%dkeV.dat", pList->root, BSMname, pList->detectors[detj].name, pList->source.name[0], pList->source.name[1], masskeV);
         outfile.open(filename,std::ios::out);
         
-        if(outfile==NULL)
+        if( !outfile )
         {
             std::cout << "output file could not be created (try creating the directory \'results\'" << std::endl;
             return 1;
