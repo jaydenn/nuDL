@@ -5,6 +5,7 @@
 #endif
 #include "formFactorSI.h"
 #include "nuRate.h"
+#include "detectorFunctions.h"
 #ifndef DETECTORSTRUCT_H
 	#include "detectorStruct.h"
 #endif
@@ -67,7 +68,7 @@ double SMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 		
     }
     
-	return rate; 
+	return rate*detEff(ErKeV,pList->detectors[detj].eff); 
 }
 
 //below are functions for total rate of all fluxes

@@ -6,6 +6,7 @@
 #include "formFactorSI.h"
 #include "nuRate.h"
 #include "nuFlux.h"
+#include "detectorFunctions.h"
 #ifndef DETECTORSTRUCT_H
 	#include "detectorStruct.h"
 #endif
@@ -207,39 +208,10 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 	
 		}
 	}	
-   // if (rate < 0)
-   //     std::cout << "neg rate\n";
-	return rate;
+
+	return rate*detEff(ErKeV,pList->detectors[detj].eff);
 }   
 
-/*
-//template BSM rate
-double aBSMrate(double ErKeV, paramList *pList, int detj)
-{
-	double rate = 0;
-	paramList pListBSM = *pList;
-   
-	//nucleon axial charges
-	pListBSM.qAp = 0;
-	pListBSM.qAn = 0;
-	
-	//nucleon vector charges
-	pListBSM.qVp = 2*pListBSM.qVu + pListBSM.qVd;
-	pListBSM.qVn = pListBSM.qVu + 2*pListBSM.qVd;
-	
-	//weighted sum over different isotopes
-	for(int i=0;i<pList->detectors[detj].nIso;i++)
-	{
-		//nuclei charges
-		pListBSM.qA = pListBSM.qAn * pList->detectors[detj].isoSN[i] + pListBSM.qAp * pList->detectors[detj].isoSZ[i];	
-		pListBSM.qV = ( pListBSM.qVn * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + pListBSM.qVp * pList->detectors[detj].isoZ[i] ) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	   
-	   
-		rate += pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListBSM, MN*pList->detectors[detj].isoA[i]);
-	}
-	   
-	return rate; 
-}
-*/
 
 double diffBSMrate(double ErkeV, paramList *pList, int detj, double signalNorm)						  
 {   
