@@ -20,6 +20,7 @@ struct detector {
     double isoFrac[10];
     double isoSZ[10];
     double isoSN[10];
+    double isoJN[10];
     double ErL;
     double ErU;
     

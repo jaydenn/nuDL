@@ -171,11 +171,11 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
         targetsPerKG = GeVperKG/(MN*pList->detectors[detj].isoA[i]); //how many targets per kg of detector
     	if(pList->nucScat)
     	{
-    	    pList->Qa = pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP;	 
+    	    pList->Qa = 4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );	 
 		    pList->Qv = ( GVN * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + GVP * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
 		    pList->Qs = ((pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) * pList->qNs + pList->detectors[detj].isoZ[i] * pList->qPs ) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);
 		    pList->Qvp = ((pList->detectors[detj].isoA[i]-pList->detectors[detj].isoZ[i]) * pList->qNv + pList->detectors[detj].isoZ[i] * pList->qPv) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);
-		    pList->Qap = pList->detectors[detj].isoSN[i] * pList->qNa + pList->detectors[detj].isoSZ[i] * pList->qPa;
+		    pList->Qap = 4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i] * pList->qNa + pList->detectors[detj].isoSZ[i] * pList->qPa );
             
 		    rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateN( ErKeV, pList, MN*pList->detectors[detj].isoA[i], fluxj);
 	    }
