@@ -143,7 +143,7 @@ int newDetector(paramList *pList, char *name, double exp)
 			    std::cout << "already at max number of isotopes (10)" << std::endl;
 			    break;
 		    }
-		    sscanf(temp,"%d %d %lf %lf %lf",&(pList->detectors[pList->ndet].isoZ[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoA[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoFrac[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoSZ[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoSN[pList->detectors[pList->ndet].nIso])); 
+		    sscanf(temp,"%d %d %lf %lf %lf %lf",&(pList->detectors[pList->ndet].isoZ[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoA[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoFrac[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoSZ[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoSN[pList->detectors[pList->ndet].nIso]),&(pList->detectors[pList->ndet].isoJN[pList->detectors[pList->ndet].nIso])); 
 
 		    pList->detectors[pList->ndet].nIso++;
 		    ret = fgets(temp,200,detsINI);		   

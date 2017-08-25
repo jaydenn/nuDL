@@ -37,7 +37,7 @@ double SMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 		
     	//if(pList->nucScat)
 	    {
-	        pListSM.qA = pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP;	 
+	        pListSM.qA = 4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );	 
 		    pListSM.qV = ( GVN * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + GVP * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
 		    rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i], fluxj);
 	    }	
@@ -72,8 +72,7 @@ double SMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 }
 
 //below are functions for total rate of all fluxes
-
-double diffSMrate(double ErkeV, paramList *pList, int detj)						  
+double diffSMrate(double ErkeV, paramList *pList, int detj)			  
 {   
     double rate=1e-99;
     for(int i=0; i< pList->source.numFlux; i++)
