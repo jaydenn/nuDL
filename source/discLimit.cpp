@@ -254,7 +254,7 @@ double findCoeff3sig(paramList *pL)
     {
         status = gsl_multimin_fminimizer_iterate (s);
         iter++;
-        std::cout << iter << " " << gsl_vector_get(s->x,0)*pL->C << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
+        //std::cout << iter << " " << gsl_vector_get(s->x,0)*pL->C << ", q' = " << s->fval << ", size " << gsl_multimin_fminimizer_size(s) << std::endl;
     }
     while (iter < 30 && s->fval > .0014 && !status); //under 1% error in 4.28 sigma value
         
@@ -297,7 +297,7 @@ void discLimitVsMmed(paramList *pL, int detj)
     //determine first guess for mu, need a mu that gives BSM ~ SM
     
     first_guess_loop:
-        double mu = pL->signalNorm = 1e-2;
+        double mu = pL->signalNorm = 1e-6;
         double BSM = intBSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj, mu);
         double BG  = intBgRate(pL->detectors[detj], pL->detectors[detj].ErL, pL->detectors[detj].ErU);         
         double SM  = intSMrate( pL->detectors[detj].ErL, pL->detectors[detj].ErU, pL, detj);
