@@ -63,7 +63,7 @@ int calcRates(paramList *pList)
         
         if( !outfile )
         {
-            std::cout << "output file could not be created (try creating the directory \'results\'" << std::endl;
+            std::cout << "output file could not be created (does the directory in specified root path exist?" << std::endl;
             return 1;
         }
         

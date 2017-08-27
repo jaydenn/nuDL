@@ -197,7 +197,7 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 	        }
 		    else
 		    {
-		        //only include if doing reactor neutrinos
+		        //only include if doing reactor neutrinos (anti-neutrino channel)
 		        if(pList->source.isSolar[0] == 0)
 		        {
 		            pList->qA = -0.5;
