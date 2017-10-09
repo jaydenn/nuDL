@@ -22,7 +22,7 @@ const double MN = 0.9383; //mass of nucleon in GeV
 const double ME = 0.000510998; //mass of electron in GeV
 const double SSW = 0.2387; //sin^2(theta_w)
 
-const double GVP = 0.0142444;//SM vector proton coupling
+const double GVP = 0.01530;//SM vector proton coupling
 const double GVN = -0.512213;//SM vector neutron coupling
 const double GAP = 0.61689;  //SM axial proton coupling
 const double GAN = -0.598426;//SM axial neutron coupling
@@ -134,6 +134,8 @@ double BSMrateN(double ErKeV, paramList *pList, double Mt, int fluxj)
         //vector
         case 3:
         {
+                    std::cout << Qv << " " << - Qvp / (2*sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
+	                     * ( 2*intConst - intInvEnuSq * ErGeV * Mt ) << std::endl;
             return convFactor * ( 
                      - pList->SMinterference1 * GFERMI*Mt*Qv*Qvp / (2*sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
 	                     * ( 2*intConst - intInvEnuSq * ErGeV * Mt ) 
@@ -173,7 +175,8 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
     	if(pList->nucScat)
     	{
     	    pList->Qa = 4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );	 
-		    pList->Qv = ( GVN * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + GVP * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
+		    pList->Qv = ( GVN * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + GVP * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);
+		    std::cout << pList->Qv << std::endl;	 
 		    pList->Qs = ((pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) * pList->qNs + pList->detectors[detj].isoZ[i] * pList->qPs ) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);
 		    pList->Qvp = ((pList->detectors[detj].isoA[i]-pList->detectors[detj].isoZ[i]) * pList->qNv + pList->detectors[detj].isoZ[i] * pList->qPv) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);
 		    pList->Qap = 4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i] * pList->qNa + pList->detectors[detj].isoSZ[i] * pList->qPa );
