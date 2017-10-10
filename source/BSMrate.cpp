@@ -134,8 +134,6 @@ double BSMrateN(double ErKeV, paramList *pList, double Mt, int fluxj)
         //vector
         case 3:
         {
-                    std::cout << Qv << " " << - Qvp / (2*sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
-	                     * ( 2*intConst - intInvEnuSq * ErGeV * Mt ) << std::endl;
             return convFactor * ( 
                      - pList->SMinterference1 * GFERMI*Mt*Qv*Qvp / (2*sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
 	                     * ( 2*intConst - intInvEnuSq * ErGeV * Mt ) 
