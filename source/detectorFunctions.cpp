@@ -164,7 +164,6 @@ int newDetector(paramList *pList, char *name, double exp)
 	        while( std::getline(ionizations,comma,',') )
             {
 	            pList->detectors[pList->ndet].ionization[isoj][i++] = atof(comma.c_str());
-std::cout << i << " " <<  pList->detectors[pList->ndet].ionization[isoj][i-1] << std::endl;
             }
 	        isoj++;
    	        ret = fgets(temp,500,detsINI);	
