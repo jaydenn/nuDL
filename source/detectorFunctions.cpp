@@ -88,11 +88,11 @@ int newDetector(paramList *pList, char *name, double exp)
 		    return 1;
 	    }
 
-	    char temp[200];
+	    char temp[500];
 	    char *ret;
 	    int err;
 
-	    ret = fgets(temp,200,detsINI);
+	    ret = fgets(temp,500,detsINI);
 
 	    while(strcmp(temp,name)!=0)
 	    {
@@ -131,10 +131,10 @@ int newDetector(paramList *pList, char *name, double exp)
         //    pList->detectors[pList->ndet].ErU = 2;
         //}
 
-	    ret = fgets(temp,200,detsINI);
-	    ret = fgets(temp,200,detsINI);
-	    ret = fgets(temp,200,detsINI);
-	    ret = fgets(temp,200,detsINI);
+	    ret = fgets(temp,500,detsINI);
+	    ret = fgets(temp,500,detsINI);
+	    ret = fgets(temp,500,detsINI);
+	    ret = fgets(temp,500,detsINI);
 
 	    while(!feof(detsINI) && temp[0]!='-')
 	    {	
@@ -149,10 +149,10 @@ int newDetector(paramList *pList, char *name, double exp)
                 pList->detectors[pList->ndet].isoJN[pList->detectors[pList->ndet].nIso] = 1e-99;
             
 		    pList->detectors[pList->ndet].nIso++;
-		    ret = fgets(temp,200,detsINI);		   
+		    ret = fgets(temp,500,detsINI);		   
 	    }
-	    ret = fgets(temp,200,detsINI);	
-	    ret = fgets(temp,200,detsINI);		    
+	    ret = fgets(temp,500,detsINI);	
+	    ret = fgets(temp,500,detsINI);		    
 
 	    std::string comma;
         int isoj=0;
@@ -162,22 +162,27 @@ int newDetector(paramList *pList, char *name, double exp)
 	        std::istringstream ionizations(temp);
 
 	        while( std::getline(ionizations,comma,',') )
+            {
 	            pList->detectors[pList->ndet].ionization[isoj][i++] = atof(comma.c_str());
-
+std::cout << i << " " <<  pList->detectors[pList->ndet].ionization[isoj][i-1] << std::endl;
+            }
 	        isoj++;
-   	        ret = fgets(temp,200,detsINI);	
+   	        ret = fgets(temp,500,detsINI);	
         }   
-        if(isoj > 1 && isoj != pList->detectors[pList->ndet].nIso)
+
+        while (isoj < pList->detectors[pList->ndet].nIso)
         {
-	        std::cout << isoj << "Ionizations not listed for each isotope, aborting\n";
-	        return 1;
-        }
-        else if(isoj==1)
-        {
-            std::cout << "Ionizations will be duplicated for each isotope\n";
-            
-            for(int j=1; j<pList->detectors[pList->ndet].nIso; j++)
-                 pList->detectors[pList->ndet].ionization[j] = pList->detectors[pList->ndet].ionization[0];
+            if(pList->detectors[pList->ndet].isoZ[isoj] == pList->detectors[pList->ndet].isoZ[0])
+            {
+                std::cout << "Ionizations will be duplicated for isotope " << isoj << "\n";
+                pList->detectors[pList->ndet].ionization[isoj] = pList->detectors[pList->ndet].ionization[0];
+            }
+            else
+            {	            
+                std::cout << isoj << "Ionizations not listed for each isotope, aborting\n";
+                return 1;
+            }
+            isoj++;
         }
         
 	    //finished reading in det data		 
