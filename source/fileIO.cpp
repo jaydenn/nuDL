@@ -26,7 +26,7 @@ int readConfigFile(paramList *pL, char *filename)
     input = fopen(filename,"r");
     if(input==NULL) 
     {
-        printf("unable to open parameter file: %s\n",filename);
+        std::cout << "unable to open parameter file: " << filename << std::endl;
         return -1;	
     }
   
@@ -59,7 +59,12 @@ int readConfigFile(paramList *pL, char *filename)
         return -1;
     }
     
+    //log or linear spaced bins?
+    ret = fgets(temp,200,input);
+    sscanf(temp,"%d",&(pL->logBins));
+    
     //which BSM model to consider
+    ret = fgets(temp,200,input);
     ret = fgets(temp,200,input);
     sscanf(temp,"%d",&(pL->BSM));
     
@@ -179,10 +184,6 @@ int readConfigFile(paramList *pL, char *filename)
     //mediator mass
     ret = fgets(temp,200,input);
     sscanf(temp,"%lf",&(pL->mMed));
-    
-    //log or linear spaced bins?
-    ret = fgets(temp,200,input);
-    sscanf(temp,"%d",&(pL->logBins));
     
     //initialize source
     ret = fgets(temp,200,input);

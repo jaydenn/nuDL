@@ -40,7 +40,9 @@ int nuFluxInit(paramList *pL, std::string sourceName)
     int fluxj=0;
     double fluxE,fluxN,lineEnergy;
     std::string plusMinus = "+/-";
+    std::string flavor;
     std::getline(sourceFile, line);
+    
     while( line[0] != '-' && fluxj < 10 && !sourceFile.eof())
     {
         
@@ -49,7 +51,7 @@ int nuFluxInit(paramList *pL, std::string sourceName)
         if(line.compare(0,4,"line")==0)
         {
             
-            if(!( lineStream >> fluxFile >> lineEnergy >> pL->source.nuFlux[fluxj] >> plusMinus >> pL->source.nuFluxUn[fluxj] ))
+            if(!( lineStream >> fluxFile >> lineEnergy >> flavor >> pL->source.nuFlux[fluxj] >> plusMinus >> pL->source.nuFluxUn[fluxj] ))
             {
                 std::cout << "error parsing source data (line)\n";
                 return -1;
@@ -63,7 +65,7 @@ int nuFluxInit(paramList *pL, std::string sourceName)
         else
         {
 
-            if(!( lineStream >> fluxFile >> pL->source.nuFlux[fluxj] >> plusMinus >> pL->source.nuFluxUn[fluxj] ))
+            if(!( lineStream >> fluxFile >> flavor >> pL->source.nuFlux[fluxj] >> plusMinus >> pL->source.nuFluxUn[fluxj] ))
             {
                 std::cout << " error parsing source data\n";
                 return -1;
@@ -120,7 +122,26 @@ int nuFluxInit(paramList *pL, std::string sourceName)
                 std::cout << "ERROR: flux data in " << fluxFile << " is not properly normalized N = " << norm << std::endl;
                 return -1;
             }
-        }        
+        }
+        
+        if( flavor == "e" )
+            pL->source.nuFluxFlav[fluxj] = 1;
+        else if( flavor == "ebar")
+            pL->source.nuFluxFlav[fluxj] = -1;
+        else if( flavor == "mu" )
+            pL->source.nuFluxFlav[fluxj] = 2;
+        else if( flavor == "mubar" )
+            pL->source.nuFluxFlav[fluxj] = -2;
+        else if( flavor == "tau" )
+            pL->source.nuFluxFlav[fluxj] = 3;
+        else if( flavor == "taubar" )
+            pL->source.nuFluxFlav[fluxj] = -3;
+        else
+        {
+            std::cout << "flavor of neutrino flux not recognized\n";
+            return -1;
+        }
+        
         fluxj++;
         std::getline(sourceFile, line);
 

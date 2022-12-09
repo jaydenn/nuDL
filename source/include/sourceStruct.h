@@ -17,15 +17,29 @@ struct sourceStruct {
     double nuFlux[10];
     double nuFluxUn[10];
     double nuFluxNorm[10];
+    int    nuFluxFlav[10];
     
     double *flux_E[10];
     double *flux_N[10];
     int flux_points[10];
+    double EnuMin[10];
     double EnuMax[10];
     
     gsl_interp *nuFluxInterp[10];
 	gsl_interp_accel *nuFluxAccel[10];
 	
+    void printSourceSpecs()
+	{
+	    printf("Source: %s\n",name);
+   	    printf("  %d component fluxes\n",numFlux);
+   	    for(int i=0;i<numFlux;i++)
+   	    {
+   	        printf("    %E +/- %1.2f %d\n", nuFlux[i], nuFluxUn[i], (int)nuFluxFlav[i]);
+   	        printf("    Emin=%1.2f, Emax=%1.2f GeV\n", EnuMin[i], EnuMax[i]);
+   	    }
+	}
+	
+    
 	sourceStruct()
 	{
 	    distance=1;
