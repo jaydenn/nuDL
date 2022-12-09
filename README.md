@@ -1,7 +1,7 @@
-# Conudl v1.0
+# nuDL v1.0
 > July 2016
 
-Conudl is a tool for the calculation of coherent neutrino-nucleus scattering rates and derivation of discovery limits on BSM physics.
+nuDL is a tool for the calculation of coherent neutrino-nucleus scattering rates and derivation of discovery limits on BSM physics.
 
 ## Install
 Dependancies:
@@ -19,31 +19,31 @@ git
 
 Either download the code from GitHub and extract it from the archive, or clone the git repository by typing:
 ```
-git clone https://github.com/jaydenn/Conudl.git
+git clone https://github.com/jaydenn/nuDL.git
 ```
 future updates can be obtained by typing:
 ```
 git pull origin master
 ```
-Once GSL is installed you can build Conudl by typing 'make' in the main directory.
+Once GSL is installed you can build nuDL by typing 'make' in the main directory.
 
-## Running Conudl
-There are two ways to run Conudl:
+## Running nuDL
+There are two ways to run nuDL:
 1. Run in interactive mode by typing
 ```
-./Conudl -i
+./nuDL -i
 ```
 In this mode the program will ask you questions about what you would like it to compute.
     
 2. Run in config file mode by typing
 ```
-./Conudl
+./nuDL
 ```
 or
 ```
-./Conudl -c configFile.dat
+./nuDL -c configFile.dat
 ```
-In this mode the program will compute based on information specified in the configuration file. Typing "./Conudl" runs with the default config.dat file. Alternatively you can use the -c flag to specify your own configuration file (useful for running batch jobs), see the config.dat file for the required format.
+In this mode the program will compute based on information specified in the configuration file. Typing "./nuDL" runs with the default config.dat file. Alternatively you can use the -c flag to specify your own configuration file (useful for running batch jobs), see the config.dat file for the required format.
 
 ## Output files
 The output files will be placed in the location specified by the root variable, the default is `./results/CN_`. All output files will then by found in the results directory with filenames prepended by CN_
