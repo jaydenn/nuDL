@@ -11,12 +11,7 @@
 	#include "parameterStruct.h"
 #endif	
 
-const double GFERMI = 1.1664e-5; //GeV^-2
-const double HBAR	= 6.5821e-25; //GeV*s
-const double GeVtoKeV = 1e6;
-const double secsPerDay = 24*60*60; 
-const double MN = 0.9383; //mass of nucleon in GeV
-const double ME = 0.000510998; //mass of electron in GeV
+#include "physicalConstants.h";
 
 //returns nu scattering rate per target/day/keV
 double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj)						  
@@ -37,7 +32,7 @@ double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj)
     
 }
 
-//returns nu scattering rate per target/day/keV with oscillations
+//returns nu scattering rate per target/day/keV with sterile oscillations
 double nuRateOsc(double ErKeV, paramList *pList, double Mt, int fluxj)						  
 {
 
@@ -63,15 +58,16 @@ void rateInit( paramList *pList, int detj, int fluxj, double (*rateFunc)(double,
 
     double linStep,logStep; 
     
-    logStep = pow(pList->detectors[detj].ErU/pList->detectors[detj].ErL/0.98,1/(INTERP_POINTS-10.0));
-    linStep = (pList->detectors[detj].ErU-pList->detectors[detj].ErL*0.98)/(INTERP_POINTS-10.0);
+    logStep = pow((pList->detectors[detj].ErU*1.01)/(pList->detectors[detj].ErL*0.99),1./INTERP_POINTS);
+    linStep = (pList->detectors[detj].ErU*1.01-pList->detectors[detj].ErL*0.99)/INTERP_POINTS;
 
-    ErkeV[0] = 0.99*pList->detectors[detj].ErL; 
+    //always over and undershoot range so that interpolation is well behaved
+    ErkeV[0] = 0.99*pList->detectors[detj].ErL;
     rate[0] = rateFunc( (double)ErkeV[0], pList, detj, fluxj);
     
     for( int i=1; i < INTERP_POINTS; i++ )
     {
-        //always over and undershoot range so that interpolation is well behaved
+        
         if(pList->logBins == 0 )//&& ErkeV[i-1] > 5)
             ErkeV[i] = ErkeV[i-1] + linStep;
         else
@@ -79,12 +75,6 @@ void rateInit( paramList *pList, int detj, int fluxj, double (*rateFunc)(double,
             
         rate[i] = rateFunc( (double)ErkeV[i], pList, detj, fluxj);	
        //std::cout << i << " " << ErkeV[i] << " " << logStep << std::endl;
-    }
-    if(ErkeV[INTERP_POINTS-1] < pList->detectors[detj].ErU)
-    {
-        std::cout << ErkeV[INTERP_POINTS-1] << " < " << pList->detectors[detj].ErU << " interpolation failed to cover range adequately, please check\n";
-        ErkeV[INTERP_POINTS-1] = 1.02*pList->detectors[detj].ErU;
-        rate[INTERP_POINTS-1] = rateFunc( (double)ErkeV[INTERP_POINTS-1], pList, detj, fluxj);
     }
     //create gsl interpolation object
     gsl_spline_init(rateSpline,ErkeV,rate,INTERP_POINTS);
