@@ -12,13 +12,10 @@
 	#include "parameterStruct.h"
 #endif	
 
-const double MN = 0.9383; //mass of nucleon in GeV
-const double ME = 0.000510998; //mass of electron in GeV
-const double GeVperKG = 5.6094e26;
-const double SSW = 0.2387; //sin^2(theta_w)
+#include "physicalConstants.h"
 
-//returns rate per kg/year/keV for the jth flux
-double sterileRate(double ErKeV, paramList *pList, int detj, int fluxj)							  
+//returns rate with SM couplings but including sterile oscillations per kg/year/keV for the jth flux
+double sterileRate(double ErKeV, paramList *pList, int detj, int fluxj)
 {
     
 	double rate = 0;
@@ -27,13 +24,13 @@ double sterileRate(double ErKeV, paramList *pList, int detj, int fluxj)
 
     for(int i=0;i<pList->detectors[detj].nIso;i++)
 	{
-        targetsPerKG = GeVperKG/(MN*pList->detectors[detj].isoA[i]); //how many targets per kg of detector
+        targetsPerKG =  pList->detectors[detj].isoFrac[i]*GeVperKG/(AMU*pList->detectors[detj].isoA[i]); //how many targets per kg of detector
 		
     	if(pList->nucScat)
 	    {
-	        pListSM.qA = pList->detectors[detj].isoSN[i]*(-0.427*-0.501163+0.842*0.506875) + pList->detectors[detj].isoSZ[i]*(-0.427*0.506875+0.842*-0.501163);	 
-		    pListSM.qV = (- 0.512213 * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + (1-4*SSW)*pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
-		    rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i], fluxj);
+	        pListSM.qA = 4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );	 
+		    pListSM.qV = ( GVN * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + GVP * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	
+		    rate += targetsPerKG * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i], fluxj, 1);
 	    }	
 	    if(pList->elecScat)
 	    {
@@ -45,17 +42,17 @@ double sterileRate(double ErKeV, paramList *pList, int detj, int fluxj)
 	        {
 		        pListSM.qA = 0.5;
 		        pListSM.qV = 2*SSW+0.5;
-		        rate += pList->source.survProb[fluxj] * (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRateOsc( ErKeV, &pListSM, ME, fluxj);
+		        rate += pList->source.survProb[fluxj] * (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * nuRate( ErKeV, &pListSM, ME, fluxj, 1);
 
 		        pListSM.qA = -0.5;
 		        pListSM.qV = 2*SSW-0.5;
-		        rate += (1-pList->source.survProb[fluxj]) * (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRateOsc( ErKeV, &pListSM, ME, fluxj);
+		        rate += (1-pList->source.survProb[fluxj]) * (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * nuRate( ErKeV, &pListSM, ME, fluxj, 1);
 		    }
 		    else
 		    {
 		        pListSM.qA = -0.5;
 		        pListSM.qV = 0.5+2*SSW;
-		        rate += (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRateOsc( ErKeV, &pListSM, ME, fluxj);
+		        rate += (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * nuRate( ErKeV, &pListSM, ME, fluxj, 1);
 		    }
 		    
 	    }
@@ -70,7 +67,7 @@ double diffSterileRate(double ErkeV, paramList *pList, int detj)
     double rate=1e-99;
     for(int i=0; i< pList->source.numFlux; i++)
     {
-        if( ErkeV < (pList->detectors[detj].ErL + (double)999*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/900) )
+        if( ErkeV >= pList->detectors[detj].ErL || ErkeV <= pList->detectors[detj].ErU )
             rate += pList->source.nuFluxNorm[i] * gsl_spline_eval(pList->detectors[detj].signalBSM1[i], ErkeV, pList->detectors[detj].accelBSM1[i]);
     }
     return rate;

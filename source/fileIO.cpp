@@ -72,13 +72,15 @@ int readConfigFile(paramList *pL, char *filename)
     ret = fgets(temp,200,input);
     sscanf(temp,"%lf",&(pL->C));
     
+    //mediator mass
+    ret = fgets(temp,200,input);
+    sscanf(temp,"%lf",&(pL->mMed));
+        
     switch(pL->BSM)
     {
     
         case 0:
-        {
             break;
-        }
         case 1:
         {
             pL->gNuS=1;
@@ -101,9 +103,7 @@ int readConfigFile(paramList *pL, char *filename)
                 }    
             }
             if(pL->elecScat)
-            {
                 pL->gEs=pL->C;
-            }
             break;
         }
         case 2:
@@ -174,16 +174,23 @@ int readConfigFile(paramList *pL, char *filename)
             }
             break;
         }
+        case 5:
+        {
+            
+            break;
+        }
+        case 6:
+        {
+            pL->ss2Theta14 = pL->C;
+            pL->delMsqGeV = pL->mMed;
+            break;
+        }
         default:
         {
             std::cout << "Must choose a BSM type" << std::endl;
             return -1;
         }
     }
-    
-    //mediator mass
-    ret = fgets(temp,200,input);
-    sscanf(temp,"%lf",&(pL->mMed));
     
     //initialize source
     ret = fgets(temp,200,input);
@@ -198,7 +205,6 @@ int readConfigFile(paramList *pL, char *filename)
     double exp;
     ret = fgets(temp,200,input);
     ret = fgets(temp,200,input);
-
     char name[30];
     while(temp[0]=='#')
     {

@@ -11,17 +11,27 @@
 	#include "parameterStruct.h"
 #endif	
 
-#include "physicalConstants.h";
+#include "physicalConstants.h"
 
 //returns nu scattering rate per target/day/keV
-double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj)						  
+double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj, int doOsc)		  
 {
 
 	double ErGeV = ErKeV/GeVtoKeV;
 
-    double intConst    = fluxIntegral( ErGeV, pList, Mt,  0, fluxj);
-	double intInvEnu   = fluxIntegral( ErGeV, pList, Mt, -1, fluxj);
-	double intInvEnuSq = fluxIntegral( ErGeV, pList, Mt, -2, fluxj);
+    double intConst, intInvEnu, intInvEnuSq;
+    if( doOsc == 1)
+    {
+        intConst    = fluxIntegralOsc( ErGeV, pList, Mt,  0, fluxj);
+        intInvEnu   = fluxIntegralOsc( ErGeV, pList, Mt, -1, fluxj);
+        intInvEnuSq = fluxIntegralOsc( ErGeV, pList, Mt, -2, fluxj);
+    }
+    else
+    {
+        intConst    = fluxIntegral( ErGeV, pList, Mt,  0, fluxj);
+	    intInvEnu   = fluxIntegral( ErGeV, pList, Mt, -1, fluxj);
+	    intInvEnuSq = fluxIntegral( ErGeV, pList, Mt, -2, fluxj);
+    }
     
     return pow(GFERMI,2) / ( 2 * M_PI ) * Mt / GeVtoKeV * secsPerDay
 	        * ( 
@@ -32,24 +42,11 @@ double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj)
     
 }
 
-//returns nu scattering rate per target/day/keV with sterile oscillations
-double nuRateOsc(double ErKeV, paramList *pList, double Mt, int fluxj)						  
+double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj)	
 {
-
-	double ErGeV = ErKeV/GeVtoKeV;
-
-    double intConst    = fluxIntegralOsc( ErGeV, pList, Mt,  0, fluxj);
-	double intInvEnu   = fluxIntegralOsc( ErGeV, pList, Mt, -1, fluxj);
-	double intInvEnuSq = fluxIntegralOsc( ErGeV, pList, Mt, -2, fluxj);
-
-    return pow(GFERMI,2) / ( 2 * M_PI ) * Mt / GeVtoKeV * secsPerDay
-	        * ( 
-		          intConst	  * 2*( pow(pList->qA,2) + pow(pList->qV,2) )
-		        - intInvEnu	  * 2*ErGeV*pow(pList->qA-pList->qV,2) 
-		        + intInvEnuSq * ( ErGeV*ErGeV*pow(pList->qA - pList->qV,2) + ErGeV*Mt*(pow(pList->qA,2) - pow(pList->qV,2)) )
-	          ); 
-    
+     return nuRate(ErKeV, pList, Mt, fluxj, 0);
 }
+
 
 void rateInit( paramList *pList, int detj, int fluxj, double (*rateFunc)(double, paramList *, int, int), gsl_spline *rateSpline)
 {
@@ -57,7 +54,7 @@ void rateInit( paramList *pList, int detj, int fluxj, double (*rateFunc)(double,
     double rate[INTERP_POINTS];
 
     double linStep,logStep; 
-    
+
     logStep = pow((pList->detectors[detj].ErU*1.01)/(pList->detectors[detj].ErL*0.99),1./INTERP_POINTS);
     linStep = (pList->detectors[detj].ErU*1.01-pList->detectors[detj].ErL*0.99)/INTERP_POINTS;
 
@@ -78,6 +75,7 @@ void rateInit( paramList *pList, int detj, int fluxj, double (*rateFunc)(double,
     }
     //create gsl interpolation object
     gsl_spline_init(rateSpline,ErkeV,rate,INTERP_POINTS);
+
 }
 
 

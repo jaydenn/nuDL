@@ -6,6 +6,7 @@
 #include "formFactorSI.h"
 #include "nuRate.h"
 #include "nuFlux.h"
+#include "sterileRate.h"
 #include "detectorFunctions.h"
 #ifndef DETECTORSTRUCT_H
 	#include "detectorStruct.h"
@@ -14,7 +15,7 @@
 	#include "parameterStruct.h"
 #endif	
 
-#include "physicalConstants.h";
+#include "physicalConstants.h"
 
 //returns simplified model light mediator rate per electron/day/keV
 double BSMrateE(double ErKeV, paramList *pList, double Mt, int fluxj)						  
@@ -88,7 +89,7 @@ double BSMrateN(double ErKeV, paramList *pList, double Mt, int fluxj)
 {
 
 	double ErGeV = ErKeV/GeVtoKeV;
-	double secsPerDay = 24*60*60; 
+	//double secsPerDay = 24*60*60; 
 	
     double convFactor =  1/GeVtoKeV * secsPerDay; //units GeV*s/keV/kg/day
     
@@ -135,7 +136,7 @@ double BSMrateN(double ErKeV, paramList *pList, double Mt, int fluxj)
             return convFactor * ( 
                        pList->SMinterference1 * GFERMI*Mt*Qa*Qap / (2*sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
 	                     * ( 2*intConst + intInvEnuSq * ErGeV * Mt ) 
-	                 - pList->SMinterference1 * GFERMI*MN*Qv*Qap*ErGeV / (sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
+	                 - pList->SMinterference1 * GFERMI*Mt*Qv*Qap*ErGeV / (sqrt(2)*M_PI * ( 2*ErGeV*Mt + pow(pList->mMed,2) ) ) 
 	                     * intInvEnu 
 	                 + pList->SMinterference2 * pow(Qap,2)*Mt / (4*M_PI * pow( 2*ErGeV*Mt + pow(pList->mMed,2) ,2) ) 
 	                     * ( 2*intConst + intInvEnuSq * ErGeV * Mt ) ); 
@@ -156,9 +157,12 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
     double targetsPerKG;
     if(pList->BSM==0)
         return 0;
+    if(pList->BSM == 6)
+        return sterileRate(ErKeV, pList, detj, fluxj);
+    
     for(int i=0;i<pList->detectors[detj].nIso;i++)
 	{   
-        targetsPerKG = GeVperKG/(MN*pList->detectors[detj].isoA[i]); //how many targets per kg of detector
+        targetsPerKG = pList->detectors[detj].isoFrac[i] *GeVperKG/(AMU*pList->detectors[detj].isoA[i]); //how many targets per kg of detector
     	if(pList->nucScat)
     	{
     	    pList->Qa = 4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );	 
@@ -166,7 +170,7 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 		    pList->Qvp = ((pList->detectors[detj].isoA[i]-pList->detectors[detj].isoZ[i]) * pList->qNv + pList->detectors[detj].isoZ[i] * pList->qPv) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);
 		    pList->Qap = 4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i] * pList->qNa + pList->detectors[detj].isoSZ[i] * pList->qPa );
             
-		    rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateN( ErKeV, pList, MN*pList->detectors[detj].isoA[i], fluxj);
+		    rate += targetsPerKG * BSMrateN( ErKeV, pList, MN*pList->detectors[detj].isoA[i], fluxj);
 	    }
 	    if(pList->elecScat)
 	    {
@@ -177,11 +181,11 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 	        {
 		        pList->qA = 0.5;
 		        pList->qV = 2*SSW+0.5;
-		        rate += pList->source.survProb[fluxj] * ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME, fluxj);
+		        rate += pList->source.survProb[fluxj] * ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG  * BSMrateE( ErKeV, pList, ME, fluxj);
 		        
 		        pList->qA = -0.5;
 		        pList->qV = 2*SSW-0.5;
-                rate += (1-pList->source.survProb[fluxj]) * ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME, fluxj);		     
+                rate += (1-pList->source.survProb[fluxj]) * ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * BSMrateE( ErKeV, pList, ME, fluxj);		     
 	        }
 		    else
 		    {
@@ -190,7 +194,7 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 		        {
 		            pList->qA = -0.5;
 		            pList->qV = 2*SSW+0.5;
-                    rate += ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME, fluxj);
+                    rate += ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * BSMrateE( ErKeV, pList, ME, fluxj);
                 }
 		    }
 	
@@ -198,7 +202,7 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 	}	
 
 	return rate*detEff(ErKeV,pList->detectors[detj].eff);
-}   
+}
 
 
 double diffBSMrate(double ErkeV, paramList *pList, int detj, double signalNorm)						  
@@ -211,7 +215,6 @@ double diffBSMrate(double ErkeV, paramList *pList, int detj, double signalNorm)
                 + ((signalNorm > 0) - (signalNorm < 0) )*pow(signalNorm,2) * gsl_spline_eval(pList->detectors[detj].signalBSM2[i], ErkeV, pList->detectors[detj].accelBSM2[i]) );
         else
             rate += pList->source.nuFluxNorm[i] * signalNorm * gsl_spline_eval(pList->detectors[detj].signalBSM1[i], ErkeV, pList->detectors[detj].accelBSM1[i]);
-
     }
     return rate;
 }

@@ -70,7 +70,7 @@ double findMaxLS_sterile(paramList *pL)
 
     size_t iter = 0;
     int status;
-
+    status =0;
     const gsl_multimin_fminimizer_type *T;
     gsl_multimin_fminimizer *s;
     gsl_multimin_function my_func;
@@ -217,7 +217,7 @@ double my_q0_sterile(const gsl_vector *v, void *params)
         return 1e99;
     generateBinnedDataSterile( pL, pL->detj, 1, simSeed);
     
-    return pow( sqrt(q0_sterile(pL)) - 4.28, 2);  //arbitrary function with a minima at 3 sigma 90% of the time
+    return pow( sqrt(q0_sterile(pL)) - 4.28, 2);  //arbitrary function with a minima at "3 sigma 90% of the time"
 }
 
 
@@ -286,13 +286,13 @@ void sterileOscillation(paramList *pList)
     gsl_set_error_handler_off();
     
     pList->delMsqGeV = 9e-20;
-    double q0;    
+    double q0;
     //scan mass diff and find theta14 that gives 3sigma
-    while (pList->delMsqGeV<1.3e-17)
+    while (pList->delMsqGeV<1e-16)
     {
         //findCoeff3sig_sterile(pList);
-        pList->ss2Theta14 = 0.1;
-        while (pList->ss2Theta14<1.28)
+        pList->ss2Theta14 = 0.01;
+        while (pList->ss2Theta14<1)
         {
             rateInit( pList, 0, 0, &sterileRate, pList->detectors[0].signalBSM1[0]);
             generateBinnedDataSterile( pList, 0, 1, 1);

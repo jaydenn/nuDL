@@ -79,7 +79,7 @@ int newDetector(paramList *pList, char *name, double exp)
 
 		pList->detectors[pList->ndet].exposure = exp;
 
-            //read in detector configuration
+        //read in detector configuration
 	    FILE *detsINI;
 	    detsINI = fopen("detectors.ini","r");
 	    if(detsINI==NULL)
@@ -192,27 +192,31 @@ int newDetector(paramList *pList, char *name, double exp)
 		std::cout << "Initializing rates\n"; 		
 		rateInit( pList, pList->ndet, -1, &detBackground, pList->detectors[pList->ndet].background);
         std::cout << ".";
-    
         //must initialize each flux in turn
         for(int fluxj=0; fluxj< pList->source.numFlux; fluxj++)
         {
             pList->source.nuFluxNorm[fluxj] = 1;
-            
 		    rateInit( pList, pList->ndet, fluxj,  &SMrate,  pList->detectors[pList->ndet].signalSM[fluxj]);
 		    std::cout << ".";
-		    
 		    //initialization is a little more complicated for the BSM case because of interference terms 
 		    if(pList->BSM!=0)
 		    {   
-		        pList->SMinterference1=1;  pList->SMinterference2=0;
-		        rateInit( pList, pList->ndet, fluxj, &BSMrate, pList->detectors[pList->ndet].signalBSM1[fluxj]);
+                if (pList->BSM<5)
+                {
+                    pList->SMinterference1=1;  pList->SMinterference2=0;
+                    rateInit( pList, pList->ndet, fluxj, &BSMrate, pList->detectors[pList->ndet].signalBSM1[fluxj]);
 		        
-		        if(pList->BSM==3 || pList->BSM==4)
-		        {
-		                pList->SMinterference2=1; pList->SMinterference1=0;
-		                rateInit( pList, pList->ndet, fluxj, &BSMrate,  pList->detectors[pList->ndet].signalBSM2[fluxj]);
-		        }
-		        pList->SMinterference1=pList->SMinterference2=1;
+                    if(pList->BSM==3 || pList->BSM==4)
+                    {
+                            pList->SMinterference2=1; pList->SMinterference1=0;
+                            rateInit( pList, pList->ndet, fluxj, &BSMrate,  pList->detectors[pList->ndet].signalBSM2[fluxj]);
+                    }
+                    pList->SMinterference1=pList->SMinterference2=1;
+                }
+                else if (pList->BSM==5) //not working yet
+                    rateInit( pList, pList->ndet, fluxj, &BSMrate, pList->detectors[pList->ndet].signalBSM1[fluxj]);
+                else if(pList->BSM==6)
+                    rateInit( pList, pList->ndet, fluxj, &BSMrate, pList->detectors[pList->ndet].signalBSM1[fluxj]);
             }
             else
             {
