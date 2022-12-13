@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <string>
 #include "SMrate.h"
 #include "BSMrate.h"
 #include "detectorFunctions.h"
@@ -11,35 +12,39 @@
 int calcRates(paramList *pList)
 {
     double ErkeV;
-    char filename[60];    
+    std::string filename = pList->root;    
     std::ofstream outfile;
-    char BSMname[15];
+    std::string BSMname;
     
     switch(pList->BSM)
     {
+        case 0:
+        {
+            BSMname ="SM";
+        }
         case 1:
         {
-            sprintf(BSMname,"scalar");
+            BSMname = "scalar";
             break;
         }
         case 2:
         {
-            sprintf(BSMname,"pseudoS");
+            BSMname = "pseudoS";
             break;
         }
         case 3:
         {
-            sprintf(BSMname,"vector");
+            BSMname = "vector";
             break;
         }
         case 4:
         {
-            sprintf(BSMname,"axial");
+            BSMname = "axial";
             break;
         }
         case 5:
         {
-            sprintf(BSMname,"sterile");
+            BSMname = "sterile";
             break;
         }
     }
@@ -50,15 +55,18 @@ int calcRates(paramList *pList)
     
     //output model
     int masskeV = (int)(pList->mMed*1e6);
-    std::cout << "\nBSM rate for " << masskeV << " keV "<< BSMname << " mediator\n";
+    if (pList->BSM != 0 && pList->BSM != 5)
+        std::cout << "\nBSM rate for " << masskeV << " keV "<< BSMname << " mediator\n";
       
     for(int detj=0; detj < pList->ndet; detj++)
     {
         //open file
         if(pList->nucScat)
-            sprintf(filename,"%s%sRateN_%s_%c%c_m%dkeV.dat", pList->root, BSMname, pList->detectors[detj].name, pList->source.name[0], pList->source.name[1],masskeV);
+            filename += "Rate_NR_";
         else
-            sprintf(filename,"%s%sRateE_%s_%c%c_m%dkeV.dat", pList->root, BSMname, pList->detectors[detj].name, pList->source.name[0], pList->source.name[1], masskeV);
+            filename += "Rate_ER_";
+        
+        filename += BSMname + pList->detectors[detj].name + pList->source.name;
         outfile.open(filename,std::ios::out);
         
         if( !outfile )
@@ -70,15 +78,23 @@ int calcRates(paramList *pList)
         std::cout << "------------------------\n";
         std::cout << detj+1 << ". " << pList->detectors[detj].name << std::endl;
         std::cout << "------------------------\n";
-        std::cout << "  total rates: \n"; 
+        std::cout << "  Total rates: \n"; 
         std::cout << "     SM  = " << intSMrate(  pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj)         << " events/kg/day" << std::endl;
         std::cout << "     BG  = " << intBgRate(  pList->detectors[detj], pList->detectors[detj].ErL, pList->detectors[0].ErU) << " events/kg/day" << std::endl;
-        std::cout << "     BSM = " << intBSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj,1)       << " events/kg/day" << std::endl;
+        if( pList->BSM != 0 )
+            std::cout << "     BSM = " << intBSMrate( pList->detectors[detj].ErL, pList->detectors[detj].ErU, pList, detj,1)       << " events/kg/day" << std::endl;
         
-        std::cout << "  differential rates: \n"; 
-        std::cout << "    Er (keV)         SM dN/dE         BG dN/dE        BSM dN/dE (events/kg/day/keV)" << std::endl;
-        outfile   << "    Er (keV)         SM dN/dE         BG dN/dE        BSM dN/dE (events/kg/day/keV)" << std::endl;
-
+        std::cout << "  Differential rates: \n"; 
+        std::cout << "    Er (keV)        SM dR/dE        BG dR/dE"; 
+        if( pList->BSM != 0 )
+            std::cout << "        BSM dN/dE";
+        std::cout << "(events/kg/day/keV)\n";
+        
+        outfile   << "    Er (keV)         SM dR/dE         BG dR/dE";
+        if( pList->BSM != 0 )
+            outfile << "         BSM dN/dE";
+        outfile << "(events/kg/day/keV)\n";
+        
         int skip=0;            
         for (int i=0; i<501; i+=1)
         {
@@ -87,44 +103,61 @@ int calcRates(paramList *pList)
             else
                 ErkeV = pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/500;
 
-            if( skip++ % 5 == 0 ) //only print out every fifth value to terminal    
-                std::cout << "    " << ErkeV << "      " << diffSMrate( ErkeV, pList, detj) << "      " << diffBgRate( pList->detectors[detj], ErkeV) << "      " << diffBSMrate( ErkeV, pList, detj, 1) << std::endl;
+            if( skip++ % 5 == 0 ) //only print out every fifth value to terminal
+            {
+                std::cout << "    " << ErkeV << "      " << diffSMrate( ErkeV, pList, detj) << "      " << diffBgRate( pList->detectors[detj], ErkeV);
+                if (pList->BSM != 0)
+                    std::cout << "      " << diffBSMrate( ErkeV, pList, detj, 1);
+                std::cout << std::endl;
+            }
             
-            outfile   << "    " << ErkeV << "      " << diffSMrate( ErkeV, pList, detj) << "      " << diffBgRate( pList->detectors[detj], ErkeV) << "      " << diffBSMrate( ErkeV, pList, detj, 1) << std::endl; 
+            outfile   << "    " << ErkeV << "      " << diffSMrate( ErkeV, pList, detj) << "      " << diffBgRate( pList->detectors[detj], ErkeV);
+            if (pList->BSM != 0)
+                outfile << "      " << diffBSMrate( ErkeV, pList, detj, 1);
+            outfile << std::endl;
         }
         
         outfile.close();
     }
-    
-}    
+   
+}
 
 int calcRatesThreshold(paramList *pList)
 {
     double ErkeV;
-    char filename[60];    
+    std::string filename = pList->root;    
     std::ofstream outfile;
-    char BSMname[15];
+    std::string BSMname;
     
     switch(pList->BSM)
     {
+        case 0:
+        {
+            BSMname ="SM";
+        }
         case 1:
         {
-            sprintf(BSMname,"scalar");
+            BSMname = "scalar";
             break;
         }
         case 2:
         {
-            sprintf(BSMname,"pseudoS");
+            BSMname = "pseudoS";
             break;
         }
         case 3:
         {
-            sprintf(BSMname,"vector");
+            BSMname = "vector";
             break;
         }
         case 4:
         {
-            sprintf(BSMname,"axial");
+            BSMname = "axial";
+            break;
+        }
+        case 5:
+        {
+            BSMname = "sterile";
             break;
         }
     }
@@ -135,15 +168,18 @@ int calcRatesThreshold(paramList *pList)
     
     //output model
     int masskeV = (int)(pList->mMed*1e6);
-    std::cout << "\nBSM rate for " << masskeV << " keV "<< BSMname << " mediator\n";
+    if (pList->BSM != 0 && pList->BSM != 5)
+        std::cout << "\nBSM rate for " << masskeV << " keV "<< BSMname << " mediator\n";
       
     for(int detj=0; detj < pList->ndet; detj++)
     {
         //open file
         if(pList->nucScat)
-            sprintf(filename,"%s%sRateThN_%s_%c%c_m%dkeV.dat", pList->root, BSMname, pList->detectors[detj].name, pList->source.name[0], pList->source.name[1],masskeV);
+            filename += "RateTh_NR_";
         else
-            sprintf(filename,"%s%sRateThE_%s_%c%c_m%dkeV.dat", pList->root, BSMname, pList->detectors[detj].name, pList->source.name[0], pList->source.name[1], masskeV);
+            filename += "RateTh_ER_";
+        
+        filename += BSMname + pList->detectors[detj].name + pList->source.name;
         outfile.open(filename,std::ios::out);
         
         if( !outfile )
@@ -156,8 +192,14 @@ int calcRatesThreshold(paramList *pList)
         std::cout << detj+1 << ". " << pList->detectors[detj].name << std::endl;
         std::cout << "------------------------\n";
         std::cout << "  total rates above threshold: \n"; 
-        std::cout << "    ErTh (keV)         SM dN/dE         BG dN/dE        BSM dN/dE (events/kg/day)" << std::endl;
-        outfile   << "    ErTh (keV)         SM dN/dE         BG dN/dE        BSM dN/dE (events/kg/day)" << std::endl;
+        std::cout << "    ErTh (keV)      SM rate         BG rate";
+        if(pList->BSM != 0)
+            std::cout << "        BSM rate";
+        std::cout <<" (events/kg/day)\n";
+        outfile   << "    ErTh (keV)      SM rate         BG rate";
+        if(pList->BSM != 0)
+            outfile   << "         BSM rate"; 
+        outfile <<" (events/kg/day)\n";
 
         int skip=0;            
         for (int i=0; i<501; i+=1)
@@ -167,10 +209,18 @@ int calcRatesThreshold(paramList *pList)
             else
                 ErkeV = pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/500;
 
-            if( skip++ % 5 == 0 ) //only print out every fifth value to terminal    
-                std::cout << "    " << ErkeV << "      " << intSMrate( ErkeV, pList->detectors[detj].ErU, pList, detj) << "      " << intBgRate( pList->detectors[detj], ErkeV, pList->detectors[detj].ErU) << "      " << intBSMrate( ErkeV, pList->detectors[detj].ErU, pList, detj, 1) << std::endl; ;
+            if( skip++ % 5 == 0 ) //only print out every fifth value to terminal
+            {            
+                std::cout << "    " << ErkeV << "      " << intSMrate( ErkeV, pList->detectors[detj].ErU, pList, detj) << "      " << intBgRate( pList->detectors[detj], ErkeV, pList->detectors[detj].ErU);
+                if (pList->BSM != 0)
+                    std::cout << "      " << intBSMrate( ErkeV, pList->detectors[detj].ErU, pList, detj, 1);
+                std::cout << std::endl;
+            }
             
-            outfile   << "    " << ErkeV << "      " << intSMrate( ErkeV, pList->detectors[detj].ErU, pList, detj) << "      " << intBgRate( pList->detectors[detj], ErkeV, pList->detectors[detj].ErU) << "      " << intBSMrate( ErkeV, pList->detectors[detj].ErU, pList, detj, 1) << std::endl; 
+            outfile   << "    " << ErkeV << "      " << intSMrate( ErkeV, pList->detectors[detj].ErU, pList, detj) << "      " << intBgRate( pList->detectors[detj], ErkeV, pList->detectors[detj].ErU);
+             if (pList->BSM != 0)
+                outfile << "      " << intBSMrate( ErkeV, pList->detectors[detj].ErU, pList, detj, 1);
+            outfile << std::endl; 
         }
         
         outfile.close();
