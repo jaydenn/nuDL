@@ -1,5 +1,5 @@
-# nuDL v1.0
-> July 2016
+# nuDL v1.1
+> Dec 2022
 
 nuDL is a tool for the calculation of coherent neutrino-nucleus scattering rates and derivation of discovery limits on BSM physics.
 
