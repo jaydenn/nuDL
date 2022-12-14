@@ -33,11 +33,12 @@ double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj, int doOsc)
 	    intInvEnuSq = fluxIntegral( ErGeV, pList, Mt, -2, fluxj);
     }
     
+    //return pow(GFERMI,2) / ( M_PI ) * Mt / GeVtoKeV * secsPerDay * (intConst - intInvEnuSq*Mt*ErGeV/2.)*pow(pList->qV,2); //approx calc for testing, could be used to speed up
     return pow(GFERMI,2) / ( 2 * M_PI ) * Mt / GeVtoKeV * secsPerDay
 	        * ( 
 		          intConst	  * 2*( pow(pList->qA,2) + pow(pList->qV,2) )
 		        - intInvEnu	  * 2*ErGeV*( pow(pList->qA,2)-2*pList->qA*pList->qV + pow(pList->qV,2) ) 
-		        + intInvEnuSq * ( ErGeV*ErGeV*( pow(pList->qA,2)-2*pList->qA*pList->qV + pow(pList->qV,2) ) + ErGeV*Mt*(pow(pList->qA,2) - pow(pList->qV,2)) )
+		        + intInvEnuSq * (   ErGeV*ErGeV*( pow(pList->qA,2)-2*pList->qA*pList->qV + pow(pList->qV,2) ) + ErGeV*Mt*(pow(pList->qA,2) - pow(pList->qV,2)) )
 	          ); 
     
 }

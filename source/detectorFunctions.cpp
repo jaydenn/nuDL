@@ -114,7 +114,9 @@ int newDetector(paramList *pList, char *name, double exp)
  
 		    if(strcmp(temp,"Er")==0)  
 			    err=fscanf(detsINI,"%lf-%lf",&(pList->detectors[pList->ndet].ErL),&(pList->detectors[pList->ndet].ErU)); 
-		    if(strcmp(temp,"bg")==0)  
+		    if(strcmp(temp,"AM")==0)  
+			    err=fscanf(detsINI,"%lf",&(pList->detectors[pList->ndet].AM));
+            if(strcmp(temp,"bg")==0)  
 			    err=fscanf(detsINI,"%d",&(pList->detectors[pList->ndet].bg));
 			if(strcmp(temp,"bgUn")==0)  
 			    err=fscanf(detsINI,"%lf",&(pList->detectors[pList->ndet].BgUn));
