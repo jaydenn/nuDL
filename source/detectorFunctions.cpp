@@ -69,7 +69,7 @@ double detRes(double Er, int type)
     }
 }
 
-int newDetector(paramList *pList, char *name, double exp)
+int newDetector(paramList *pList, char *name, double exp, double dist)
 {
 		if(pList->ndet==10)
 		{
@@ -78,7 +78,7 @@ int newDetector(paramList *pList, char *name, double exp)
 		}
 
 		pList->detectors[pList->ndet].exposure = exp;
-
+        pList->detectors[pList->ndet].distance = dist;
         //read in detector configuration
 	    FILE *detsINI;
 	    detsINI = fopen("detectors.ini","r");

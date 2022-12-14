@@ -7,11 +7,12 @@
 #endif
 #define DETECTORSTRUCT_H
 #define MAXBINS 100
-#define INTERP_POINTS 10000
+#define INTERP_POINTS 1000
 
 struct detector {
     char name[20];
     double exposure;
+    double distance;
     double AM;
     int nIso;
     int isoZ[10];
@@ -49,7 +50,7 @@ struct detector {
     void printDetSpecs()
     {
         printf(" %s\n",name);
-        
+        printf("  AM  = %3.3f amu\n",AM);
         for (int i=0; i<nIso; i++)
         {
             printf("    Isotope %d - %2.1f%%\n",i+1,isoFrac[i]*100);

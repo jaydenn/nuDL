@@ -22,4 +22,4 @@ double intBgRate(detector det, double Er_min, double Er_max);
 double diffBgRate(detector det, double Er);							   
 
 //for declaring a new detector
-int newDetector(paramList *pList, char *name, double exp);
+int newDetector(paramList *pList, char *name, double exp, double dist);

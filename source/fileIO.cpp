@@ -195,22 +195,22 @@ int readConfigFile(paramList *pL, char *filename)
     //initialize source
     ret = fgets(temp,200,input);
     ret = fgets(temp,200,input);
-    sscanf(temp, "%s %lf", pL->source.name, &(pL->source.distance));
+    sscanf(temp, "%s", pL->source.name);
     std::string sourceName(pL->source.name);
     int err = nuFluxInit(pL, sourceName);  
     if(err < 0)
         return -1;
     
     //Detector setup
-    double exp;
+    double exp,dist;
     ret = fgets(temp,200,input);
     ret = fgets(temp,200,input);
     char name[30];
     while(temp[0]=='#')
     {
-        sscanf(temp,"%s %lf", name, &exp);
+        sscanf(temp,"%s %lf %lf", name, &exp, &dist);
         
-	    if(newDetector(pL, name, exp)) { std::cout << "Could not create detector, exiting" << std::endl; return -1; }
+	    if(newDetector(pL, name, exp, dist)) { std::cout << "Could not create detector, exiting" << std::endl; return -1; }
         std::cout << "Using detector " << name << std::endl;
         ret = fgets(temp,200,input);
     }    
