@@ -18,7 +18,7 @@
 #include "physicalConstants.h"
 
 //returns simplified model light mediator rate per electron/day/keV
-double BSMrateE(double ErKeV, paramList *pList, double Mt, int fluxj)						  
+double BSMrateE(double ErKeV, paramList *pList, double Mt, int fluxj, double dist)						  
 {
 
 	double ErGeV = ErKeV/GeVtoKeV;
@@ -40,8 +40,8 @@ double BSMrateE(double ErKeV, paramList *pList, double Mt, int fluxj)
     
     double intConst, intInvEnuSq;
         
-    intConst	= fluxIntegral( ErGeV, pList, ME,  0, fluxj);  //units GeV^2/s
-    intInvEnuSq = fluxIntegral( ErGeV, pList, ME, -2, fluxj); //units 1/s
+    intConst	= fluxIntegral( ErGeV, pList, ME,  0, fluxj, dist);  //units GeV^2/s
+    intInvEnuSq = fluxIntegral( ErGeV, pList, ME, -2, fluxj, dist); //units 1/s
     	            
     switch( pList->BSM )
     {
@@ -85,7 +85,7 @@ double BSMrateE(double ErKeV, paramList *pList, double Mt, int fluxj)
 }
 
 //returns simplified model light mediator rate per nuclei/day/keV
-double BSMrateN(double ErKeV, paramList *pList, double Mt, int fluxj)						  
+double BSMrateN(double ErKeV, paramList *pList, double Mt, int fluxj, double dist)						  
 {
 
 	double ErGeV = ErKeV/GeVtoKeV;
@@ -104,9 +104,9 @@ double BSMrateN(double ErKeV, paramList *pList, double Mt, int fluxj)
 
     double intConst, intInvEnu, intInvEnuSq;
     
-    intConst	= fluxIntegral( ErGeV, pList, Mt,  0, fluxj); //units GeV^2/s
-    intInvEnu   = fluxIntegral( ErGeV, pList, Mt, -1, fluxj); //units GeV/s
-    intInvEnuSq = fluxIntegral( ErGeV, pList, Mt, -2, fluxj); //units 1/s
+    intConst	= fluxIntegral( ErGeV, pList, Mt,  0, fluxj, dist); //units GeV^2/s
+    intInvEnu   = fluxIntegral( ErGeV, pList, Mt, -1, fluxj, dist); //units GeV/s
+    intInvEnuSq = fluxIntegral( ErGeV, pList, Mt, -2, fluxj, dist); //units 1/s
 
     switch( pList->BSM ) 
     {
@@ -171,7 +171,7 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 		    pList->Qvp = ((pList->detectors[detj].isoA[i]-pList->detectors[detj].isoZ[i]) * pList->qNv + pList->detectors[detj].isoZ[i] * pList->qPv) * ffactorSI( pList->detectors[detj].isoA[i], ErKeV);
 		    pList->Qap = 4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i] * pList->qNa + pList->detectors[detj].isoSZ[i] * pList->qPa );
             
-		    rate += targetsPerKG *pList->detectors[detj].isoFrac[i]* BSMrateN( ErKeV, pList, AMU*pList->detectors[detj].isoA[i], fluxj);
+		    rate += targetsPerKG *pList->detectors[detj].isoFrac[i]* BSMrateN( ErKeV, pList, AMU*pList->detectors[detj].isoA[i], fluxj, pList->detectors[detj].distance);
 	    }
 	    if(pList->elecScat)
 	    {
@@ -182,11 +182,11 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 	        {
 		        pList->qA = 0.5;
 		        pList->qV = 2*SSW+0.5;
-		        rate += pList->source.survProb[fluxj] * ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME, fluxj);
+		        rate += pList->source.survProb[fluxj] * ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME, fluxj, pList->detectors[detj].distance);
 		        
 		        pList->qA = -0.5;
 		        pList->qV = 2*SSW-0.5;
-                rate += (1-pList->source.survProb[fluxj]) * ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME, fluxj);		     
+                rate += (1-pList->source.survProb[fluxj]) * ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME, fluxj, pList->detectors[detj].distance);		     
 	        }
 		    else
 		    {
@@ -195,7 +195,7 @@ double BSMrate(double ErKeV, paramList *pList, int detj, int fluxj)
 		        {
 		            pList->qA = -0.5;
 		            pList->qV = 2*SSW+0.5;
-                    rate += ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME, fluxj);
+                    rate += ((double) pList->detectors[detj].isoZ[i] - Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * BSMrateE( ErKeV, pList, ME, fluxj, pList->detectors[detj].distance);
                 }
 		    }
 	

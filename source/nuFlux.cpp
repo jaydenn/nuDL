@@ -10,8 +10,8 @@
     #include "sourceStruct.h"
 #endif  
 
-const double HBARC = 1.975e-14; //GeV*cm
-const double GEVMETER = HBARC/100.0; //GeVcm
+#include "physicalConstants.h"
+
 double FIRSTEVALCNS = 0;
 
 gsl_integration_workspace * W;
@@ -57,7 +57,6 @@ int nuFluxInit(paramList *pL, std::string sourceName)
                 return -1;
             }
             pL->source.nuFluxUn[fluxj] /= pL->source.nuFlux[fluxj]; //want fractional uncertainty
-            pL->source.nuFlux[fluxj] /= pow(pL->source.distance,2);
             pL->source.nuFlux[fluxj] *= pow(HBARC,2);               //convert units
             pL->source.lineE[fluxj] = lineEnergy/1000;
             pL->source.isLine[fluxj] = 1;
@@ -166,7 +165,6 @@ double nuFlux(double EnuGeV, paramList *pL, int fluxj)
         return 1e-299;
 }
 
-
 //units GeV/s
 double EnuIntegrand0(double EnuGeV, void *pars)
 {
@@ -188,7 +186,7 @@ double EnuIntegrand2(double EnuGeV, void *pars)
 	return nuFlux(EnuGeV, pList, pList->fluxj) / ( EnuGeV*EnuGeV ) ;
 }
 
-double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow, int fluxj)
+double fluxIntegral(double ErGeV, paramList *pList, double Mt, int EnuPow, int fluxj, double dist)
 {
 	int limit = 3000;
 	double integral,absErr,tol;
@@ -202,17 +200,17 @@ double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow, int 
 	if(EnuPow==0)
 	{
 		pList->F.function = &EnuIntegrand0;
-		tol=1e-21;
+		tol=1e-22;
 	}
 	else if(EnuPow==-1)
 	{
 		pList->F.function = &EnuIntegrand1;
-		tol=1e-20;
+		tol=1e-21;
 	}
 	else if(EnuPow==-2)
 	{
 		pList->F.function = &EnuIntegrand2;
-		tol=1e-19;
+		tol=1e-20;
 	}
 			 
 	pList->F.params = pList; //yeah, that's not weird..
@@ -228,12 +226,12 @@ double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow, int 
             integral = 1e-199;
     }
     else
-        gsl_integration_qag(&(pList->F), EnuMinGeV, pList->source.EnuMax[fluxj], tol, 1e-3, limit, 1, W, &integral, &absErr); 
-
+        gsl_integration_qag(&(pList->F), EnuMinGeV, pList->source.EnuMax[fluxj], tol, 5e-4, limit, 2, W, &integral, &absErr); 
+    
     if (integral < 0)        
         return 1e-299;
     else    
-    	return pList->source.nuFluxNorm[fluxj]*integral;
+    	return pList->source.nuFluxNorm[fluxj]*integral / pow(dist,2);
 		
 }
 
@@ -242,29 +240,29 @@ double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow, int 
 double EnuIntegrandOsc0(double EnuGeV, void *pars)
 {
 	paramList *pList = (paramList*)pars;
-	return (1.0-pList->ss2Theta14*pow(sin(pList->delMsqGeV*pList->source.distance/GEVMETER/4.0/EnuGeV),2))*nuFlux(EnuGeV, pList, pList->fluxj);
+	return (1.0-pList->ss2Theta14*pow(sin(pList->delMsqGeV*pList->dist/GEVMETER/4.0/EnuGeV),2))*nuFlux(EnuGeV, pList, pList->fluxj);
 }
 
 //units 1/s
 double EnuIntegrandOsc1(double EnuGeV, void *pars)
 {
 	paramList *pList = (paramList*)pars;
-	return (1.0-pList->ss2Theta14*pow(sin(pList->delMsqGeV*pList->source.distance/GEVMETER/4.0/EnuGeV),2))*nuFlux(EnuGeV, pList, pList->fluxj) / EnuGeV ;
+	return (1.0-pList->ss2Theta14*pow(sin(pList->delMsqGeV*pList->dist/GEVMETER/4.0/EnuGeV),2))*nuFlux(EnuGeV, pList, pList->fluxj) / EnuGeV ;
 }
 
 //units 1/GeV/s
 double EnuIntegrandOsc2(double EnuGeV, void *pars)
 {
 	paramList *pList = (paramList*)pars;
-	return (1-pList->ss2Theta14*pow(sin(pList->delMsqGeV*pList->source.distance/GEVMETER/4.0/EnuGeV),2))*nuFlux(EnuGeV, pList, pList->fluxj) / ( EnuGeV*EnuGeV ) ;
+	return (1-pList->ss2Theta14*pow(sin(pList->delMsqGeV*pList->dist/GEVMETER/4.0/EnuGeV),2))*nuFlux(EnuGeV, pList, pList->fluxj) / ( EnuGeV*EnuGeV ) ;
 }
 
 //se
-double fluxIntegralOsc(double ErGeV,  paramList *pList, double Mt, int EnuPow, int fluxj)
+double fluxIntegralOsc(double ErGeV,  paramList *pList, double Mt, int EnuPow, int fluxj, double dist)
 {
 	int limit = 3000;
 	double integral,absErr,tol;
-	
+
 	if(FIRSTEVALCNS==0)
 	{
 		W = gsl_integration_workspace_alloc (3000);
@@ -288,7 +286,8 @@ double fluxIntegralOsc(double ErGeV,  paramList *pList, double Mt, int EnuPow, i
 	}
 			 
 	pList->F.params = pList; //yeah, that's not weird..
-	
+    pList->dist = dist;
+    
 	double EnuMinGeV = 0.5 * (ErGeV + sqrt( pow(ErGeV,2) + 2*ErGeV*Mt ) );
     
     pList->fluxj = fluxj;
@@ -301,12 +300,12 @@ double fluxIntegralOsc(double ErGeV,  paramList *pList, double Mt, int EnuPow, i
             integral = 1e-199;
     }
     else
-        gsl_integration_qag(&(pList->F), EnuMinGeV, pList->source.EnuMax[fluxj], tol, 1e-3, limit, 1, W, &integral, &absErr); 
+        gsl_integration_qag(&(pList->F), EnuMinGeV, pList->source.EnuMax[fluxj], tol, 5e-4, limit, 2, W, &integral, &absErr); 
 
     if (integral < 0)        
         return 1e-299;
     else    
-    	return pList->source.nuFluxNorm[fluxj]*integral;
+    	return pList->source.nuFluxNorm[fluxj] * integral / pow(dist,2);
 		
 }
 

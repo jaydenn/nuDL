@@ -14,7 +14,7 @@
 #include "physicalConstants.h"
 
 //returns nu scattering rate per target/day/keV
-double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj, int doOsc)		  
+double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj, double dist, int doOsc)		  
 {
 
 	double ErGeV = ErKeV/GeVtoKeV;
@@ -22,15 +22,15 @@ double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj, int doOsc)
     double intConst, intInvEnu, intInvEnuSq;
     if( doOsc == 1)
     {
-        intConst    = fluxIntegralOsc( ErGeV, pList, Mt,  0, fluxj);
-        intInvEnu   = fluxIntegralOsc( ErGeV, pList, Mt, -1, fluxj);
-        intInvEnuSq = fluxIntegralOsc( ErGeV, pList, Mt, -2, fluxj);
+        intConst    = fluxIntegralOsc( ErGeV, pList, Mt,  0, fluxj, dist);
+        intInvEnu   = fluxIntegralOsc( ErGeV, pList, Mt, -1, fluxj, dist);
+        intInvEnuSq = fluxIntegralOsc( ErGeV, pList, Mt, -2, fluxj, dist);
     }
     else
     {
-        intConst    = fluxIntegral( ErGeV, pList, Mt,  0, fluxj);
-	    intInvEnu   = fluxIntegral( ErGeV, pList, Mt, -1, fluxj);
-	    intInvEnuSq = fluxIntegral( ErGeV, pList, Mt, -2, fluxj);
+        intConst    = fluxIntegral( ErGeV, pList, Mt,  0, fluxj, dist);
+	    intInvEnu   = fluxIntegral( ErGeV, pList, Mt, -1, fluxj, dist);
+	    intInvEnuSq = fluxIntegral( ErGeV, pList, Mt, -2, fluxj, dist);
     }
     
     //return pow(GFERMI,2) / ( M_PI ) * Mt / GeVtoKeV * secsPerDay * (intConst - intInvEnuSq*Mt*ErGeV/2.)*pow(pList->qV,2); //approx calc for testing, could be used to speed up
@@ -43,9 +43,9 @@ double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj, int doOsc)
     
 }
 
-double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj)	
+double nuRate(double ErKeV, paramList *pList, double Mt, int fluxj, double dist)	
 {
-     return nuRate(ErKeV, pList, Mt, fluxj, 0);
+     return nuRate(ErKeV, pList, Mt, fluxj, dist, 0);
 }
 
 

@@ -30,7 +30,7 @@ double sterileRate(double ErKeV, paramList *pList, int detj, int fluxj)
 	    {
 	        pListSM.qA = 4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );	 
 		    pListSM.qV = ( GVN * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + GVP * pList->detectors[detj].isoZ[i] )* ffactorSIhelm( pList->detectors[detj].isoA[i], sqrt(2*pList->detectors[detj].isoA[i]*AMU*ErKeV/GeVtoKeV) );	
-		    rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, AMU*pList->detectors[detj].isoA[i], fluxj, 1);
+		    rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, AMU*pList->detectors[detj].isoA[i], fluxj, pList->detectors[detj].distance, 1);
 	    }	
 	    if(pList->elecScat)
 	    {
@@ -42,17 +42,17 @@ double sterileRate(double ErKeV, paramList *pList, int detj, int fluxj)
 	        {
 		        pListSM.qA = 0.5;
 		        pListSM.qV = 2*SSW+0.5;
-		        rate += pList->source.survProb[fluxj] * (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME, fluxj, 1);
+		        rate += pList->source.survProb[fluxj] * (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME, fluxj, pList->detectors[detj].distance, 1);
 
 		        pListSM.qA = -0.5;
 		        pListSM.qV = 2*SSW-0.5;
-		        rate += (1-pList->source.survProb[fluxj]) * (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME, fluxj, 1);
+		        rate += (1-pList->source.survProb[fluxj]) * (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME, fluxj, pList->detectors[detj].distance, 1);
 		    }
 		    else
 		    {
 		        pListSM.qA = -0.5;
 		        pListSM.qV = 0.5+2*SSW;
-		        rate += (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME, fluxj, 1);
+		        rate += (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME, fluxj, pList->detectors[detj].distance, 1);
 		    }
 		    
 	    }
