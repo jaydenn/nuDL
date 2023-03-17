@@ -13,7 +13,7 @@ double ffactorSIhelm(double A, double q)
 {
     double s = 0.9; //in fm
     double r = sqrt( pow(1.23 * pow(A,1./3.) - 0.6,2) + 7./3.*pow(M_PI,2)*pow(0.52,2)-5*pow(s,2)); //in fm
-    double qr = q*r/HBARCfm;
+    double qr = q*r/HBARCgevfm;
     
-    return 3*( sin(qr) - qr*cos(qr))/pow(qr,3) * exp(-pow(q*s/HBARCfm,2)/2.);
+    return 3*( sin(qr) - qr*cos(qr))/pow(qr,3) * exp(-pow(q*s/HBARCgevfm,2)/2.);
 }
