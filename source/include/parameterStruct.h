@@ -64,6 +64,14 @@ struct paramList {
     double delMsqGeV;
     double ss2Theta14;
     
+    //NSI parameters
+    double epEEuV, epEEdV, epEEuA, epEEdA, epEEeV, epEEeA;
+    double epEMuV, epEMdV, epEMuA, epEMdA, epEMeV, epEMeA;
+    double epETuV, epETdV, epETuA, epETdA, epETeV, epETeA;
+    double epMMuV, epMMdV, epMMuA, epMMdA, epMMeV, epMMeA;
+    double epMTuV, epMTdV, epMTuA, epMTdA, epMTeV, epMTeA;
+    double epTTuV, epTTdV, epTTuA, epTTdA, epTTeV, epTTeA;
+    
     double maxL; 
     int asimov;
     int logBins;
@@ -71,12 +79,14 @@ struct paramList {
     
 	int ndet, detj, fluxj;
 	detector detectors[10];
-	
+	double dist;
+    
 	void printPars()
 	{
    		std::cout << "Conudl configuration:" << std::endl;		
     	std::cout << "  root: " << root << std::endl;
     	std::cout << "  BSM: " << BSM << std::endl;
+        std::cout << "  electron/nuclear scattering: " << elecScat << "/" << nucScat << std::endl;
     	std::cout << "  asimov: " << asimov << std::endl;
     	std::cout << "  logBins: " << logBins << std::endl;
     	//std::cout << "  flux: " << nuFlux << " +/- " << nuFluxUn*100 << "%" << std::endl;

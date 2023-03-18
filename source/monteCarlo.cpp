@@ -197,7 +197,7 @@ int generateBinnedDataSterile(paramList *pList, int detj, int b, int simSeed)
 
     //setup bins ~somewhat arbitrary choice of number of bins.. seems to work for exponential data
     if(total > 0)
-        pList->detectors[detj].nbins = floor( sqrt(  pList->detectors[detj].exposure * total ) ) + 2;
+        pList->detectors[detj].nbins = 10;//floor( sqrt(  pList->detectors[detj].exposure * total ) ) + 2;
     else
         pList->detectors[detj].nbins = 1;
 

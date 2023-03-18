@@ -44,6 +44,11 @@ int calcRates(paramList *pList)
         }
         case 5:
         {
+            BSMname = "NSI";
+            break;
+        }
+        case 6:
+        {
             BSMname = "sterile";
             break;
         }
@@ -55,7 +60,7 @@ int calcRates(paramList *pList)
     
     //output model
     int masskeV = (int)(pList->mMed*1e6);
-    if (pList->BSM != 0 && pList->BSM != 5)
+    if (pList->BSM != 0 && pList->BSM != 5 && pList->BSM != 6)
         std::cout << "\nBSM rate for " << masskeV << " keV "<< BSMname << " mediator\n";
       
     for(int detj=0; detj < pList->ndet; detj++)
@@ -103,7 +108,7 @@ int calcRates(paramList *pList)
             else
                 ErkeV = pList->detectors[detj].ErL + (double)i*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/500;
 
-            if( skip++ % 5 == 0 ) //only print out every fifth value to terminal
+            if( skip++ % 10 == 0 ) //only print out every tenth value to terminal
             {
                 std::cout << "    " << ErkeV << "      " << diffSMrate( ErkeV, pList, detj) << "      " << diffBgRate( pList->detectors[detj], ErkeV);
                 if (pList->BSM != 0)
@@ -156,6 +161,11 @@ int calcRatesThreshold(paramList *pList)
             break;
         }
         case 5:
+        {
+            BSMname = "sterile";
+            break;
+        }
+        case 6:
         {
             BSMname = "sterile";
             break;

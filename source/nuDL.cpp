@@ -43,18 +43,18 @@ int main(int argc, char *argv[])
             }
             else if ( std::strcmp(argv[i], "-i") == 0 )
             {
-                std::cout << "Running Conudl in interactive mode" << std::endl;
+                std::cout << "Running nuDL in interactive mode" << std::endl;
                 mode = interactiveInput(&pList);
             }
             else
             {
-                std::cerr << "Conudl: Invalid input" << std::endl << std::endl;
-                std::cerr << "Usage: ./Conudl " << std::endl;
+                std::cerr << "nuDL: Invalid input" << std::endl << std::endl;
+                std::cerr << "Usage: ./nuDL " << std::endl;
                 std::cerr << "       default (no flags):" << std::endl; 
-                std::cerr << "               (Conudl runs with the default \"config.dat\" parameter file)" << std::endl;
+                std::cerr << "               (nuDL runs with the default \"config.dat\" parameter file)" << std::endl;
                 std::cerr << "       optional flags: " << std::endl; 
-                std::cerr << "               -i          (Conudl starts in interactive mode)" << std::endl;
-                std::cerr << "               -c file.dat (Conudl runs with the specified parameter file)" << std::endl << std::endl;
+                std::cerr << "               -i          (nuDL starts in interactive mode)" << std::endl;
+                std::cerr << "               -c file.dat (nuDL runs with the specified parameter file)" << std::endl << std::endl;
                 break;
             }
         }
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     
 	if ( mode < 1 ) 
     {
-        std::cerr << "Conudl: Problem with configuration, aborting" << std::endl;
+        std::cerr << "nuDL: Problem with configuration, aborting" << std::endl;
         return 0;
     }
 	
@@ -131,6 +131,7 @@ int main(int argc, char *argv[])
         sterileOscillation(&pList);
         return 0;
     }
-    std::cerr << "Conudl: choose a valid mode" << std::endl;
+    
+    std::cerr << "nuDL: choose a valid mode" << std::endl;
     return 0;
 }

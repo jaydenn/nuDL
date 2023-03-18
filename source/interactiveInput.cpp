@@ -199,6 +199,7 @@ int interactiveInput(paramList *pL)
 	    
     int j=1;
     int det;
+    double dist;
     while(ndet>0)
     {
         std::cout << "\nChoose detector " << j << " from list: ";
@@ -231,8 +232,17 @@ int interactiveInput(paramList *pL)
         {
             exp=1;
         }   
-             
-	    if(newDetector(pL, name, exp)) { std::cout << "Could not create detector, exiting" << std::endl; return -1; }
+         std::cout << "Enter distance (in m) for " << name << " detector: ";
+         choose_a_valid_dist_loop:
+            std::getline(std::cin,stdinstr);
+            dist = atof(stdinstr.c_str());
+            
+            if( dist < 0 || std::cin.fail())
+            {
+                std::cout << "\nenter a valid distance: ";
+                goto choose_a_valid_dist_loop;
+            }
+	    if(newDetector(pL, name, exp, dist)) { std::cout << "Could not create detector, exiting" << std::endl; return -1; }
 
         ndet--; j++;
     }    

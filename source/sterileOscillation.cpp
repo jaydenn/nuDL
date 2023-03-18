@@ -276,6 +276,105 @@ double findCoeff3sig_sterile(paramList *pL)
         return pL->ss2Theta14;
 }
 
+
+
+
+
+
+
+
+//new code below
+
+double like0_sterile(const gsl_vector *v, void *params)
+{
+
+    paramList *pL = (paramList *)params;
+    double l = 0;
+
+    pL->ss2Theta14 = gsl_vector_get(v, 0);
+
+    pL->detectors[pL->detj].BgNorm  = gsl_vector_get(v, 1);
+    l += 0.5/pow(pL->detectors[pL->detj].BgUn,2) * pow(pL->detectors[pL->detj].BgNorm - 1,2);
+    
+    
+    for(int i=0; i < pL->source.numFlux; i++)
+    {
+        pL->source.nuFluxNorm[i] = fabs(gsl_vector_get(v, i+2));
+        l += 0.5/pow(pL->source.nuFluxUn[i],2) * pow(pL->source.nuFluxNorm[i] - 1,2);
+    }
+ 
+    l -= logLikelihoodSterile(pL, pL->ss2Theta14, pL->delMsqGeV);
+    //std::cout << l << std::endl;
+    return l;
+
+}
+
+
+
+double findMaxLike0_sterile(paramList *pL, double delMsq)
+{
+
+    size_t iter = 0;
+    int status;
+    
+    const gsl_multimin_fminimizer_type *T;
+    gsl_multimin_fminimizer *s;
+    gsl_multimin_function my_func;
+
+    my_func.f = like0_sterile;
+    my_func.params = (void *)pL;
+
+    //start point
+    gsl_vector *x,*dx;
+    my_func.n = 2 + pL->source.numFlux;
+    
+    x = gsl_vector_alloc (my_func.n);
+    dx = gsl_vector_alloc (my_func.n);
+    gsl_vector_set (x, 0, 0.2);
+    gsl_vector_set(dx, 0, .05);
+    
+    for(int i=1; i < my_func.n; i++)
+    {
+        gsl_vector_set (x, i, 1.0);
+        gsl_vector_set(dx, i, .1);
+    }
+    
+    T = gsl_multimin_fminimizer_nmsimplex2;
+    s = gsl_multimin_fminimizer_alloc (T, my_func.n);
+
+    gsl_multimin_fminimizer_set (s, &my_func, x, dx);
+
+    do
+    {
+        iter++;
+        status = gsl_multimin_fminimizer_iterate (s);
+        std::cout << "       " << iter << " " <<  gsl_vector_get (s->x, 0) << " " << gsl_vector_get (s->x, 1) << " " << gsl_vector_get (s->x, 2)  << " " << s->fval << std::endl; 
+    }
+    while (iter < 800 && gsl_multimin_fminimizer_size(s)/s->fval > 1e-9 && !status);
+    if(iter==800)
+        std::cout << "L0 non-convergence size = " << gsl_multimin_fminimizer_size(s)/s->fval  << " > 1e-9 " <<  std::endl;
+
+    double L0 = s->fval;
+    
+    gsl_multimin_fminimizer_free (s);
+    gsl_vector_free (x);
+    gsl_vector_free (dx);
+    
+    return -L0;
+}
+
+
+
+double T1(paramList *pL, double ss2t, double delMsq)
+{
+    //maximize likelihood
+    double maxL = findMaxLike0_sterile(pL, delMsq);
+    
+    double logLike = logLikelihoodSterile(pL,ss2t,delMsq); //should max. wrt nuisance pars
+    
+    return -2*(logLike - maxL);
+}
+
 void sterileOscillation(paramList *pList)
 {
     std::ofstream outfile;
@@ -285,26 +384,27 @@ void sterileOscillation(paramList *pList)
     //dont do this
     gsl_set_error_handler_off();
     
-    pList->delMsqGeV = 9e-20;
-    double q0;
+    double delMsqGeV = 9e-20;
+    double t1,ss2Theta14;
+    
     //scan mass diff and find theta14 that gives 3sigma
-    while (pList->delMsqGeV<1e-16)
+    while (delMsqGeV<1e-16)
     {
         //findCoeff3sig_sterile(pList);
-        pList->ss2Theta14 = 0.01;
-        while (pList->ss2Theta14<1)
+        ss2Theta14 = 0.01;
+        while (ss2Theta14<1)
         {
             rateInit( pList, 0, 0, &sterileRate, pList->detectors[0].signalBSM1[0]);
             generateBinnedDataSterile( pList, 0, 1, 1);
-            q0 = q0_sterile(pList);
+            t1 = T1(pList, ss2Theta14,delMsqGeV); //q0_sterile(pList);
 
-            std::cout << pList->delMsqGeV  << " " << pList->ss2Theta14 << " " << sqrt(q0) <<  std::endl;
-            outfile   << pList->delMsqGeV  << " " << pList->ss2Theta14 << " " << sqrt(q0) << "\n";
+            std::cout << delMsqGeV  << " " << ss2Theta14 << " " << t1 <<  std::endl;
+            outfile   << delMsqGeV  << " " << ss2Theta14 << " " << t1 << "\n";
             
-            pList->ss2Theta14 *= 1.28;    
+            ss2Theta14 *= 1.28;    
         }
         
-        pList->delMsqGeV  *= 1.28;
+        delMsqGeV  *= 1.28;
     }
     outfile.close();
 }
