@@ -71,7 +71,7 @@ int calcRates(paramList *pList)
         else
             filename += "Rate_ER_";
         
-        filename += BSMname + pList->detectors[detj].name + pList->source.name;
+        filename += BSMname + "_" + pList->detectors[detj].name + "_" + pList->source.name + ".dat";
         outfile.open(filename,std::ios::out);
         
         if( !outfile )
@@ -189,7 +189,7 @@ int calcRatesThreshold(paramList *pList)
         else
             filename += "RateTh_ER_";
         
-        filename += BSMname + pList->detectors[detj].name + pList->source.name;
+       filename += BSMname + "_" + pList->detectors[detj].name + "_" + pList->source.name + ".dat";
         outfile.open(filename,std::ios::out);
         
         if( !outfile )
