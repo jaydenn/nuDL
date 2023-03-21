@@ -65,7 +65,7 @@ struct detector {
     
     detector()
     {
-        nIso=0; AM=-1; isoA[0]=-1; isoFrac[0]=-1; ErL=0; ErU=-1; bg=-1; eff=-1; res=-1, nEvents=0;
+        nIso=0; AM=0; isoA[0]=-1; isoFrac[0]=-1; ErL=0; ErU=-1; bg=-1; eff=-1; res=-1, nEvents=0;
         BgNorm = 1; BgUn = 1e-99;
         
         ionization = new double*[10]();
