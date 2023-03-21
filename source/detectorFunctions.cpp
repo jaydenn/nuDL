@@ -114,8 +114,6 @@ int newDetector(paramList *pList, char *name, double exp, double dist)
  
 		    if(strcmp(temp,"Er")==0)  
 			    err=fscanf(detsINI,"%lf-%lf",&(pList->detectors[pList->ndet].ErL),&(pList->detectors[pList->ndet].ErU)); 
-		    if(strcmp(temp,"AM")==0)  
-			    err=fscanf(detsINI,"%lf",&(pList->detectors[pList->ndet].AM));
             if(strcmp(temp,"bg")==0)  
 			    err=fscanf(detsINI,"%d",&(pList->detectors[pList->ndet].bg));
 			if(strcmp(temp,"bgUn")==0)  
@@ -150,7 +148,9 @@ int newDetector(paramList *pList, char *name, double exp, double dist)
             if ( pList->detectors[pList->ndet].isoJN[pList->detectors[pList->ndet].nIso] < 0.5 )
                 pList->detectors[pList->ndet].isoJN[pList->detectors[pList->ndet].nIso] = 1e-99;
             
+            pList->detectors[pList->ndet].AM+=pList->detectors[pList->ndet].isoA[pList->detectors[pList->ndet].nIso]*pList->detectors[pList->ndet].isoFrac[pList->detectors[pList->ndet].nIso];
 		    pList->detectors[pList->ndet].nIso++;
+            
 		    ret = fgets(temp,500,detsINI);		   
 	    }
 	    ret = fgets(temp,500,detsINI);	
